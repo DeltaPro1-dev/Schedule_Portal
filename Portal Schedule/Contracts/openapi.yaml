@@ -1,0 +1,295 @@
+openapi: 3.1.0
+info:
+  title: Portal Operacional Delta — API
+  version: 1.0.0
+  description: Contrato congelado no Gate G0. Board=dia, List=trabalhador, Card=serviço.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+  - name: Boards
+  - name: Lists
+  - name: Cards
+  - name: Members
+  - name: Exports
+  - name: Audit
+  - name: Integration
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Login com e-mail/senha (+ 2FA opcional)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+                otp: { type: string, description: código TOTP se MFA ativo }
+                remember: { type: boolean }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string }
+                  refreshToken: { type: string }
+                  user: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Error' }
+        '423': { description: Conta bloqueada (lockout) }
+  /auth/recover:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Solicita link de redefinição de senha
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [email], properties: { email: { type: string, format: email } } }
+      responses:
+        '202': { description: Aceito (resposta neutra por segurança) }
+  /auth/logout:
+    post: { tags: [Auth], summary: Encerra a sessão, responses: { '204': { description: OK } } }
+
+  /boards:
+    get:
+      tags: [Boards]
+      summary: Lista boards (dias)
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Board' } }
+    post:
+      tags: [Boards]
+      summary: Cria um board (dia)
+      requestBody:
+        content: { application/json: { schema: { type: object, required: [date, title], properties: { date: { type: string, format: date }, title: { type: string } } } } }
+      responses: { '201': { description: Criado, content: { application/json: { schema: { $ref: '#/components/schemas/Board' } } } } }
+  /boards/{boardId}:
+    get:
+      tags: [Boards]
+      summary: Board completo (lists + cards)
+      parameters: [ { name: boardId, in: path, required: true, schema: { type: string } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BoardDetail' } } } } }
+    patch:
+      tags: [Boards]
+      summary: Atualiza board (status/star/título) — optimistic concurrency
+      parameters: [ { name: boardId, in: path, required: true, schema: { type: string } } ]
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Conflict' } }
+
+  /boards/{boardId}/lists:
+    post:
+      tags: [Lists]
+      summary: Adiciona uma lista (trabalhador) ao board
+      parameters: [ { name: boardId, in: path, required: true, schema: { type: string } } ]
+      requestBody:
+        content: { application/json: { schema: { type: object, required: [name], properties: { name: { type: string }, workerId: { type: string } } } } }
+      responses: { '201': { description: Criado, content: { application/json: { schema: { $ref: '#/components/schemas/List' } } } } }
+
+  /cards:
+    post:
+      tags: [Cards]
+      summary: Cria um serviço (card) em uma lista
+      parameters: [ { name: 'Idempotency-Key', in: header, schema: { type: string } } ]
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/CardInput' } } }
+      responses: { '201': { description: Criado, content: { application/json: { schema: { $ref: '#/components/schemas/Card' } } } } }
+  /cards/{cardId}:
+    get:
+      tags: [Cards]
+      parameters: [ { name: cardId, in: path, required: true, schema: { type: string } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Card' } } } } }
+    patch:
+      tags: [Cards]
+      summary: Atualiza campos/labels/done — optimistic concurrency (envie version)
+      parameters: [ { name: cardId, in: path, required: true, schema: { type: string } } ]
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Conflict' } }
+    delete:
+      tags: [Cards]
+      summary: Soft delete
+      parameters: [ { name: cardId, in: path, required: true, schema: { type: string } } ]
+      responses: { '204': { description: OK } }
+  /cards/{cardId}/move:
+    post:
+      tags: [Cards]
+      summary: Move card entre listas (não altera status)
+      parameters: [ { name: cardId, in: path, required: true, schema: { type: string } } ]
+      requestBody:
+        content: { application/json: { schema: { type: object, required: [toListId, position, version], properties: { toListId: { type: string }, position: { type: number }, version: { type: integer } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Conflict' } }
+  /cards/{cardId}/transition:
+    post:
+      tags: [Cards]
+      summary: Transição de estado do serviço (ver service-state-machine.md)
+      parameters: [ { name: cardId, in: path, required: true, schema: { type: string } } ]
+      requestBody:
+        content: { application/json: { schema: { type: object, required: [to], properties: { to: { type: string, enum: [scheduled,assigned,in_progress,on_hold,completed,rework,invoiced,paid,cancelled] } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Error' }, '409': { $ref: '#/components/responses/Conflict' } }
+
+  /members:
+    get: { tags: [Members], summary: Lista membros, responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Member' } } } } } } }
+    post:
+      tags: [Members]
+      summary: Convida membro (role + região)
+      responses: { '201': { description: Convite enviado } }
+
+  /exports:
+    get: { tags: [Exports], summary: Lista exports, responses: { '200': { description: OK } } }
+    post:
+      tags: [Exports]
+      summary: Cria export assíncrono (CSV/XLSX/PDF/JSON)
+      requestBody:
+        content: { application/json: { schema: { type: object, required: [reportType, format], properties: { reportType: { type: string }, format: { type: string, enum: [csv,xlsx,pdf,json] }, params: { type: object } } } } }
+      responses: { '202': { description: Enfileirado, content: { application/json: { schema: { $ref: '#/components/schemas/Export' } } } } }
+
+  /audit:
+    get:
+      tags: [Audit]
+      summary: Log de auditoria (filtros por usuário/período/ação)
+      parameters:
+        - { name: actor, in: query, schema: { type: string } }
+        - { name: verb, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: page, in: query, schema: { type: integer } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Paged' } } } } }
+
+  /integration/events:
+    get: { tags: [Integration], summary: Fila de eventos Field Control, responses: { '200': { description: OK } } }
+  /integration/events/{id}/reprocess:
+    post:
+      tags: [Integration]
+      summary: Reprocessa evento em retry/DLQ
+      parameters: [ { name: id, in: path, required: true, schema: { type: string } } ]
+      responses: { '202': { description: Reenfileirado } }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  responses:
+    Error:
+      description: Erro
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Conflict:
+      description: Conflito de versão (optimistic concurrency)
+      content: { application/json: { schema: { type: object, properties: { error: { $ref: '#/components/schemas/Error' }, serverObject: { type: object } } } } }
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string, enum: [VALIDATION, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, CONFLICT, RATE_LIMITED, INTERNAL] }
+            message: { type: string }
+            details: { type: object }
+    Paged:
+      type: object
+      properties:
+        data: { type: array, items: { type: object } }
+        page: { type: integer }
+        pageSize: { type: integer }
+        total: { type: integer }
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string }
+        region: { type: string }
+    Member:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            status: { type: string, enum: [active, invited, disabled] }
+    Board:
+      type: object
+      properties:
+        id: { type: string }
+        date: { type: string, format: date }
+        title: { type: string }
+        status: { type: string, enum: [open, closed] }
+        starred: { type: boolean }
+        workerCount: { type: integer }
+        version: { type: integer }
+    BoardDetail:
+      allOf:
+        - $ref: '#/components/schemas/Board'
+        - type: object
+          properties:
+            lists: { type: array, items: { $ref: '#/components/schemas/List' } }
+            cards: { type: array, items: { $ref: '#/components/schemas/Card' } }
+    List:
+      type: object
+      properties:
+        id: { type: string }
+        boardId: { type: string }
+        workerId: { type: string, nullable: true }
+        name: { type: string }
+        position: { type: number }
+        isPool: { type: boolean }
+        version: { type: integer }
+    Label:
+      type: object
+      properties:
+        key: { type: string }
+        name: { type: string }
+        color: { type: string }
+        kind: { type: string, enum: [region, type, schedule] }
+    CardInput:
+      type: object
+      required: [boardId, listId]
+      properties:
+        boardId: { type: string }
+        listId: { type: string }
+        rawTitle: { type: string, description: texto livre para card manual }
+        scheduledTime: { type: string }
+        clientId: { type: string }
+        clientText: { type: string }
+        building: { type: string }
+        plan: { type: string }
+        lot: { type: string }
+        serviceType: { type: string }
+        address: { type: string }
+        finContact: { type: string }
+        psNote: { type: string }
+        labelKeys: { type: array, items: { type: string } }
+    Card:
+      allOf:
+        - $ref: '#/components/schemas/CardInput'
+        - type: object
+          properties:
+            id: { type: string }
+            status: { type: string }
+            done: { type: boolean }
+            position: { type: number }
+            labels: { type: array, items: { $ref: '#/components/schemas/Label' } }
+            commentsCount: { type: integer }
+            attachmentsCount: { type: integer }
+            version: { type: integer }
+    Export:
+      type: object
+      properties:
+        id: { type: string }
+        reportType: { type: string }
+        format: { type: string }
+        status: { type: string, enum: [queued, processing, done, failed] }
+        rowCount: { type: integer }
+        createdAt: { type: string, format: date-time }

@@ -40,13 +40,8 @@ export default function Login({ onEnter }) {
         background: 'linear-gradient(150deg,var(--navy),var(--navy-2))', color: '#fff',
         display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '52px 56px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
-          <img src="/delta-mark.png" alt="Delta" style={{ width: 44, height: 44, objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.96 }} />
-          <div>
-            <div style={{ fontFamily: 'var(--disp)', fontSize: 20, fontWeight: 700, letterSpacing: '-0.01em' }}>Delta Pro Clean</div>
-            <div style={{ fontSize: 12, opacity: 0.7, letterSpacing: '0.02em' }}>With Us You Shine!</div>
-          </div>
-        </div>
+        <img src="/logo-horizontal-white.png" alt="Delta Pro Clean — With Us You Shine!"
+          style={{ height: 64, width: 'auto', maxWidth: '100%', objectFit: 'contain', alignSelf: 'flex-start' }} />
         <div>
           <h1 style={{ fontFamily: 'var(--disp)', fontSize: 40, fontWeight: 600, lineHeight: 1.1, margin: '0 0 20px', letterSpacing: '-0.02em' }}>Operational Portal</h1>
           <p style={{ fontSize: 16, lineHeight: 1.55, opacity: 0.82, maxWidth: '38ch', margin: 0 }}>

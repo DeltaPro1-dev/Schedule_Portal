@@ -13,11 +13,7 @@ export default function TopNav({ view, onNavigate, onLogout, demo }) {
       flex: 'none', display: 'flex', alignItems: 'center', gap: 14,
       padding: '16px 34px', background: 'var(--surface)', borderBottom: '1px solid var(--line)',
     }}>
-      <img src="/delta-mark.png" alt="Delta" style={{ width: 34, height: 34, objectFit: 'contain' }} />
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--disp)', fontSize: 17, fontWeight: 700, color: 'var(--navy)', lineHeight: 1.05, letterSpacing: '-0.01em' }}>Delta Pro Clean</div>
-        <div style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.02em' }}>With Us You Shine!</div>
-      </div>
+      <img src="/logo-horizontal.png" alt="Delta Pro Clean" style={{ height: 34, width: 'auto', objectFit: 'contain' }} />
       {demo && <span style={{ marginLeft: 6, background: 'var(--green-soft)', color: 'var(--green-ink)', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 }}>demo · mock data</span>}
       <div style={{ flex: 1 }} />
       <nav style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

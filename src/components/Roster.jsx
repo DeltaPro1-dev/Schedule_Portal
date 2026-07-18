@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../lib/api.js'
-import { initials, avatarStyle } from '../lib/present.js'
+import { avatarStyle } from '../lib/present.js'
 import SectionHeader, { sectionScroll, eyebrow, panel, navyBtn } from './SectionHeader.jsx'
 
 const REGION_OPTS = [['north', 'North'], ['south', 'South'], ['st_george', 'St George'], ['another', 'Another State']]
@@ -19,14 +19,15 @@ export default function Roster({ onBack }) {
   useEffect(() => { api.getRoster().then(setList) }, [])
   const filtered = useMemo(() => (list || []).filter((w) => w.name.toLowerCase().includes(search.toLowerCase())), [list, search])
 
-  function add() {
+  async function add() {
     const n = name.trim(); if (!n) return
     const kind = /llc|services|cleaning|inc\b/i.test(n) ? 'company' : 'employee'
-    setList((l) => [{ id: 'wnew' + l.length, name: n, initials: initials(n), region, kind, access: 'none' }, ...l])
     setName('')
+    const w = await api.addWorker({ name: n, region, kind })
+    setList((l) => [w, ...l])
   }
-  const patch = (id, p) => setList((l) => l.map((w) => (w.id === id ? { ...w, ...p } : w)))
-  const remove = (id) => setList((l) => l.filter((w) => w.id !== id))
+  const patch = (id, p) => { setList((l) => l.map((w) => (w.id === id ? { ...w, ...p } : w))); api.updateWorker(id, p) }
+  const remove = (id) => { setList((l) => l.filter((w) => w.id !== id)); api.removeWorker(id) }
 
   return (
     <>

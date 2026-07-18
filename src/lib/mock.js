@@ -81,6 +81,21 @@ const WD_SHORT = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const WD_FULL = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
 const MON3 = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
+// derive date/month from a board title like "JUL/19/26 · SATURDAY"
+function parseTitleDate(title) {
+  const m = String(title || '').match(/([A-Za-z]{3})\/(\d{1,2})\/(\d{2})/)
+  if (m) {
+    const mon = MON3.indexOf(m[1].toUpperCase())
+    if (mon >= 0) {
+      const y = 2000 + Number(m[3])
+      const dd = String(m[2]).padStart(2, '0')
+      const mm = String(mon + 1).padStart(2, '0')
+      return { date: `${y}-${mm}-${dd}`, month: `${y}-${mm}` }
+    }
+  }
+  return { date: '2026-07-25', month: '2026-07' }
+}
+
 function monthDays(year, monthIdx, key, baseHue, closed) {
   const r = rng(seedOf(key))
   const out = []
@@ -189,6 +204,22 @@ export const mockApi = {
     }
   },
   async getRoster() { await wait(); return getRosterList().map(clone) },
+  async addWorker({ name, region, kind }) {
+    await wait()
+    const w = { id: nid('w'), name, initials: initials(name), region, kind, access: 'none', active: true }
+    getRosterList().unshift(w)
+    return clone(w)
+  },
+  async updateWorker(id, patch) {
+    await wait()
+    const w = getRosterList().find((x) => x.id === id)
+    if (w) Object.assign(w, patch)
+    return w ? clone(w) : null
+  },
+  async removeWorker(id) {
+    await wait()
+    roster = getRosterList().filter((x) => x.id !== id)
+  },
   async getMembers() { await wait(); return MEMBERS.map(clone) },
   async getPermMatrix() {
     await wait()
@@ -263,9 +294,16 @@ export const mockApi = {
   // ── mutations (act on the board cache) ─────────────────────────────────────
   async addBoard({ title }) {
     await wait()
-    const b = { id: nid('b'), date: '2026-07-31', title: title || 'New board', month: '2026-07', status: 'open', starred: false, cover_hue: 210, workerCount: 0 }
+    const p = parseTitleDate(title)
+    const b = { id: nid('b'), date: p.date, title: title || 'New board', month: p.month, status: 'open', starred: false, cover_hue: 210, workerCount: 0 }
     allBoards().unshift(b)
-    boardCache[b.id] = { board: b, lists: [{ id: nid('l'), board_id: b.id, worker_id: 'pool', name: 'DELTA OFFICE / WAREHOUSE', position: 0, is_pool: true, version: 1 }], cards: [], vendors: [] }
+    // auto-generate columns: pool + one list per active employee (roster)
+    const emps = getRosterList().filter((w) => w.kind === 'employee' && w.active !== false).slice(0, 40)
+    const cos = getRosterList().filter((w) => w.kind === 'company').slice(0, 13)
+    const lists = [{ id: nid('l'), board_id: b.id, worker_id: 'pool', name: 'DELTA OFFICE / WAREHOUSE', position: 0, is_pool: true, version: 1 }]
+    emps.forEach((w, i) => lists.push({ id: nid('l'), board_id: b.id, worker_id: w.id, name: w.name, position: i + 1, is_pool: false, version: 1 }))
+    b.workerCount = emps.length
+    boardCache[b.id] = { board: b, lists, cards: [], vendors: cos.map((c) => c.name) }
     return clone(b)
   },
   async addList({ board_id, name }) {

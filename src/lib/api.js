@@ -4,6 +4,7 @@
 
 import { supabase } from './supabase.js'
 import { mockApi } from './mock.js'
+import { initials } from './present.js'
 
 export const configured =
   !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -19,6 +20,27 @@ function mapCard(row) {
   }
 }
 
+let _orgId
+async function myOrg() {
+  if (_orgId) return _orgId
+  const { data, error } = await supabase.rpc('my_org')
+  if (error) throw error
+  _orgId = data
+  return _orgId
+}
+
+const MONTHS3 = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 }
+function parseBoardDate(title) {
+  const m = String(title || '').match(/([A-Za-z]{3})\/(\d{1,2})\/(\d{2})/)
+  if (!m) return null
+  const mon = MONTHS3[m[1].toLowerCase()]
+  if (mon == null) return null
+  const y = 2000 + Number(m[3])
+  const dd = String(m[2]).padStart(2, '0')
+  const mm = String(mon + 1).padStart(2, '0')
+  return { date: `${y}-${mm}-${dd}`, month: `${y}-${mm}` }
+}
+
 const realApi = {
   async getBoards() {
     const { data, error } = await supabase
@@ -26,11 +48,12 @@ const realApi = {
       .select('*, lists(count)')
       .order('date', { ascending: false })
     if (error) throw error
-    return data.map((b) => ({ ...b, workerCount: b.lists?.[0]?.count ?? 0 }))
+    // subtract the pool list (one per board) from the worker count
+    return data.map((b) => ({ ...b, workerCount: Math.max(0, (b.lists?.[0]?.count ?? 0) - 1) }))
   },
 
   async getBoardDetail(boardId) {
-    const [{ data: board, error: be }, { data: lists, error: le }, { data: cards, error: ce }] =
+    const [{ data: board, error: be }, { data: lists, error: le }, { data: cards, error: ce }, { data: cos }] =
       await Promise.all([
         supabase.from('boards').select('*').eq('id', boardId).single(),
         supabase.from('lists').select('*').eq('board_id', boardId).order('position'),
@@ -40,25 +63,67 @@ const realApi = {
           .eq('board_id', boardId)
           .is('deleted_at', null)
           .order('position'),
+        supabase.from('workers').select('name').eq('kind', 'company').is('deleted_at', null).limit(20),
       ])
     if (be || le || ce) throw be || le || ce
-    return { board, lists, cards: cards.map(mapCard) }
+    return { board, lists, cards: cards.map(mapCard), vendors: (cos || []).map((c) => c.name) }
   },
 
   async addBoard({ title, date, month, cover_hue }) {
+    const parsed = !date || !month ? parseBoardDate(title) : null
+    const d = date || parsed?.date
+    const mo = month || parsed?.month
+    if (!d || !mo) throw new Error('Include the date in the title, e.g. "JUL/19/26 · SATURDAY"')
     const { data, error } = await supabase
       .from('boards')
-      .insert({ title, date, month, cover_hue })
+      .insert({ organization_id: await myOrg(), title, date: d, month: mo, cover_hue: cover_hue ?? 210 })
       .select()
       .single()
+    if (error) {
+      if (error.code === '23505') throw new Error(`A board for ${d} already exists — open it from Boards.`)
+      throw error
+    }
+    // auto-generate columns: the pool + one list per active employee (roster)
+    const org = await myOrg()
+    const { data: workers } = await supabase
+      .from('workers').select('id,name')
+      .eq('kind', 'employee').eq('active', true).is('deleted_at', null)
+      .order('name')
+    const lists = [{ organization_id: org, board_id: data.id, name: 'DELTA OFFICE / WAREHOUSE', position: 0, is_pool: true }]
+    ;(workers || []).forEach((w, i) => lists.push({ organization_id: org, board_id: data.id, worker_id: w.id, name: w.name, position: i + 1, is_pool: false }))
+    const { error: le } = await supabase.from('lists').insert(lists)
+    if (le) throw le
+    return { ...data, workerCount: (workers || []).length }
+  },
+
+  async getRoster() {
+    const { data, error } = await supabase.from('workers').select('*').is('deleted_at', null).order('name')
     if (error) throw error
-    return data
+    return (data || []).map((w) => ({ ...w, initials: w.initials || initials(w.name) }))
+  },
+  async addWorker({ name, region, kind }) {
+    const org = await myOrg()
+    const { data, error } = await supabase
+      .from('workers').insert({ organization_id: org, name, region, kind, initials: initials(name) })
+      .select().single()
+    if (error) throw error
+    return { ...data, initials: data.initials || initials(data.name) }
+  },
+  async updateWorker(id, patch) {
+    const { error } = await supabase.from('workers').update(patch).eq('id', id)
+    if (error) throw error
+  },
+  async removeWorker(id) {
+    const { error } = await supabase.from('workers').update({ deleted_at: new Date().toISOString() }).eq('id', id)
+    if (error) throw error
   },
 
   async addList({ board_id, name }) {
+    const org = await myOrg()
+    const { count } = await supabase.from('lists').select('id', { count: 'exact', head: true }).eq('board_id', board_id)
     const { data, error } = await supabase
       .from('lists')
-      .insert({ board_id, name })
+      .insert({ organization_id: org, board_id, name, position: count ?? 0 })
       .select()
       .single()
     if (error) throw error
@@ -66,9 +131,11 @@ const realApi = {
   },
 
   async addCard({ board_id, list_id, raw_title, ...fields }) {
+    const org = await myOrg()
+    const { count } = await supabase.from('cards').select('id', { count: 'exact', head: true }).eq('list_id', list_id)
     const { data, error } = await supabase
       .from('cards')
-      .insert({ board_id, list_id, raw_title: raw_title || null, ...fields })
+      .insert({ organization_id: org, board_id, list_id, position: count ?? 0, raw_title: raw_title || null, ...fields })
       .select('*, client:clients(*), card_labels(label:labels(*))')
       .single()
     if (error) throw error
@@ -92,9 +159,10 @@ const realApi = {
   },
 
   async toggleDone(cardId, current) {
+    const done = !current
     const { data, error } = await supabase
       .from('cards')
-      .update({ done: !current })
+      .update(done ? { done: true, status: 'completed' } : { done: false })
       .eq('id', cardId)
       .select()
       .single()

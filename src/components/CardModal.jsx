@@ -8,7 +8,7 @@ export default function CardModal({ card, listName, canEdit, onChanged, onClose 
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const { head, body } = cardHeadBody(card)
-  const meta = STATUS_META[card.status]
+  const meta = STATUS_META[card.status] || { label: card.status || 'unknown', color: 'var(--muted)' }
   const fields = cardFields(card)
 
   async function run(fn) {

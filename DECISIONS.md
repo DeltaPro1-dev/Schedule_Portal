@@ -46,3 +46,30 @@ transport/infra maps onto Supabase primitives.
 Expense Portal, and the sheets→Supabase sync. `auth.users` and `public` are shared
 across all of them, so **Schedule_Portal keeps ALL its objects in its own
 `schedule_portal` schema** and never touches `public.*` or existing global functions.
+
+---
+
+## G1.1 — Realized build & review fixes (2026-07-17)
+The G1 app was built and taken end-to-end against real Supabase.
+
+**Front-end:** all 9 screens from the Claude Design handoff ported to React (Login,
+Gallery, Board, Card modal, Roster/Employees, Members+RBAC, Exports, Integration,
+Audit). Data layer (`src/lib/api.js`) switches mock ↔ Supabase by env.
+
+**Verified against real Supabase:** publishable API key (the legacy `anon` JWT is
+disabled on this project), `schedule_portal` exposed, migrations applied, membership
+seeded → auth + provisioning + board read + create (RLS) all working.
+
+**Roster → board auto-generation:** creating a board now auto-generates the pool list
+plus one column per active employee in `schedule_portal.workers` (per the G0 spec
+"new board creates one list per active worker"). The Employees screen persists to
+`workers`. Demo caps generation at 40 columns.
+
+**Review fixes** (from the PR self-review) applied in code and in
+`0005_review_fixes.sql`: real-mode creates now set `organization_id`/date/month/
+position; `getBoardDetail` returns `vendors`; empty-gallery guard; status/loading
+guards; audit-insert policy removed (RPC-only, non-forgeable); `done` no longer resets
+on invoiced/paid.
+
+**Deferred (documented, not blocking):** Realtime, attachment upload UI, wiring the
+admin screens to real endpoints, finer RBAC region/role enforcement in RLS.

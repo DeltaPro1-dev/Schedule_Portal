@@ -19,12 +19,13 @@ export default function Gallery({ onOpenBoard, onCreateBoard }) {
   const [creating, setCreating] = useState(false)
   const [text, setText] = useState('')
   const [openArchive, setOpenArchive] = useState(null)
+  const [err, setErr] = useState('')
 
   const load = () => api.getBoards().then(setBoards)
   useEffect(() => { load() }, [])
   if (!boards) return <div style={{ padding: 40, color: 'var(--faint)' }}>Loading boards…</div>
 
-  const currentMonth = boards.map((b) => b.month).sort().reverse()[0]
+  const currentMonth = boards.length ? boards.map((b) => b.month).sort().reverse()[0] : null
   const current = boards.filter((b) => b.month === currentMonth)
   const archived = {}
   for (const b of boards.filter((b) => b.month !== currentMonth)) (archived[b.month] ??= []).push(b)
@@ -33,9 +34,14 @@ export default function Gallery({ onOpenBoard, onCreateBoard }) {
   async function submit() {
     const t = text.trim()
     if (!t) { setCreating(false); return }
-    setText(''); setCreating(false)
-    await onCreateBoard(t)
-    load()
+    setErr('')
+    try {
+      await onCreateBoard(t)
+      setText(''); setCreating(false)
+      load()
+    } catch (e) {
+      setErr(String(e?.message || e))
+    }
   }
 
   const BoardCard = (b) => (
@@ -56,8 +62,8 @@ export default function Gallery({ onOpenBoard, onCreateBoard }) {
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '30px 34px 60px' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 20 }}>
-        <h1 style={{ fontFamily: 'var(--disp)', fontSize: 22, fontWeight: 600, margin: 0, letterSpacing: '-0.01em' }}>{monthLabel(currentMonth)}</h1>
-        <span style={{ fontSize: 13, color: 'var(--muted)' }}>current month · one board per operating day</span>
+        <h1 style={{ fontFamily: 'var(--disp)', fontSize: 22, fontWeight: 600, margin: 0, letterSpacing: '-0.01em' }}>{currentMonth ? monthLabel(currentMonth) : 'Boards'}</h1>
+        <span style={{ fontSize: 13, color: 'var(--muted)' }}>{currentMonth ? 'current month · one board per operating day' : 'no boards yet — create your first below'}</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18, maxWidth: 1180 }}>
@@ -70,8 +76,9 @@ export default function Gallery({ onOpenBoard, onCreateBoard }) {
               style={{ width: '100%', border: '1px solid var(--line)', background: 'var(--surface-2)', borderRadius: 9, padding: '11px 12px', fontFamily: 'var(--sans)', fontSize: 13, outline: 'none' }} />
             <div style={{ display: 'flex', gap: 7 }}>
               <button onClick={submit} style={{ background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: 9, padding: '9px 15px', fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Create</button>
-              <button onClick={() => setCreating(false)} style={{ background: 'none', border: '1px solid var(--line)', borderRadius: 9, padding: '9px 13px', fontSize: 13, color: 'var(--muted)', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setCreating(false); setErr('') }} style={{ background: 'none', border: '1px solid var(--line)', borderRadius: 9, padding: '9px 13px', fontSize: 13, color: 'var(--muted)', cursor: 'pointer' }}>Cancel</button>
             </div>
+            {err && <div style={{ fontSize: 12, color: '#b91c1c', lineHeight: 1.4 }}>{err}</div>}
           </div>
         ) : (
           <div onClick={() => setCreating(true)} className="h-dash" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 170, border: '1.5px dashed var(--line)', borderRadius: 12, color: 'var(--muted)', fontSize: 13, cursor: 'pointer', background: 'var(--surface-2)' }}>+ Create new board</div>

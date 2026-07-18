@@ -14,7 +14,8 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
   const canEdit = acting !== 'none'
 
   const load = useCallback(async () => setDetail(await api.getBoardDetail(boardId)), [boardId])
-  useEffect(() => { setDetail(null); load() }, [load, cardVersion])
+  useEffect(() => { setDetail(null); load() }, [load])              // reset only when the board changes
+  useEffect(() => { if (cardVersion) load() }, [cardVersion])       // silent refresh after edits (no blank)
 
   if (!detail) return <div style={{ padding: 30, color: 'var(--faint)' }}>Loading board…</div>
   const { board, lists, cards, vendors = [] } = detail
@@ -183,7 +184,7 @@ function Column({ navy, list, cards, canEdit, onDropCard, onOpenCard, adding, ca
 
 function CardTile({ card, navy, listName, onOpen, onToggle, canEdit }) {
   const { head, body } = cardHeadBody(card)
-  const meta = STATUS_META[card.status]
+  const meta = STATUS_META[card.status] || { label: card.status || 'unknown', color: 'var(--muted)' }
   if (navy) {
     return (
       <article draggable={canEdit} onDragStart={(e) => e.dataTransfer.setData('text/card-id', card.id)} onClick={() => onOpen(card.id)}

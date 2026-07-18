@@ -1,0 +1,55 @@
+@import 'tailwindcss';
+
+/* ============================================================
+   Design tokens — verbatim from the Claude Design handoff
+   (Portal Schedule/Portal Delta standalone-src.dc.html)
+   ============================================================ */
+:root {
+  --bg: #f3f4f7;
+  --surface: #ffffff;
+  --surface-2: #fafafc;
+  --ink: #1c1b2e;
+  --ink-2: #3f3d55;
+  --muted: #75748a;
+  --faint: #a0a0b2;
+  --line: #e8e8ef;
+  --line-2: #f0f0f5;
+
+  /* Official brand palette — Manual_ID_Delta_Pro_Clean (docs/brand) */
+  --navy: #393766;        /* Azul Marinho · Pantone 276 · R57 G55 B102 */
+  --navy-2: #4c4a83;      /* lighter, for gradients */
+  --navy-soft: #ececf4;   /* light tint (badges/backgrounds) */
+  --navy-ink: #2b2950;    /* darker (hover/text) */
+
+  --green: #57b952;       /* Verde · Pantone 362 · R87 G185 B82 */
+  --green-ink: #3d8a39;   /* darker, for text/badges on light */
+  --green-soft: #e9f5e8;  /* light tint (badges/backgrounds) */
+
+  --disp: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; padding: 0; }
+body { font-family: var(--sans); background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+a { color: var(--navy); text-decoration: none; }
+a:hover { color: var(--navy-ink); }
+
+::-webkit-scrollbar { height: 11px; width: 11px; }
+::-webkit-scrollbar-thumb { background: #d6d6e0; border-radius: 6px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: #c4c4d2; background-clip: padding-box; }
+
+.clamp { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* hover helpers (React inline styles can't do :hover) */
+.h-navy:hover { background: var(--navy-ink) !important; }
+.h-surface2:hover { background: var(--surface-2) !important; }
+.h-navysoft:hover { background: var(--navy-soft) !important; color: var(--navy) !important; }
+.h-line2:hover { background: var(--line-2) !important; color: var(--ink-2) !important; }
+.h-lift { transition: transform .12s ease, box-shadow .12s ease; }
+.h-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(28,27,46,0.14); }
+.h-card:hover { border-color: #cfcfda !important; box-shadow: 0 3px 11px rgba(28,27,46,0.09); }
+.h-dash:hover { border-color: var(--navy) !important; color: var(--navy) !important; }
+.h-poolcard:hover { background: rgba(255,255,255,0.14) !important; }
+input:focus, select:focus { border-color: var(--navy); background: #fff; }

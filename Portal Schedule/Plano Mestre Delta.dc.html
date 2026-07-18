@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f3ee; --panel:#ece9e1; --ink:#1b1a17; --ink-soft:#3a382f; --muted:#77746a; --line:#d8d4c8;
+    --front:oklch(0.55 0.13 255); --front-soft:oklch(0.93 0.03 255);
+    --back:oklch(0.55 0.12 152); --back-soft:oklch(0.93 0.03 152);
+    --accent:oklch(0.62 0.15 55);
+    --disp:'Space Grotesk',sans-serif; --sans:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
+    --type-mega:210px; --type-title:74px; --type-h:52px; --type-subtitle:38px; --type-body:31px; --type-small:25px; --type-label:22px;
+    --pad-x:112px; --pad-y:92px;
+  }
+  *{text-wrap:pretty;}
+  a{color:var(--front);} a:hover{color:var(--ink);}
+</style>
+</helmet>
+<x-import component-from-global-scope="deck-stage" from="./deck-stage.js" width="1920" height="1080" hint-size="100%,100%">
+
+<section data-label="Capa" data-speaker-notes="Abrir apresentando o objetivo: coordenar dois agentes de IA especializados — Design (front) e Code (back) — em torno de um contrato congelado, para construir o Portal Operacional Delta sem retrabalho." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;justify-content:space-between;background:var(--ink);color:var(--bg);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+    <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.14em;text-transform:uppercase;color:var(--bg);opacity:0.7;">Plano Mestre · Master Plan</div>
+    <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.14em;text-transform:uppercase;color:var(--bg);opacity:0.7;">v1 · Fase 0</div>
+  </div>
+  <div style="display:flex;align-items:flex-end;gap:56px;">
+    <div style="font-family:var(--disp);font-weight:700;font-size:260px;line-height:0.8;color:var(--accent);">Δ</div>
+    <div>
+      <h1 style="font-family:var(--disp);font-weight:700;font-size:var(--type-title);line-height:1.02;margin:0 0 28px;letter-spacing:-0.02em;">Portal Operacional Delta</h1>
+      <p style="font-size:var(--type-subtitle);line-height:1.25;margin:0;color:var(--bg);max-width:20ch;">Coordenação entre Claude Design e Claude Code</p>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid rgba(245,243,238,0.22);padding-top:32px;">
+    <div style="font-size:var(--type-small);color:var(--bg);opacity:0.8;max-width:44ch;">Dois agentes especializados, um contrato compartilhado congelado.<br><span style="font-family:var(--mono);opacity:0.6;">Two specialized agents, one frozen shared contract.</span></div>
+    <div style="font-family:var(--mono);font-size:var(--type-small);opacity:0.7;">Front-end × Back-end</div>
+  </div>
+</section>
+
+<section data-label="O desafio" data-speaker-notes="O prompt original tratava tudo como um único agente. Ao dividir em dois, surgem três riscos — e cada um tem uma solução estrutural embutida no plano." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;">O desafio · The challenge</div>
+  <h2 style="font-family:var(--disp);font-weight:700;font-size:var(--type-h);line-height:1.05;margin:0 0 56px;max-width:26ch;letter-spacing:-0.01em;">Dividir o trabalho em dois agentes cria três riscos</h2>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:40px;flex:1;">
+    <div style="display:flex;flex-direction:column;background:var(--panel);border-radius:4px;padding:44px 40px;">
+      <div style="font-family:var(--mono);font-size:60px;color:var(--accent);font-weight:600;margin-bottom:24px;">01</div>
+      <h3 style="font-family:var(--disp);font-size:34px;font-weight:600;margin:0 0 16px;line-height:1.1;">Divergência de contrato</h3>
+      <p style="font-size:var(--type-small);color:var(--ink-soft);line-height:1.4;margin:0 0 auto;">Front e back inventam campos, endpoints e regras diferentes.</p>
+      <div style="font-family:var(--mono);font-size:20px;color:var(--front);border-top:1px solid var(--line);padding-top:20px;margin-top:28px;line-height:1.4;">→ Contrato congelado antes da execução</div>
+    </div>
+    <div style="display:flex;flex-direction:column;background:var(--panel);border-radius:4px;padding:44px 40px;">
+      <div style="font-family:var(--mono);font-size:60px;color:var(--accent);font-weight:600;margin-bottom:24px;">02</div>
+      <h3 style="font-family:var(--disp);font-size:34px;font-weight:600;margin:0 0 16px;line-height:1.1;">Bloqueio em cascata</h3>
+      <p style="font-size:var(--type-small);color:var(--ink-soft);line-height:1.4;margin:0 0 auto;">O front para de avançar enquanto espera o back ficar pronto.</p>
+      <div style="font-family:var(--mono);font-size:20px;color:var(--front);border-top:1px solid var(--line);padding-top:20px;margin-top:28px;line-height:1.4;">→ Front usa mocks; back testa API sem UI</div>
+    </div>
+    <div style="display:flex;flex-direction:column;background:var(--panel);border-radius:4px;padding:44px 40px;">
+      <div style="font-family:var(--mono);font-size:60px;color:var(--accent);font-weight:600;margin-bottom:24px;">03</div>
+      <h3 style="font-family:var(--disp);font-size:34px;font-weight:600;margin:0 0 16px;line-height:1.1;">Integração tardia</h3>
+      <p style="font-size:var(--type-small);color:var(--ink-soft);line-height:1.4;margin:0 0 auto;">Incompatibilidades só aparecem no fim, quando são caras.</p>
+      <div style="font-family:var(--mono);font-size:20px;color:var(--front);border-top:1px solid var(--line);padding-top:20px;margin-top:28px;line-height:1.4;">→ Syncs S1–S5 com validação cruzada</div>
+    </div>
+  </div>
+</section>
+
+<section data-label="Papéis" data-speaker-notes="Cada agente tem escopo, consumo e produção bem definidos — e uma lista explícita do que NUNCA faz. É isso que impede sobreposição e vazamento de responsabilidade." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;">Papéis · Roles</div>
+  <h2 style="font-family:var(--disp);font-weight:700;font-size:var(--type-h);line-height:1.05;margin:0 0 48px;letter-spacing:-0.01em;">Dois escopos que não se sobrepõem</h2>
+  <div style="display:grid;grid-template-columns:200px 1fr 1fr;gap:0;flex:1;border-top:2px solid var(--ink);">
+    <div style="padding:26px 24px 26px 0;"></div>
+    <div style="padding:26px 32px;border-left:1px solid var(--line);"><div style="font-family:var(--disp);font-size:32px;font-weight:700;color:var(--front);">Claude Design</div><div style="font-family:var(--mono);font-size:20px;color:var(--muted);margin-top:4px;">FRONT-END</div></div>
+    <div style="padding:26px 32px;border-left:1px solid var(--line);"><div style="font-family:var(--disp);font-size:32px;font-weight:700;color:var(--back);">Claude Code</div><div style="font-family:var(--mono);font-size:20px;color:var(--muted);margin-top:4px;">BACK-END</div></div>
+
+    <div style="padding:24px 24px 24px 0;border-top:1px solid var(--line);font-family:var(--mono);font-size:20px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);">Escopo</div>
+    <div style="padding:24px 32px;border-top:1px solid var(--line);border-left:1px solid var(--line);font-size:var(--type-small);line-height:1.35;">UX, design system, componentes, telas, protótipo, front funcional</div>
+    <div style="padding:24px 32px;border-top:1px solid var(--line);border-left:1px solid var(--line);font-size:var(--type-small);line-height:1.35;">Dados, API, auth, RBAC, audit, exports, integrações, infra</div>
+
+    <div style="padding:24px 24px 24px 0;border-top:1px solid var(--line);font-family:var(--mono);font-size:20px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);">Produz</div>
+    <div style="padding:24px 32px;border-top:1px solid var(--line);border-left:1px solid var(--line);font-size:var(--type-small);line-height:1.35;">Protótipo → componentes → app Next.js</div>
+    <div style="padding:24px 32px;border-top:1px solid var(--line);border-left:1px solid var(--line);font-size:var(--type-small);line-height:1.35;">Migrations → módulos NestJS → API documentada</div>
+
+    <div style="padding:24px 24px 24px 0;border-top:1px solid var(--line);font-family:var(--mono);font-size:20px;text-transform:uppercase;letter-spacing:0.06em;color:var(--accent);">Nunca faz</div>
+    <div style="padding:24px 32px;border-top:1px solid var(--line);border-left:1px solid var(--line);font-size:var(--type-small);line-height:1.35;color:var(--ink-soft);">Chamadas diretas a Field Control/NetSuite; permissão como única barreira</div>
+    <div style="padding:24px 32px;border-top:1px solid var(--line);border-left:1px solid var(--line);font-size:var(--type-small);line-height:1.35;color:var(--ink-soft);">HTML/CSS/componentes visuais</div>
+  </div>
+</section>
+
+<section data-label="SH · Contrato" data-speaker-notes="Divisor de seção. O Contrato Compartilhado é a fonte única de verdade — tudo depende dele." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;justify-content:space-between;background:var(--ink);color:var(--bg);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.14em;text-transform:uppercase;color:var(--bg);opacity:0.7;">Seção 01</div>
+  <div>
+    <div style="font-family:var(--mono);font-size:120px;color:var(--accent);font-weight:600;line-height:1;">01</div>
+    <h2 style="font-family:var(--disp);font-weight:700;font-size:var(--type-title);line-height:1;margin:24px 0 20px;letter-spacing:-0.02em;">O Contrato Compartilhado</h2>
+    <p style="font-size:var(--type-subtitle);color:var(--bg);opacity:0.75;margin:0;">A fonte única de verdade · <span style="font-family:var(--mono);">The single source of truth</span></p>
+  </div>
+  <div style="font-family:var(--mono);font-size:var(--type-small);color:var(--bg);opacity:0.6;">Criado na Fase 0 · versionado em /contracts</div>
+</section>
+
+<section data-label="7 artefatos" data-speaker-notes="Sete artefatos compõem o contrato. Cada um tem um dono claro e consumidores definidos. É o que os dois agentes leem antes de escrever qualquer linha." style="padding:76px var(--pad-x);display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;">Artefatos · Artifacts</div>
+  <h2 style="font-family:var(--disp);font-weight:700;font-size:46px;line-height:1.04;margin:0 0 40px;letter-spacing:-0.01em;">Os 7 artefatos que congelam o projeto</h2>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px 40px;flex:1;">
+    <div style="display:flex;gap:22px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:16px;"><span style="font-family:var(--mono);font-size:24px;color:var(--accent);width:26px;flex:none;">1</span><div><div style="font-size:27px;font-weight:600;">Contrato de API</div><div style="font-family:var(--mono);font-size:19px;color:var(--muted);margin-top:3px;">openapi.yaml · dono: Back</div></div></div>
+    <div style="display:flex;gap:22px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:16px;"><span style="font-family:var(--mono);font-size:24px;color:var(--accent);width:26px;flex:none;">2</span><div><div style="font-size:27px;font-weight:600;">Modelo de dados</div><div style="font-family:var(--mono);font-size:19px;color:var(--muted);margin-top:3px;">data-model.md + ER · dono: Back</div></div></div>
+    <div style="display:flex;gap:22px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:16px;"><span style="font-family:var(--mono);font-size:24px;color:var(--accent);width:26px;flex:none;">3</span><div><div style="font-size:27px;font-weight:600;">Matriz de permissões</div><div style="font-family:var(--mono);font-size:19px;color:var(--muted);margin-top:3px;">perfil × módulo × operação · compartilhado</div></div></div>
+    <div style="display:flex;gap:22px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:16px;"><span style="font-family:var(--mono);font-size:24px;color:var(--accent);width:26px;flex:none;">4</span><div><div style="font-size:27px;font-weight:600;">Glossário e naming</div><div style="font-family:var(--mono);font-size:19px;color:var(--muted);margin-top:3px;">glossary.md · nomes idênticos em UI/API/banco</div></div></div>
+    <div style="display:flex;gap:22px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:16px;"><span style="font-family:var(--mono);font-size:24px;color:var(--accent);width:26px;flex:none;">5</span><div><div style="font-size:27px;font-weight:600;">Catálogo de eventos</div><div style="font-family:var(--mono);font-size:19px;color:var(--muted);margin-top:3px;">events.md · WebSocket + audit · dono: Back</div></div></div>
+    <div style="display:flex;gap:22px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:16px;"><span style="font-family:var(--mono);font-size:24px;color:var(--accent);width:26px;flex:none;">6</span><div><div style="font-size:27px;font-weight:600;">Design tokens</div><div style="font-family:var(--mono);font-size:19px;color:var(--muted);margin-top:3px;">tokens.json · dono: Front</div></div></div>
+    <div style="display:flex;gap:22px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:16px;"><span style="font-family:var(--mono);font-size:24px;color:var(--accent);width:26px;flex:none;">7</span><div><div style="font-size:27px;font-weight:600;">Máquina de estados do card</div><div style="font-family:var(--mono);font-size:19px;color:var(--muted);margin-top:3px;">17 colunas · transições por perfil · compartilhado</div></div></div>
+    <div style="display:flex;align-items:center;justify-content:center;background:var(--front-soft);border-radius:4px;padding:20px;"><div style="font-family:var(--mono);font-size:20px;color:var(--front);text-align:center;line-height:1.5;">Alterados apenas via<br>processo de mudança →</div></div>
+  </div>
+</section>
+
+<section data-label="Regra de ouro" data-speaker-notes="A regra de ouro que rege os dois agentes: nada é implementado fora do contrato. Se algo falta, o agente propõe uma mudança de contrato — não implementa por conta própria." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;justify-content:center;background:var(--accent);color:var(--ink);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.12em;text-transform:uppercase;color:var(--ink);opacity:0.65;margin-bottom:40px;">Regra de ouro · Golden rule</div>
+  <blockquote style="font-family:var(--disp);font-weight:700;font-size:68px;line-height:1.08;margin:0;letter-spacing:-0.02em;max-width:24ch;">Nenhum agente implementa algo que não esteja no contrato.</blockquote>
+  <p style="font-size:var(--type-subtitle);line-height:1.3;margin:44px 0 0;max-width:40ch;color:var(--ink-soft);">Se falta, propõe uma mudança de contrato primeiro. <span style="font-family:var(--mono);font-size:26px;opacity:0.7;">If it's missing, propose a contract change first.</span></p>
+</section>
+
+<section data-label="SH · Fases" data-speaker-notes="Divisor. As fases do projeto: uma Fase 0 que bloqueia tudo, depois duas trilhas paralelas com pontos de sincronização." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;justify-content:space-between;background:var(--ink);color:var(--bg);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.14em;text-transform:uppercase;color:var(--bg);opacity:0.7;">Seção 02</div>
+  <div>
+    <div style="font-family:var(--mono);font-size:120px;color:var(--accent);font-weight:600;line-height:1;">02</div>
+    <h2 style="font-family:var(--disp);font-weight:700;font-size:var(--type-title);line-height:1;margin:24px 0 20px;letter-spacing:-0.02em;">As Fases do Projeto</h2>
+    <p style="font-size:var(--type-subtitle);color:var(--bg);opacity:0.75;margin:0;">Uma fundação, duas trilhas · <span style="font-family:var(--mono);">One foundation, two tracks</span></p>
+  </div>
+  <div style="font-family:var(--mono);font-size:var(--type-small);color:var(--bg);opacity:0.6;">Fase 0 bloqueia tudo · depois A e B correm em paralelo</div>
+</section>
+
+<section data-label="Fase 0" data-speaker-notes="Fase 0 é discovery e contrato — trabalho conjunto de 1 a 2 semanas. Entrega o PRD, os 7 artefatos em v0, decisões de stack e o decision log. Bloqueia tudo o resto." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;">Fase 0 · Discovery</div>
+  <h2 style="font-family:var(--disp);font-weight:700;font-size:var(--type-h);line-height:1.04;margin:0 0 12px;letter-spacing:-0.01em;">Discovery e Contrato — bloqueia tudo</h2>
+  <p style="font-size:var(--type-body);color:var(--ink-soft);margin:0 0 48px;">Sessão única com os dois prompts em modo planejamento · ~1–2 semanas de trabalho conjunto</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:44px;flex:1;">
+    <div>
+      <div style="font-family:var(--mono);font-size:20px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:24px;">Entregáveis</div>
+      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:18px;">
+        <li style="font-size:var(--type-small);line-height:1.35;padding-left:28px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">›</span>PRD consolidado (usuários, jobs, escopo MVP)</li>
+        <li style="font-size:var(--type-small);line-height:1.35;padding-left:28px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">›</span>Os 7 artefatos do contrato em versão v0</li>
+        <li style="font-size:var(--type-small);line-height:1.35;padding-left:28px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">›</span>Decisões de tecnologia justificadas (NestJS)</li>
+        <li style="font-size:var(--type-small);line-height:1.35;padding-left:28px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">›</span>Decision Log com pendências de aprovação</li>
+        <li style="font-size:var(--type-small);line-height:1.35;padding-left:28px;position:relative;"><span style="position:absolute;left:0;color:var(--accent);">›</span>Estimativa de custo por categoria</li>
+      </ul>
+    </div>
+    <div style="background:var(--panel);border-radius:4px;padding:44px 40px;display:flex;flex-direction:column;justify-content:center;">
+      <div style="font-family:var(--mono);font-size:20px;text-transform:uppercase;letter-spacing:0.06em;color:var(--accent);margin-bottom:18px;">Por que primeiro</div>
+      <p style="font-size:29px;line-height:1.35;margin:0;">Sem o contrato congelado, cada agente inventaria a sua própria verdade. A Fase 0 elimina a divergência antes que ela custe caro.</p>
+    </div>
+  </div>
+</section>
+
+<section data-label="Gate G0" data-speaker-notes="Gate G0 é o primeiro gate humano e o mais importante. Aprova PRD, contrato, stack, permissões e máquina de estados — e congela o openapi.yaml como v1. Só então as trilhas paralelas começam." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;justify-content:center;background:var(--front);color:#fff;font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="display:flex;align-items:flex-start;gap:64px;">
+    <div style="flex:none;">
+      <div style="font-family:var(--mono);font-size:24px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.75;margin-bottom:12px;">Gate humano</div>
+      <div style="font-family:var(--disp);font-weight:700;font-size:180px;line-height:0.85;letter-spacing:-0.03em;">G0</div>
+    </div>
+    <div style="flex:1;padding-top:12px;">
+      <h2 style="font-family:var(--disp);font-weight:700;font-size:44px;line-height:1.1;margin:0 0 28px;">Aprovar e congelar antes de começar</h2>
+      <p style="font-size:var(--type-body);line-height:1.4;margin:0 0 32px;opacity:0.95;max-width:38ch;">O humano aprova PRD, contrato v0, stack, matriz de permissões e máquina de estados.</p>
+      <div style="display:inline-flex;align-items:center;gap:16px;background:rgba(255,255,255,0.16);border-radius:4px;padding:20px 28px;font-family:var(--mono);font-size:26px;">openapi.yaml → congelado como <strong style="font-weight:600;">v1</strong></div>
+      <p style="font-size:var(--type-small);margin:32px 0 0;opacity:0.8;">Só então as trilhas paralelas A e B começam.</p>
+    </div>
+  </div>
+</section>
+
+<section data-label="SH · Trilha A" data-speaker-notes="Divisor. Trilha A é a do Claude Design, o front-end: do UX ao app Next.js funcional." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;justify-content:space-between;background:var(--front);color:#fff;font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.14em;text-transform:uppercase;opacity:0.8;">Trilha A · Track A</div>
+  <div>
+    <div style="font-family:var(--mono);font-size:120px;font-weight:600;line-height:1;opacity:0.85;">A</div>
+    <h2 style="font-family:var(--disp);font-weight:700;font-size:var(--type-title);line-height:1;margin:24px 0 20px;letter-spacing:-0.02em;">Claude Design · Front-end</h2>
+    <p style="font-size:var(--type-subtitle);opacity:0.85;margin:0;">Do UX ao app Next.js funcional · <span style="font-family:var(--mono);">7 fases, 7 gates</span></p>
+  </div>
+  <div style="font-family:var(--mono);font-size:var(--type-small);opacity:0.75;">Regra 19.6: nada de código de produção antes da aprovação visual (GA4)</div>
+</section>
+
+<section data-label="Fases A1–A7" data-speaker-notes="As sete fases do front, cada uma com seu gate. Destaque para GA4 — a aprovação visual formal — que bloqueia tudo depois dela." style="padding:72px var(--pad-x);display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Trilha A · Fases</div>
+  <h2 style="font-family:var(--disp);font-weight:700;font-size:44px;line-height:1.04;margin:0 0 34px;letter-spacing:-0.01em;">Sete fases, do wireframe à integração real</h2>
+  <div style="display:flex;flex-direction:column;gap:0;flex:1;border-top:1px solid var(--line);">
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:17px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--front);">A1</span><span style="font-size:26px;">Product UX — navegação, journeys, fluxos, estados, WCAG 2.1 AA</span><span style="font-family:var(--mono);font-size:19px;color:var(--muted);">GA1 · fluxos</span></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:17px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--front);">A2</span><span style="font-size:26px;">Wireframes — baixa fidelidade das 20 telas, mobile e desktop</span><span style="font-family:var(--mono);font-size:19px;color:var(--muted);">GA2 · estrutura</span></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:17px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--front);">A3</span><span style="font-size:26px;">Design System — tokens, componentes base, estados, identidade Delta</span><span style="font-family:var(--mono);font-size:19px;color:var(--muted);">GA3 · identidade</span></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:17px 0;border-bottom:2px solid var(--front);background:var(--front-soft);"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--front);">A4</span><span style="font-size:26px;font-weight:600;">Protótipo navegável — 13 fluxos, dados mock realistas</span><span style="font-family:var(--mono);font-size:19px;color:var(--front);font-weight:600;">GA4 · aprovação visual</span></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:17px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--front);">A5</span><span style="font-size:26px;">Arquitetura de componentes — tree, guards, boundaries, estado</span><span style="font-family:var(--mono);font-size:19px;color:var(--muted);">GA5 · técnico</span></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:17px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--front);">A6</span><span style="font-size:26px;">Front funcional com mocks — Next.js + MSW, Kanban drag-and-drop</span><span style="font-family:var(--mono);font-size:19px;color:var(--muted);">GA6 · QA de UI</span></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:17px 0;"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--front);">A7</span><span style="font-size:26px;">Integração real — troca mocks pela API em staging (S4)</span><span style="font-family:var(--mono);font-size:19px;color:var(--muted);">GA7 · E2E</span></div>
+  </div>
+</section>
+
+<section data-label="SH · Trilha B" data-speaker-notes="Divisor. Trilha B é a do Claude Code, o back-end: da fundação com auth e audit até as integrações externas." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;justify-content:space-between;background:var(--back);color:#fff;font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.14em;text-transform:uppercase;opacity:0.8;">Trilha B · Track B</div>
+  <div>
+    <div style="font-family:var(--mono);font-size:120px;font-weight:600;line-height:1;opacity:0.85;">B</div>
+    <h2 style="font-family:var(--disp);font-weight:700;font-size:var(--type-title);line-height:1;margin:24px 0 20px;letter-spacing:-0.02em;">Claude Code · Back-end</h2>
+    <p style="font-size:var(--type-subtitle);opacity:0.85;margin:0;">Da fundação às integrações · <span style="font-family:var(--mono);">NestJS + PostgreSQL</span></p>
+  </div>
+  <div style="font-family:var(--mono);font-size:var(--type-small);opacity:0.75;">Audit log core desde o dia 1 · o portal funciona sem a integração externa</div>
+</section>
+
+<section data-label="Fases B1–B6" data-speaker-notes="As fases do back. B1 estabelece a fundação com auth, RBAC e audit desde o dia 1. B5 (Field Control) só entra depois do Kanban estável, e B6 (NetSuite) é pós-MVP." style="padding:72px var(--pad-x);display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Trilha B · Fases</div>
+  <h2 style="font-family:var(--disp);font-weight:700;font-size:44px;line-height:1.04;margin:0 0 34px;letter-spacing:-0.01em;">Da fundação segura às integrações externas</h2>
+  <div style="display:flex;flex-direction:column;gap:0;flex:1;border-top:1px solid var(--line);">
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:16px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--back);">B1</span><span style="font-size:26px;">Fundação — repo, CI, Postgres, auth, RBAC, multi-tenancy, audit core</span><span style="font-family:var(--mono);font-size:19px;color:var(--muted);">GB1 · auth</span></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:16px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--back);">B2</span><span style="font-size:26px;">API Kanban (MVP) — boards, cards, estados, anexos, busca, filtros</span><span style="font-family:var(--mono);font-size:19px;color:var(--muted);">GB2 · contrato v1</span></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:16px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--back);">B3</span><span style="font-size:26px;">Tempo real e concorrência — WebSocket, version field, presence</span><span style="font-family:var(--mono);font-size:19px;color:var(--muted);">GB3 · edição concorrente</span></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:16px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--back);">B4</span><span style="font-size:26px;">Governança — export center, saved views, notificações, retenção</span><span style="font-family:var(--mono);font-size:19px;color:var(--muted);">GB4 · export + audit</span></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:16px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--back);">B5</span><span style="font-size:26px;">Field Control — service isolado, fila, retries, DLQ, reconciliação</span><span style="font-family:var(--mono);font-size:19px;color:var(--muted);">GB5 · falha + retry</span></div>
+    <div style="display:grid;grid-template-columns:96px 1fr 260px;align-items:center;gap:24px;padding:16px 0;opacity:0.55;"><span style="font-family:var(--mono);font-weight:600;font-size:26px;color:var(--back);">B6</span><span style="font-size:26px;">NetSuite (futura) — dimensões contábeis, billing status, invoices</span><span style="font-family:var(--mono);font-size:19px;color:var(--muted);">GB6 · pós-MVP</span></div>
+  </div>
+</section>
+
+<section data-label="SH · Sync" data-speaker-notes="Divisor. Os pontos de sincronização são o que impede a integração tardia — validação cruzada obrigatória em cinco momentos." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;justify-content:space-between;background:var(--ink);color:var(--bg);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.14em;text-transform:uppercase;color:var(--bg);opacity:0.7;">Seção 03</div>
+  <div>
+    <div style="font-family:var(--mono);font-size:120px;color:var(--accent);font-weight:600;line-height:1;">03</div>
+    <h2 style="font-family:var(--disp);font-weight:700;font-size:var(--type-title);line-height:1;margin:24px 0 20px;letter-spacing:-0.02em;">Pontos de Sincronização</h2>
+    <p style="font-size:var(--type-subtitle);color:var(--bg);opacity:0.75;margin:0;">Validação cruzada obrigatória · <span style="font-family:var(--mono);">S1 → S5</span></p>
+  </div>
+  <div style="font-family:var(--mono);font-size:var(--type-small);color:var(--bg);opacity:0.6;">Onde as duas trilhas se encontram e se validam</div>
+</section>
+
+<section data-label="S1–S5" data-speaker-notes="Cinco pontos de sincronização, cada um ligando uma fase de A a uma fase de B. Em cada um, o que um agente produziu é validado pelo outro." style="padding:72px var(--pad-x);display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Sync · S1–S5</div>
+  <h2 style="font-family:var(--disp);font-weight:700;font-size:44px;line-height:1.04;margin:0 0 36px;letter-spacing:-0.01em;">Cinco encontros que impedem a integração tardia</h2>
+  <div style="display:flex;flex-direction:column;flex:1;border-top:1px solid var(--line);">
+    <div style="display:grid;grid-template-columns:90px 240px 1fr;align-items:center;gap:28px;padding:19px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--disp);font-weight:700;font-size:34px;color:var(--accent);">S1</span><span style="font-family:var(--mono);font-size:21px;color:var(--muted);">Fim de A3 + B1</span><span style="font-size:25px;line-height:1.3;">Auth ponta a ponta: telas de login/recuperação batem com endpoints e erros reais</span></div>
+    <div style="display:grid;grid-template-columns:90px 240px 1fr;align-items:center;gap:28px;padding:19px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--disp);font-weight:700;font-size:34px;color:var(--accent);">S2</span><span style="font-family:var(--mono);font-size:21px;color:var(--muted);">Fim de A5 + B2</span><span style="font-size:25px;line-height:1.3;">Front regenera tipos TS do openapi implementado; divergência vira mudança de contrato</span></div>
+    <div style="display:grid;grid-template-columns:90px 240px 1fr;align-items:center;gap:28px;padding:19px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--disp);font-weight:700;font-size:34px;color:var(--accent);">S3</span><span style="font-family:var(--mono);font-size:21px;color:var(--muted);">Durante A6 + B3</span><span style="font-size:25px;line-height:1.3;">Eventos WebSocket: payload real vs. esperado; teste de drag-and-drop simultâneo</span></div>
+    <div style="display:grid;grid-template-columns:90px 240px 1fr;align-items:center;gap:28px;padding:19px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--disp);font-weight:700;font-size:34px;color:var(--accent);">S4</span><span style="font-family:var(--mono);font-size:21px;color:var(--muted);">Fim de A6 + B4</span><span style="font-size:25px;line-height:1.3;">Deploy conjunto em staging; front troca MSW pela API real</span></div>
+    <div style="display:grid;grid-template-columns:90px 240px 1fr;align-items:center;gap:28px;padding:19px 0;"><span style="font-family:var(--disp);font-weight:700;font-size:34px;color:var(--accent);">S5</span><span style="font-family:var(--mono);font-size:21px;color:var(--muted);">A7 + B5</span><span style="font-size:25px;line-height:1.3;">E2E completo incluindo erro/reprocessamento no Integration Monitor</span></div>
+  </div>
+</section>
+
+<section data-label="Roadmap" data-speaker-notes="O roadmap consolidado. G0 destrava as duas trilhas paralelas; elas correm lado a lado e se cruzam nos syncs S1 a S5, convergindo no MVP. Esta é a visão que o patrocinador deve levar." style="padding:76px 80px;display:flex;flex-direction:column;background:var(--ink);color:var(--bg);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+    <h2 style="font-family:var(--disp);font-weight:700;font-size:44px;line-height:1;margin:0;letter-spacing:-0.01em;">Roadmap consolidado</h2>
+    <div style="font-family:var(--mono);font-size:20px;opacity:0.6;">Fase 0 → MVP</div>
+  </div>
+  <div style="display:flex;align-items:stretch;gap:0;flex:1;margin-top:36px;">
+    <div style="flex:none;width:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--accent);color:var(--ink);border-radius:4px;padding:18px;text-align:center;">
+      <div style="font-family:var(--disp);font-weight:700;font-size:52px;line-height:0.9;">G0</div>
+      <div style="font-family:var(--mono);font-size:16px;margin-top:10px;line-height:1.3;">contrato v1 congelado</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:26px;padding:0 40px;position:relative;">
+      <div>
+        <div style="font-family:var(--mono);font-size:18px;color:var(--front);letter-spacing:0.08em;margin-bottom:12px;">TRILHA A · FRONT</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--front);border-radius:4px;padding:16px 12px;text-align:center;font-family:var(--mono);font-size:20px;color:var(--bg);">A1·A2·A3</div>
+          <span style="color:var(--front);font-size:22px;">›</span>
+          <div style="flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--front);border-radius:4px;padding:16px 12px;text-align:center;font-family:var(--mono);font-size:20px;color:var(--bg);">A4·A5</div>
+          <span style="color:var(--front);font-size:22px;">›</span>
+          <div style="flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--front);border-radius:4px;padding:16px 12px;text-align:center;font-family:var(--mono);font-size:20px;color:var(--bg);">A6</div>
+          <span style="color:var(--front);font-size:22px;">›</span>
+          <div style="flex:none;width:90px;background:rgba(255,255,255,0.06);border:1px solid var(--front);border-radius:4px;padding:16px 12px;text-align:center;font-family:var(--mono);font-size:20px;color:var(--bg);">A7</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-around;padding:0 60px;">
+        <span style="font-family:var(--mono);font-size:19px;color:var(--accent);border:1px dashed var(--accent);border-radius:20px;padding:5px 16px;">S1</span>
+        <span style="font-family:var(--mono);font-size:19px;color:var(--accent);border:1px dashed var(--accent);border-radius:20px;padding:5px 16px;">S2</span>
+        <span style="font-family:var(--mono);font-size:19px;color:var(--accent);border:1px dashed var(--accent);border-radius:20px;padding:5px 16px;">S3·S4</span>
+        <span style="font-family:var(--mono);font-size:19px;color:var(--accent);border:1px dashed var(--accent);border-radius:20px;padding:5px 16px;">S5</span>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:18px;color:var(--back);letter-spacing:0.08em;margin-bottom:12px;">TRILHA B · BACK</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--back);border-radius:4px;padding:16px 12px;text-align:center;font-family:var(--mono);font-size:20px;color:var(--bg);">B1</div>
+          <span style="color:var(--back);font-size:22px;">›</span>
+          <div style="flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--back);border-radius:4px;padding:16px 12px;text-align:center;font-family:var(--mono);font-size:20px;color:var(--bg);">B2</div>
+          <span style="color:var(--back);font-size:22px;">›</span>
+          <div style="flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--back);border-radius:4px;padding:16px 12px;text-align:center;font-family:var(--mono);font-size:20px;color:var(--bg);">B3·B4</div>
+          <span style="color:var(--back);font-size:22px;">›</span>
+          <div style="flex:none;width:90px;background:rgba(255,255,255,0.06);border:1px solid var(--back);border-radius:4px;padding:16px 12px;text-align:center;font-family:var(--mono);font-size:20px;color:var(--bg);">B5</div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:none;width:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);color:var(--ink);border-radius:4px;padding:18px;text-align:center;">
+      <div style="font-family:var(--disp);font-weight:700;font-size:44px;line-height:0.9;">MVP</div>
+      <div style="font-family:var(--mono);font-size:16px;margin-top:10px;line-height:1.3;">portal operacional</div>
+    </div>
+  </div>
+  <div style="font-family:var(--mono);font-size:19px;opacity:0.55;margin-top:28px;">Pós-MVP: B6 NetSuite → Mobile/PWA → Client Portal</div>
+</section>
+
+<section data-label="Dependências" data-speaker-notes="As quatro dependências críticas que governam a sequência. A mais importante: GA4, a aprovação visual, bloqueia todo o código de produção do front." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;">Dependências · Critical path</div>
+  <h2 style="font-family:var(--disp);font-weight:700;font-size:var(--type-h);line-height:1.04;margin:0 0 48px;letter-spacing:-0.01em;">Quatro regras que governam a ordem</h2>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:28px;flex:1;">
+    <div style="background:var(--panel);border-radius:4px;padding:40px;display:flex;flex-direction:column;gap:14px;"><div style="font-family:var(--mono);font-size:22px;color:var(--accent);">01</div><h3 style="font-family:var(--disp);font-size:30px;font-weight:600;margin:0;line-height:1.1;">G0 bloqueia tudo</h3><p style="font-size:24px;color:var(--ink-soft);line-height:1.35;margin:0;">Contrato primeiro, sempre. Sem congelar o v1, nenhuma trilha começa.</p></div>
+    <div style="background:var(--panel);border-radius:4px;padding:40px;display:flex;flex-direction:column;gap:14px;"><div style="font-family:var(--mono);font-size:22px;color:var(--accent);">02</div><h3 style="font-family:var(--disp);font-size:30px;font-weight:600;margin:0;line-height:1.1;">GA4 bloqueia A5+</h3><p style="font-size:24px;color:var(--ink-soft);line-height:1.35;margin:0;">A aprovação visual precede qualquer código de produção do front.</p></div>
+    <div style="background:var(--panel);border-radius:4px;padding:40px;display:flex;flex-direction:column;gap:14px;"><div style="font-family:var(--mono);font-size:22px;color:var(--accent);">03</div><h3 style="font-family:var(--disp);font-size:30px;font-weight:600;margin:0;line-height:1.1;">B2 não bloqueia A6</h3><p style="font-size:24px;color:var(--ink-soft);line-height:1.35;margin:0;">O front usa mocks e avança sozinho — B2 só bloqueia o sync S4.</p></div>
+    <div style="background:var(--panel);border-radius:4px;padding:40px;display:flex;flex-direction:column;gap:14px;"><div style="font-family:var(--mono);font-size:22px;color:var(--accent);">04</div><h3 style="font-family:var(--disp);font-size:30px;font-weight:600;margin:0;line-height:1.1;">Field Control é o último</h3><p style="font-size:24px;color:var(--ink-soft);line-height:1.35;margin:0;">B5 só entra depois do Kanban estável. O portal funciona sem a integração.</p></div>
+  </div>
+</section>
+
+<section data-label="SH · Decisões" data-speaker-notes="Divisor. As decisões técnicas recomendadas para aprovação no G0, mais a governança de mudanças." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;justify-content:space-between;background:var(--ink);color:var(--bg);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.14em;text-transform:uppercase;color:var(--bg);opacity:0.7;">Seção 04</div>
+  <div>
+    <div style="font-family:var(--mono);font-size:120px;color:var(--accent);font-weight:600;line-height:1;">04</div>
+    <h2 style="font-family:var(--disp);font-weight:700;font-size:var(--type-title);line-height:1;margin:24px 0 20px;letter-spacing:-0.02em;">Decisões & Governança</h2>
+    <p style="font-size:var(--type-subtitle);color:var(--bg);opacity:0.75;margin:0;">Para aprovar no G0 · <span style="font-family:var(--mono);">Tech decisions & change control</span></p>
+  </div>
+  <div style="font-family:var(--mono);font-size:var(--type-small);color:var(--bg);opacity:0.6;">Recomendações justificadas + o processo de mudança de contrato</div>
+</section>
+
+<section data-label="5 decisões" data-speaker-notes="Cinco decisões técnicas. A âncora é NestJS: um único ecossistema TypeScript que permite compartilhar tipos gerados do OpenAPI entre front e back, dando coesão exatamente onde o projeto precisa." style="padding:72px var(--pad-x);display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Decisões técnicas · Recomendações G0</div>
+  <h2 style="font-family:var(--disp);font-weight:700;font-size:44px;line-height:1.04;margin:0 0 34px;letter-spacing:-0.01em;">Cinco escolhas, uma tese: coesão em TypeScript</h2>
+  <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:24px;flex:1;">
+    <div style="background:var(--back);color:#fff;border-radius:4px;padding:44px;display:flex;flex-direction:column;justify-content:center;">
+      <div style="font-family:var(--mono);font-size:20px;opacity:0.8;margin-bottom:14px;">Decisão 01 · a âncora</div>
+      <h3 style="font-family:var(--disp);font-size:40px;font-weight:700;margin:0 0 18px;line-height:1.05;">Back-end em NestJS</h3>
+      <p style="font-size:25px;line-height:1.4;margin:0;opacity:0.95;">Um só ecossistema TS gera tipos compartilhados do OpenAPI e mapeia 1:1 com os módulos exigidos. FastAPI criaria fronteira de linguagem onde o projeto precisa de coesão.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div style="border-bottom:1px solid var(--line);padding-bottom:14px;"><div style="font-size:26px;font-weight:600;">02 · Contrato como código</div><div style="font-size:21px;color:var(--ink-soft);line-height:1.3;margin-top:4px;">openapi.yaml → tipos TS → mocks MSW → contract testing</div></div>
+      <div style="border-bottom:1px solid var(--line);padding-bottom:14px;"><div style="font-size:26px;font-weight:600;">03 · Tempo real</div><div style="font-size:21px;color:var(--ink-soft);line-height:1.3;margin-top:4px;">WebSocket (Socket.IO/NestJS) com fallback de polling</div></div>
+      <div style="border-bottom:1px solid var(--line);padding-bottom:14px;"><div style="font-size:26px;font-weight:600;">04 · Infra MVP</div><div style="font-size:21px;color:var(--ink-soft);line-height:1.3;margin-top:4px;">Railway/Render → AWS; S3, Postgres gerenciado, Redis/BullMQ</div></div>
+      <div style="padding-bottom:2px;"><div style="font-size:26px;font-weight:600;">05 · Concorrência</div><div style="font-size:21px;color:var(--ink-soft);line-height:1.3;margin-top:4px;">Campo version; conflito → 409 e diff. Nunca sobrescrita silenciosa.</div></div>
+    </div>
+  </div>
+</section>
+
+<section data-label="Mudança de contrato" data-speaker-notes="O processo de mudança de contrato em quatro passos. É o único caminho legítimo para alterar o contrato — e sempre passa por aprovação humana e registro no Decision Log." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;">Governança · Change control</div>
+  <h2 style="font-family:var(--disp);font-weight:700;font-size:var(--type-h);line-height:1.04;margin:0 0 52px;letter-spacing:-0.01em;">O único jeito de mudar o contrato</h2>
+  <div style="display:flex;align-items:stretch;gap:20px;flex:1;">
+    <div style="flex:1;display:flex;flex-direction:column;padding:36px 32px;background:var(--panel);border-radius:4px;"><div style="font-family:var(--disp);font-weight:700;font-size:56px;color:var(--front);line-height:1;">1</div><div style="font-size:26px;font-weight:600;margin:20px 0 10px;">Proposta</div><p style="font-size:22px;color:var(--ink-soft);line-height:1.35;margin:0;">O agente descreve o quê, por quê e o impacto no outro lado.</p></div>
+    <div style="display:flex;align-items:center;color:var(--muted);font-size:36px;">→</div>
+    <div style="flex:1;display:flex;flex-direction:column;padding:36px 32px;background:var(--panel);border-radius:4px;"><div style="font-family:var(--disp);font-weight:700;font-size:56px;color:var(--front);line-height:1;">2</div><div style="font-size:26px;font-weight:600;margin:20px 0 10px;">Aprovação humana</div><p style="font-size:22px;color:var(--ink-soft);line-height:1.35;margin:0;">O humano aprova ou rejeita a proposta.</p></div>
+    <div style="display:flex;align-items:center;color:var(--muted);font-size:36px;">→</div>
+    <div style="flex:1;display:flex;flex-direction:column;padding:36px 32px;background:var(--panel);border-radius:4px;"><div style="font-family:var(--disp);font-weight:700;font-size:56px;color:var(--front);line-height:1;">3</div><div style="font-size:26px;font-weight:600;margin:20px 0 10px;">Regeneração</div><p style="font-size:22px;color:var(--ink-soft);line-height:1.35;margin:0;">Versão incrementa; ambos regeneram tipos, mocks e testes.</p></div>
+    <div style="display:flex;align-items:center;color:var(--muted);font-size:36px;">→</div>
+    <div style="flex:1;display:flex;flex-direction:column;padding:36px 32px;background:var(--panel);border-radius:4px;"><div style="font-family:var(--disp);font-weight:700;font-size:56px;color:var(--front);line-height:1;">4</div><div style="font-size:26px;font-weight:600;margin:20px 0 10px;">Registro</div><p style="font-size:22px;color:var(--ink-soft);line-height:1.35;margin:0;">Mudança documentada no Decision Log.</p></div>
+  </div>
+</section>
+
+<section data-label="Como usar" data-speaker-notes="Como operacionalizar: rode a Fase 0 e aprove o G0; entregue cada prompt junto com os artefatos aprovados; em cada sync leve o produzido de um agente para o outro validar; nenhum agente avança sem o gate aprovado por você." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;">Operação · How to use</div>
+  <h2 style="font-family:var(--disp);font-weight:700;font-size:var(--type-h);line-height:1.04;margin:0 0 48px;letter-spacing:-0.01em;">Cinco passos para colocar em marcha</h2>
+  <div style="display:flex;flex-direction:column;gap:0;flex:1;border-top:1px solid var(--line);">
+    <div style="display:grid;grid-template-columns:70px 1fr;gap:32px;align-items:center;padding:22px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-size:28px;color:var(--accent);">01</span><span style="font-size:28px;line-height:1.3;">Execute a <strong>Fase 0</strong> e aprove o <strong>G0</strong> — congela o contrato v1.</span></div>
+    <div style="display:grid;grid-template-columns:70px 1fr;gap:32px;align-items:center;padding:22px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-size:28px;color:var(--accent);">02</span><span style="font-size:28px;line-height:1.3;">Entregue ao Claude Design o <span style="font-family:var(--mono);font-size:24px;">01-PROMPT-FRONTEND.md</span> com os artefatos aprovados.</span></div>
+    <div style="display:grid;grid-template-columns:70px 1fr;gap:32px;align-items:center;padding:22px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-size:28px;color:var(--accent);">03</span><span style="font-size:28px;line-height:1.3;">Entregue ao Claude Code o <span style="font-family:var(--mono);font-size:24px;">02-PROMPT-BACKEND.md</span> com os mesmos artefatos.</span></div>
+    <div style="display:grid;grid-template-columns:70px 1fr;gap:32px;align-items:center;padding:22px 0;border-bottom:1px solid var(--line);"><span style="font-family:var(--mono);font-size:28px;color:var(--accent);">04</span><span style="font-size:28px;line-height:1.3;">Em cada <strong>Sync (S1–S5)</strong>, leve o produzido por um agente para o outro validar.</span></div>
+    <div style="display:grid;grid-template-columns:70px 1fr;gap:32px;align-items:center;padding:22px 0;"><span style="font-family:var(--mono);font-size:28px;color:var(--accent);">05</span><span style="font-size:28px;line-height:1.3;">Nenhum agente avança de fase sem o <strong>gate correspondente</strong> aprovado por você.</span></div>
+  </div>
+</section>
+
+<section data-label="Fecho" data-speaker-notes="Fechamento. A tese em uma frase: contrato primeiro, trilhas paralelas, gates humanos. É isso que transforma dois agentes em um time." style="padding:var(--pad-y) var(--pad-x);display:flex;flex-direction:column;justify-content:space-between;background:var(--ink);color:var(--bg);font-family:var(--sans);box-sizing:border-box;overflow:hidden;">
+  <div style="font-family:var(--mono);font-size:var(--type-label);letter-spacing:0.14em;text-transform:uppercase;color:var(--bg);opacity:0.7;">Em síntese · In summary</div>
+  <div>
+    <h2 style="font-family:var(--disp);font-weight:700;font-size:64px;line-height:1.05;margin:0 0 40px;letter-spacing:-0.02em;max-width:22ch;">Contrato primeiro. Trilhas paralelas. Gates humanos.</h2>
+    <div style="display:flex;gap:56px;">
+      <div style="max-width:24ch;"><div style="font-family:var(--mono);font-size:20px;color:var(--accent);margin-bottom:10px;">O QUE ELIMINA</div><p style="font-size:26px;line-height:1.35;margin:0;color:var(--bg);opacity:0.85;">Divergência, bloqueio em cascata e integração tardia.</p></div>
+      <div style="max-width:24ch;"><div style="font-family:var(--mono);font-size:20px;color:var(--accent);margin-bottom:10px;">O QUE GARANTE</div><p style="font-size:26px;line-height:1.35;margin:0;color:var(--bg);opacity:0.85;">Dois agentes especializados operando como um só time.</p></div>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid rgba(245,243,238,0.22);padding-top:28px;">
+    <div style="font-family:var(--disp);font-weight:700;font-size:34px;color:var(--accent);">Δ Portal Operacional Delta</div>
+    <div style="font-family:var(--mono);font-size:var(--type-small);opacity:0.65;">Próximo passo → aprovar o G0</div>
+  </div>
+</section>
+
+</x-import>
+</x-dc>
+</body>
+</html>

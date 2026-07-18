@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<template id="__bundler_thumbnail" data-bg-color="#1c1b2e">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#1c1b2e"/>
+    <rect x="360" y="250" width="150" height="300" rx="14" fill="#ffffff"/>
+    <rect x="525" y="250" width="150" height="300" rx="14" fill="#ffffff" opacity="0.7"/>
+    <rect x="690" y="250" width="150" height="300" rx="14" fill="#ffffff" opacity="0.4"/>
+    <text x="600" y="180" font-family="'Space Grotesk',sans-serif" font-size="72" font-weight="700" fill="#4ade80" text-anchor="middle">Δ</text>
+    <text x="600" y="640" font-family="'Space Grotesk',sans-serif" font-size="40" font-weight="600" fill="#ffffff" text-anchor="middle">Delta Pro Clean</text>
+  </svg>
+</template>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f3f4f7; --surface:#ffffff; --surface-2:#fafafc; --ink:#1c1b2e; --ink-2:#3f3d55; --muted:#75748a; --faint:#a0a0b2;
+    --line:#e8e8ef; --line-2:#f0f0f5;
+    --navy:oklch(0.36 0.088 288); --navy-2:oklch(0.42 0.09 288); --navy-soft:oklch(0.95 0.028 288); --navy-ink:oklch(0.32 0.09 288);
+    --green:oklch(0.68 0.16 148); --green-ink:oklch(0.52 0.14 148); --green-soft:oklch(0.95 0.05 148);
+    --disp:'Space Grotesk',sans-serif; --sans:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  a{color:var(--navy);text-decoration:none;} a:hover{color:var(--navy-ink);}
+  ::-webkit-scrollbar{height:11px;width:11px;}
+  ::-webkit-scrollbar-thumb{background:#d6d6e0;border-radius:6px;border:2px solid transparent;background-clip:padding-box;}
+  ::-webkit-scrollbar-thumb:hover{background:#c4c4d2;background-clip:padding-box;}
+  .clamp{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;}
+</style>
+</helmet>
+<div style="height:100vh;width:100vw;font-family:var(--sans);background:var(--bg);color:var(--ink);overflow:hidden;display:flex;flex-direction:column;">
+
+  <!-- ============ LOGIN / RECUPERAÇÃO ============ -->
+  <sc-if value="{{ showLogin }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;min-height:0;display:flex;">
+      <!-- brand panel -->
+      <div style="flex:none;width:44%;max-width:620px;background:linear-gradient(150deg,var(--navy),var(--navy-2));color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:52px 56px;">
+        <div style="display:flex;align-items:center;gap:13px;">
+          <img src="assets/delta-mark.png" alt="Delta" style="width:44px;height:44px;object-fit:contain;filter:brightness(0) invert(1);opacity:0.96;">
+          <div>
+            <div style="font-family:var(--disp);font-size:20px;font-weight:700;letter-spacing:-0.01em;">Delta Pro Clean</div>
+            <div style="font-size:12px;opacity:0.7;letter-spacing:0.02em;">With Us You Shine!</div>
+          </div>
+        </div>
+        <div>
+          <h1 style="font-family:var(--disp);font-size:40px;font-weight:600;line-height:1.1;margin:0 0 20px;letter-spacing:-0.02em;">Operational Portal</h1>
+          <p style="font-size:16px;line-height:1.55;opacity:0.82;max-width:38ch;margin:0;">Daily scheduling, team allocation and work orders — all in one board, with a complete audit trail.</p>
+          <div style="display:flex;gap:26px;margin-top:38px;">
+            <div><div style="font-family:var(--disp);font-size:28px;font-weight:600;">200+</div><div style="font-size:12px;opacity:0.7;">workers/day</div></div>
+            <div><div style="font-family:var(--disp);font-size:28px;font-weight:600;">3</div><div style="font-size:12px;opacity:0.7;">regions</div></div>
+            <div><div style="font-family:var(--disp);font-size:28px;font-weight:600;">14</div><div style="font-size:12px;opacity:0.7;">active boards</div></div>
+          </div>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;opacity:0.55;">© 2026 Delta Pro Clean · Secure environment</div>
+      </div>
+      <!-- form panel -->
+      <div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:40px;">
+        <div style="width:380px;max-width:100%;">
+          <!-- LOGIN -->
+          <sc-if value="{{ authMode.login }}" hint-placeholder-val="{{ true }}">
+            <h2 style="font-family:var(--disp);font-size:26px;font-weight:600;margin:0 0 6px;letter-spacing:-0.01em;">Sign in</h2>
+            <p style="font-size:13.5px;color:var(--muted);margin:0 0 28px;">Use your Delta credentials to access the portal.</p>
+            <label style="display:block;font-size:12px;font-weight:500;color:var(--ink-2);margin-bottom:6px;">Email</label>
+            <input value="{{ email }}" onInput="{{ onEmail }}" placeholder="voce@deltaproclean.com" style="width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:12px 14px;font-family:var(--sans);font-size:14px;outline:none;margin-bottom:16px;" style-focus="border-color:var(--navy);background:#fff;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <label style="font-size:12px;font-weight:500;color:var(--ink-2);">Password</label>
+              <span onClick="{{ toRecover }}" style="font-size:12px;color:var(--navy);cursor:pointer;font-weight:500;">Forgot my password</span>
+            </div>
+            <input value="{{ pass }}" onInput="{{ onPass }}" type="password" placeholder="••••••••" style="width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:12px 14px;font-family:var(--sans);font-size:14px;outline:none;margin-bottom:18px;" style-focus="border-color:var(--navy);background:#fff;">
+            <sc-if value="{{ authError }}" hint-placeholder-val="">
+              <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:oklch(0.55 0.19 25);background:oklch(0.96 0.04 25);border:1px solid oklch(0.88 0.07 25);border-radius:9px;padding:9px 12px;margin-bottom:16px;">{{ authError }}</div>
+            </sc-if>
+            <label style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-2);margin-bottom:22px;cursor:pointer;">
+              <span onClick="{{ toggleRemember }}" style="{{ rememberBox }}" innerHTML="{{ rememberCheck }}"></span>
+              Keep me signed in on this device
+            </label>
+            <button onClick="{{ doLogin }}" style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:13px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:16px;" style-hover="background:var(--navy-ink);">Sign in to the portal</button>
+            <div style="font-size:11.5px;color:var(--faint);text-align:center;line-height:1.5;">Protected by two-factor authentication.<br>Access recorded in the audit log.</div>
+          </sc-if>
+          <!-- RECOVER -->
+          <sc-if value="{{ authMode.recover }}" hint-placeholder-val="">
+            <h2 style="font-family:var(--disp);font-size:26px;font-weight:600;margin:0 0 6px;letter-spacing:-0.01em;">Recover access</h2>
+            <p style="font-size:13.5px;color:var(--muted);margin:0 0 28px;">We'll send a reset link to your corporate email.</p>
+            <label style="display:block;font-size:12px;font-weight:500;color:var(--ink-2);margin-bottom:6px;">Email</label>
+            <input value="{{ email }}" onInput="{{ onEmail }}" placeholder="voce@deltaproclean.com" style="width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:12px 14px;font-family:var(--sans);font-size:14px;outline:none;margin-bottom:18px;" style-focus="border-color:var(--navy);background:#fff;">
+            <button onClick="{{ doRecover }}" style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:13px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:14px;" style-hover="background:var(--navy-ink);">Send reset link</button>
+            <button onClick="{{ toLogin }}" style="width:100%;background:none;color:var(--ink-2);border:none;padding:6px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;">‹ Back to sign in</button>
+          </sc-if>
+          <!-- SENT -->
+          <sc-if value="{{ authMode.sent }}" hint-placeholder-val="">
+            <div style="width:52px;height:52px;border-radius:50%;background:var(--green-soft);color:var(--green-ink);display:flex;align-items:center;justify-content:center;margin-bottom:20px;" innerHTML="{{ iconMailBig }}"></div>
+            <h2 style="font-family:var(--disp);font-size:24px;font-weight:600;margin:0 0 8px;letter-spacing:-0.01em;">Link sent</h2>
+            <p style="font-size:13.5px;color:var(--muted);margin:0 0 26px;line-height:1.5;">If {{ email }} is registered, you'll receive a reset link shortly.</p>
+            <button onClick="{{ toLogin }}" style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:13px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;" style-hover="background:var(--navy-ink);">Back to sign in</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ GALLERY (boards por dia) ============ -->
+  <sc-if value="{{ showGallery }}" hint-placeholder-val="">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+      <header style="flex:none;display:flex;align-items:center;gap:14px;padding:16px 34px;background:var(--surface);border-bottom:1px solid var(--line);">
+        <img src="assets/delta-mark.png" alt="Delta" style="width:34px;height:34px;object-fit:contain;">
+        <div style="min-width:0;">
+          <div style="font-family:var(--disp);font-size:17px;font-weight:700;color:var(--navy);line-height:1.05;letter-spacing:-0.01em;">Delta Pro Clean</div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:0.02em;">With Us You Shine!</div>
+        </div>
+        <div style="flex:1;"></div>
+        <nav style="display:flex;align-items:center;gap:6px;">
+          <sc-for list="{{ topnav }}" as="t" hint-placeholder-count="3">
+            <button onClick="{{ t.onClick }}" style="{{ t.style }}" style-hover="background:var(--surface-2);"><span style="display:inline-flex;" innerHTML="{{ t.icon }}"></span>{{ t.label }}</button>
+          </sc-for>
+          <button onClick="{{ onLogout }}" style="display:inline-flex;align-items:center;gap:7px;background:none;border:1px solid var(--line);border-radius:9px;padding:8px 14px;font-family:var(--sans);font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;margin-left:4px;" style-hover="background:var(--surface-2);color:var(--ink-2);">Sign out</button>
+        </nav>
+      </header>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:30px 34px 60px;">
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;">
+          <h1 style="font-family:var(--disp);font-size:22px;font-weight:600;margin:0;letter-spacing:-0.01em;">{{ currentMonthLabel }}</h1>
+          <span style="font-size:13px;color:var(--muted);">current month · one board per operating day</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1180px;">
+          <sc-for list="{{ boards }}" as="b" hint-placeholder-count="8">
+            <div onClick="{{ b.onClick }}" style="{{ b.style }}" style-hover="transform:translateY(-2px);box-shadow:0 10px 26px rgba(28,27,46,0.14);">
+              <div style="{{ b.coverStyle }}">
+                <span style="{{ b.starStyle }}" innerHTML="{{ b.star }}"></span>
+                <button onClick="{{ b.onDuplicate }}" title="Duplicate board" style="position:absolute;top:9px;left:10px;width:26px;height:26px;border-radius:7px;border:none;background:rgba(28,27,46,0.42);color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;" style-hover="background:rgba(28,27,46,0.7);"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="8.5" height="8.5" rx="1.4" stroke="currentColor" stroke-width="1.4"></rect><path d="M3 10.5A1.5 1.5 0 012.5 9.5v-6A1.5 1.5 0 014 2h5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg></button>
+                <sc-if value="{{ b.statusLabel }}" hint-placeholder-val="">
+                  <span style="position:absolute;left:12px;bottom:12px;font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;background:rgba(28,27,46,0.7);color:#fff;border-radius:5px;padding:3px 8px;">{{ b.statusLabel }}</span>
+                </sc-if>
+              </div>
+              <div style="padding:11px 13px 13px;text-align:left;">
+                <div style="font-size:13px;font-weight:600;color:var(--ink);line-height:1.25;">{{ b.title }}</div>
+                <div style="font-size:11.5px;color:var(--muted);margin-top:4px;font-family:var(--mono);">{{ b.meta }}</div>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ creatingBoard }}" hint-placeholder-val="">
+            <div style="min-height:170px;border:1.5px solid var(--navy);border-radius:12px;background:var(--surface);padding:16px;display:flex;flex-direction:column;gap:10px;justify-content:center;">
+              <input value="{{ boardText }}" onInput="{{ onBoardText }}" onKeyDown="{{ boardKey }}" placeholder="e.g. JUL/19/26 · SATURDAY" style="width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:9px;padding:11px 12px;font-family:var(--sans);font-size:13px;outline:none;">
+              <div style="display:flex;gap:7px;">
+                <button onClick="{{ submitBoard }}" style="background:var(--navy);color:#fff;border:none;border-radius:9px;padding:9px 15px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;">Create</button>
+                <button onClick="{{ cancelBoard }}" style="background:none;border:1px solid var(--line);border-radius:9px;padding:9px 13px;font-size:13px;color:var(--muted);cursor:pointer;">Cancel</button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ notCreatingBoard }}" hint-placeholder-val="{{ true }}">
+            <div onClick="{{ startBoard }}" style="display:flex;align-items:center;justify-content:center;min-height:170px;border:1.5px dashed var(--line);border-radius:12px;color:var(--muted);font-size:13px;cursor:pointer;background:var(--surface-2);" style-hover="border-color:var(--navy);color:var(--navy);">+ Create new board</div>
+          </sc-if>
+        </div>
+
+        <!-- ARCHIVED MONTHS -->
+        <div style="margin-top:44px;max-width:1180px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <span style="display:inline-flex;color:var(--muted);" innerHTML="{{ iconArchive }}"></span>
+            <h2 style="font-family:var(--disp);font-size:16px;font-weight:600;margin:0;">Archived months</h2>
+            <span style="font-size:12.5px;color:var(--muted);">closed months — click to view their boards</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;">
+            <sc-for list="{{ archiveMonths }}" as="m" hint-placeholder-count="3">
+              <button onClick="{{ m.onClick }}" style="{{ m.style }}"><span>{{ m.caret }}</span>{{ m.label }}<span style="{{ m.countStyle }}">{{ m.count }}</span></button>
+            </sc-for>
+          </div>
+          <sc-if value="{{ hasArchiveOpen }}" hint-placeholder-val="">
+            <div style="margin-top:24px;">
+              <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--faint);margin-bottom:14px;">{{ archiveOpenLabel }} · closed boards</div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;">
+                <sc-for list="{{ archiveBoards }}" as="b" hint-placeholder-count="8">
+                  <div onClick="{{ b.onClick }}" style="{{ b.style }}" style-hover="transform:translateY(-2px);box-shadow:0 10px 26px rgba(28,27,46,0.14);">
+                    <div style="{{ b.coverStyle }}">
+                      <span style="{{ b.starStyle }}" innerHTML="{{ b.star }}"></span>
+                      <button onClick="{{ b.onDuplicate }}" title="Duplicate board" style="position:absolute;top:9px;left:10px;width:26px;height:26px;border-radius:7px;border:none;background:rgba(28,27,46,0.42);color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;" style-hover="background:rgba(28,27,46,0.7);"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="8.5" height="8.5" rx="1.4" stroke="currentColor" stroke-width="1.4"></rect><path d="M3 10.5A1.5 1.5 0 012.5 9.5v-6A1.5 1.5 0 014 2h5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg></button>
+                      <sc-if value="{{ b.statusLabel }}" hint-placeholder-val="">
+                        <span style="position:absolute;left:12px;bottom:12px;font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;background:rgba(28,27,46,0.7);color:#fff;border-radius:5px;padding:3px 8px;">{{ b.statusLabel }}</span>
+                      </sc-if>
+                    </div>
+                    <div style="padding:11px 13px 13px;text-align:left;">
+                      <div style="font-size:13px;font-weight:600;color:var(--ink);line-height:1.25;">{{ b.title }}</div>
+                      <div style="font-size:11.5px;color:var(--muted);margin-top:4px;font-family:var(--mono);">{{ b.meta }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ BOARD (dia aberto) ============ -->
+  <sc-if value="{{ showBoard }}" hint-placeholder-val="">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+      <header style="flex:none;background:var(--surface);border-bottom:1px solid var(--line);padding:13px 30px 0;">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <button onClick="{{ goGallery }}" style="display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:7px 13px;font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-2);cursor:pointer;" style-hover="background:var(--navy-soft);color:var(--navy);">‹ Boards</button>
+          <div style="min-width:0;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <h1 style="font-family:var(--disp);font-weight:600;font-size:20px;margin:0;letter-spacing:-0.01em;white-space:nowrap;color:var(--ink);">{{ boardTitle }}</h1>
+              <span style="color:oklch(0.72 0.15 85);font-size:16px;" innerHTML="{{ starIcon }}"></span>
+            </div>
+            <div style="font-size:12.5px;color:var(--muted);margin-top:3px;">{{ daySummary }}</div>
+          </div>
+          <div style="flex:1;"></div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;width:250px;">
+              <span style="color:var(--faint);display:inline-flex;" innerHTML="{{ iconSearch }}"></span>
+              <input value="{{ query }}" onInput="{{ onSearch }}" placeholder="Search worker or client…" style="border:none;background:none;outline:none;font-family:var(--sans);font-size:13px;color:var(--ink);width:100%;">
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:5px 6px 5px 11px;">
+              <span style="font-size:11px;color:var(--muted);">Profile</span>
+              <select value="{{ actingAccess }}" onChange="{{ onActingAccess }}" style="border:none;background:none;outline:none;font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer;">
+                <option value="admin">Admin</option>
+                <option value="editor">Editor</option>
+              </select>
+            </div>
+            <button onClick="{{ startList }}" style="display:flex;align-items:center;gap:7px;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:9px 15px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;" style-hover="background:var(--navy-ink);"><span style="font-size:16px;line-height:1;">+</span> List</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:14px;padding-bottom:11px;overflow-x:auto;">
+          <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--faint);margin-right:5px;flex:none;">Boards by day</span>
+          <sc-for list="{{ days }}" as="d" hint-placeholder-count="6">
+            <button onClick="{{ d.onClick }}" style="{{ d.style }}">
+              <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.05em;opacity:0.75;">{{ d.weekday }}</span>
+              <span style="font-family:var(--disp);font-weight:600;font-size:16px;line-height:1;">{{ d.day }}</span>
+              <span style="{{ d.dotStyle }}">{{ d.count }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </header>
+
+      <main onMouseDown="{{ panDown }}" onMouseMove="{{ panMove }}" onMouseUp="{{ panUp }}" onMouseLeave="{{ panUp }}" style="flex:1;min-height:0;overflow-x:auto;overflow-y:hidden;padding:18px 30px;cursor:grab;">
+        
+      <div style="display:flex;gap:14px;height:100%;align-items:flex-start;min-height:100%;">
+          <!-- POOL COLUMN -->
+          <section style="flex:none;width:250px;max-height:100%;display:flex;flex-direction:column;background:var(--navy);border-radius:13px;padding:14px 9px 8px;">
+            <div style="display:flex;align-items:center;gap:8px;padding:0 7px 12px;">
+              <h2 style="font-size:13px;font-weight:700;margin:0;color:#fff;letter-spacing:0.02em;flex:1;">DELTA OFFICE / WAREHOUSE</h2>
+              <span style="font-family:var(--mono);font-size:11px;color:rgba(255,255,255,0.75);background:rgba(255,255,255,0.14);border-radius:20px;padding:2px 8px;">{{ poolCount }}</span>
+            </div>
+            <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:2px 5px 6px;">
+              <sc-for list="{{ pool }}" as="v" hint-placeholder-count="8">
+                <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:9px 11px;font-size:12.5px;color:#fff;cursor:pointer;" style-hover="background:rgba(255,255,255,0.14);">{{ v.name }}</div>
+              </sc-for>
+              <div style="font-size:12px;color:rgba(255,255,255,0.6);padding:7px 4px;cursor:pointer;">+ Add vendor</div>
+            </div>
+          </section>
+
+          <!-- WORKER COLUMNS -->
+          <sc-for list="{{ columns }}" as="col" hint-placeholder-count="6">
+            <section onDragOver="{{ onDragOver }}" onDrop="{{ col.onDrop }}" style="flex:none;width:278px;max-height:100%;display:flex;flex-direction:column;background:var(--surface-2);border:1px solid var(--line-2);border-radius:13px;padding:12px 8px 6px;">
+              <div style="display:flex;align-items:flex-start;gap:8px;padding:0 6px 11px;">
+                <span style="{{ col.avatarStyle }}">{{ col.initials }}</span>
+                <h2 style="font-size:13px;font-weight:600;margin:0;color:var(--ink);line-height:1.2;flex:1;min-width:0;">{{ col.name }}</h2>
+                <span style="font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:1px 8px;flex:none;">{{ col.count }}</span>
+              </div>
+              <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding:2px 6px 6px;">
+                <sc-for list="{{ col.cards }}" as="card" hint-placeholder-count="2">
+                  <article draggable="true" onDragStart="{{ card.onDragStart }}" onClick="{{ card.onClick }}" style="{{ card.style }}" style-hover="border-color:#cfcfda;box-shadow:0 3px 11px rgba(28,27,46,0.09);">
+                    <div style="display:flex;gap:4px;margin-bottom:9px;">
+                      <sc-for list="{{ card.bars }}" as="bar" hint-placeholder-count="3">
+                        <span style="{{ bar.style }}" title="{{ bar.name }}"></span>
+                      </sc-for>
+                    </div>
+                    <h3 class="clamp" style="font-size:12.5px;line-height:1.4;margin:0;color:var(--ink-2);-webkit-line-clamp:6;">
+                      <strong style="color:var(--ink);font-weight:600;">{{ card.head }}</strong>{{ card.body }}
+                    </h3>
+                    <div style="display:flex;align-items:center;gap:9px;margin-top:11px;">
+                      <span onClick="{{ card.onToggle }}" style="{{ card.checkStyle }}" innerHTML="{{ card.check }}"></span>
+                      <span style="font-family:var(--mono);font-size:11px;color:{{ card.timeColor }};">{{ card.time }}</span>
+                      <span style="flex:1;"></span>
+                      <sc-if value="{{ card.comments }}" hint-placeholder-val="">
+                        <span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--muted);" innerHTML="{{ card.commentHtml }}"></span>
+                      </sc-if>
+                      <span style="{{ card.memberStyle }}">{{ card.member }}</span>
+                    </div>
+                  </article>
+                </sc-for>
+                <sc-if value="{{ col.adding }}" hint-placeholder-val="">
+                  <div style="display:flex;flex-direction:column;gap:7px;padding:2px 2px 4px;">
+                    <input value="{{ cardText }}" onInput="{{ onCardText }}" onKeyDown="{{ cardKey }}" placeholder="Describe the service or search a card…" style="width:100%;border:1px solid var(--navy);background:#fff;border-radius:9px;padding:10px 11px;font-family:var(--sans);font-size:12.5px;outline:none;">
+                    <sc-if value="{{ hasSuggestions }}" hint-placeholder-val="">
+                      <div style="border:1px solid var(--line);border-radius:9px;background:var(--surface);overflow:hidden;">
+                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--faint);padding:8px 11px 5px;">Copy from existing card</div>
+                        <sc-for list="{{ cardSuggestions }}" as="s" hint-placeholder-count="3">
+                          <div onClick="{{ s.onPick }}" style="padding:8px 11px;cursor:pointer;border-top:1px solid var(--line-2);" style-hover="background:var(--navy-soft);">
+                            <div class="clamp" style="font-size:12px;color:var(--ink);-webkit-line-clamp:2;line-height:1.35;">{{ s.text }}</div>
+                            <div style="font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:2px;">{{ s.sub }}</div>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                    <div style="display:flex;gap:6px;">
+                      <button onClick="{{ col.submitAdd }}" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-family:var(--sans);font-size:12.5px;font-weight:600;cursor:pointer;">Add</button>
+                      <button onClick="{{ col.cancelAdd }}" style="background:none;border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:12.5px;color:var(--muted);cursor:pointer;">✕</button>
+                    </div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ col.notAdding }}" hint-placeholder-val="{{ true }}">
+                  <div onClick="{{ col.startAdd }}" style="font-size:12.5px;color:var(--faint);padding:8px 6px;cursor:pointer;border-radius:8px;" style-hover="background:var(--line-2);color:var(--ink-2);">+ Add card</div>
+                </sc-if>
+              </div>
+            </section>
+          </sc-for>
+          <div style="flex:none;width:250px;max-height:100%;">
+            <sc-if value="{{ addingList }}" hint-placeholder-val="">
+              <div style="background:var(--surface);border:1px solid var(--navy);border-radius:13px;padding:11px;display:flex;flex-direction:column;gap:8px;">
+                <input value="{{ listText }}" onInput="{{ onListText }}" onKeyDown="{{ listKey }}" placeholder="Worker name…" style="width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:9px;padding:10px 11px;font-family:var(--sans);font-size:12.5px;outline:none;">
+                <div style="display:flex;gap:6px;">
+                  <button onClick="{{ submitList }}" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-family:var(--sans);font-size:12.5px;font-weight:600;cursor:pointer;">Add</button>
+                  <button onClick="{{ cancelList }}" style="background:none;border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:12.5px;color:var(--muted);cursor:pointer;">✕</button>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ notAddingList }}" hint-placeholder-val="{{ true }}">
+              <div onClick="{{ startList }}" style="border:1.5px dashed var(--line);border-radius:13px;padding:13px 15px;font-size:13px;color:var(--muted);cursor:pointer;background:var(--surface-2);" style-hover="border-color:var(--navy);color:var(--navy);">+ Add worker</div>
+            </sc-if>
+          </div>
+          <div style="flex:none;width:16px;"></div>
+        </div></main>
+    </div>
+  </sc-if>
+
+  <!-- ============ EXPORT CENTER ============ -->
+  <sc-if value="{{ showExports }}" hint-placeholder-val="">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+      <header style="flex:none;display:flex;align-items:center;gap:14px;padding:16px 34px;background:var(--surface);border-bottom:1px solid var(--line);">
+        <button onClick="{{ goGallery }}" style="display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:7px 13px;font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-2);cursor:pointer;" style-hover="background:var(--navy-soft);color:var(--navy);">‹ Boards</button>
+        <div><div style="font-family:var(--disp);font-size:18px;font-weight:600;letter-spacing:-0.01em;">Export Center</div><div style="font-size:12px;color:var(--muted);">Asynchronous exports · fully audited</div></div>
+      </header>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:28px 34px 60px;">
+        <div style="max-width:1000px;">
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--faint);margin-bottom:12px;">New export</div>
+          <div style="display:flex;gap:12px;margin-bottom:34px;flex-wrap:wrap;">
+            <sc-for list="{{ exportFormats }}" as="f" hint-placeholder-count="4">
+              <button style="display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 18px;cursor:pointer;font-family:var(--sans);min-width:190px;text-align:left;" style-hover="border-color:var(--navy);box-shadow:0 4px 14px rgba(28,27,46,0.08);">
+                <span style="{{ f.badgeStyle }}">{{ f.ext }}</span>
+                <span><span style="display:block;font-size:14px;font-weight:600;color:var(--ink);">{{ f.name }}</span><span style="display:block;font-size:11.5px;color:var(--muted);margin-top:2px;">{{ f.hint }}</span></span>
+              </button>
+            </sc-for>
+          </div>
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--faint);margin-bottom:12px;">Recent exports</div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:13px;overflow:hidden;">
+            <div style="display:grid;grid-template-columns:1fr 120px 150px 130px 90px;gap:16px;padding:13px 20px;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--faint);">
+              <span>Report</span><span>Format</span><span>Requested by</span><span>Status</span><span></span>
+            </div>
+            <sc-for list="{{ exportJobs }}" as="j" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:1fr 120px 150px 130px 90px;gap:16px;padding:15px 20px;border-bottom:1px solid var(--line-2);align-items:center;">
+                <div><div style="font-size:13.5px;font-weight:500;color:var(--ink);">{{ j.name }}</div><div style="font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:2px;">{{ j.when }} · {{ j.rows }}</div></div>
+                <span style="{{ j.fmtStyle }}">{{ j.fmt }}</span>
+                <span style="font-size:12.5px;color:var(--ink-2);">{{ j.by }}</span>
+                <span style="{{ j.statusStyle }}"><span style="{{ j.statusDot }}"></span>{{ j.status }}</span>
+                <span style="{{ j.actionStyle }}">{{ j.action }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ AUDITORIA ============ -->
+  <sc-if value="{{ showAudit }}" hint-placeholder-val="">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+      <header style="flex:none;display:flex;align-items:center;gap:14px;padding:16px 34px;background:var(--surface);border-bottom:1px solid var(--line);">
+        <button onClick="{{ goGallery }}" style="display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:7px 13px;font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-2);cursor:pointer;" style-hover="background:var(--navy-soft);color:var(--navy);">‹ Boards</button>
+        <div><div style="font-family:var(--disp);font-size:18px;font-weight:600;letter-spacing:-0.01em;">Audit</div><div style="font-size:12px;color:var(--muted);">Immutable record of every action · since day one</div></div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;gap:7px;">
+          <sc-for list="{{ auditFilters }}" as="c" hint-placeholder-count="3">
+            <span style="font-size:12px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line);border-radius:20px;padding:5px 13px;cursor:pointer;">{{ c }}</span>
+          </sc-for>
+        </div>
+      </header>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:22px 34px 60px;">
+        <div style="max-width:1120px;background:var(--surface);border:1px solid var(--line);border-radius:13px;overflow:hidden;">
+          <div style="display:grid;grid-template-columns:170px 180px 1fr 150px 130px;gap:16px;padding:13px 22px;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--faint);">
+            <span>Timestamp</span><span>User</span><span>Action</span><span>Board / Region</span><span>Source</span>
+          </div>
+          <sc-for list="{{ auditLog }}" as="e" hint-placeholder-count="8">
+            <div style="display:grid;grid-template-columns:170px 180px 1fr 150px 130px;gap:16px;padding:13px 22px;border-bottom:1px solid var(--line-2);align-items:center;">
+              <span style="font-family:var(--mono);font-size:11.5px;color:var(--ink-2);">{{ e.ts }}</span>
+              <span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);min-width:0;"><span style="{{ e.avatarStyle }}">{{ e.initials }}</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ e.user }}</span></span>
+              <span style="font-size:12.5px;color:var(--ink-2);"><span style="{{ e.tagStyle }}">{{ e.verb }}</span> {{ e.detail }}</span>
+              <span style="font-size:12px;color:var(--muted);">{{ e.scope }}</span>
+              <span style="font-family:var(--mono);font-size:11px;color:var(--faint);">{{ e.ip }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ INTEGRATION MONITOR ============ -->
+  <sc-if value="{{ showInteg }}" hint-placeholder-val="">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+      <header style="flex:none;display:flex;align-items:center;gap:14px;padding:16px 34px;background:var(--surface);border-bottom:1px solid var(--line);">
+        <button onClick="{{ goGallery }}" style="display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:7px 13px;font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-2);cursor:pointer;" style-hover="background:var(--navy-soft);color:var(--navy);">‹ Boards</button>
+        <div><div style="font-family:var(--disp);font-size:18px;font-weight:600;letter-spacing:-0.01em;">Integration Monitor · Field Control</div><div style="font-size:12px;color:var(--muted);">Queue with retries, DLQ and idempotency · manual reprocessing</div></div>
+        <div style="flex:1;"></div>
+        <span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--green-ink);background:var(--green-soft);border-radius:20px;padding:6px 13px;font-weight:500;"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);"></span>Integration service active</span>
+      </header>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:26px 34px 60px;">
+        <div style="max-width:1120px;">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:30px;">
+            <sc-for list="{{ integStats }}" as="s" hint-placeholder-count="4">
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:18px 20px;">
+                <div style="font-family:var(--disp);font-size:30px;font-weight:600;color:{{ s.c }};line-height:1;">{{ s.v }}</div>
+                <div style="font-size:12.5px;color:var(--muted);margin-top:8px;">{{ s.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--faint);margin-bottom:12px;">Sync events</div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:13px;overflow:hidden;">
+            <div style="display:grid;grid-template-columns:1.4fr 170px 130px 1.1fr 120px;gap:16px;padding:13px 22px;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--faint);">
+              <span>Event</span><span>Direction</span><span>Status</span><span>Error / reason</span><span></span>
+            </div>
+            <sc-for list="{{ integRows }}" as="e" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:1.4fr 170px 130px 1.1fr 120px;gap:16px;padding:15px 22px;border-bottom:1px solid var(--line-2);align-items:center;">
+                <div><div style="font-size:13.5px;font-weight:500;color:var(--ink);">{{ e.entity }}</div><div style="font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:2px;">{{ e.key }} · {{ e.attempts }} · {{ e.when }}</div></div>
+                <span style="{{ e.dirStyle }}">{{ e.dirLabel }}</span>
+                <span style="{{ e.statusStyle }}"><span style="{{ e.statusDot }}"></span>{{ e.status }}</span>
+                <span style="font-size:12px;color:{{ e.errColor }};line-height:1.35;">{{ e.err }}</span>
+                <span>
+                  <sc-if value="{{ e.canReprocess }}" hint-placeholder-val="">
+                    <button onClick="{{ e.onReprocess }}" style="background:var(--navy);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;" style-hover="background:var(--navy-ink);">Reprocess</button>
+                  </sc-if>
+                </span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:16px;line-height:1.5;">The portal works without the integration: failures stay isolated in the queue/DLQ and can be reprocessed manually, without blocking board operations.</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ MEMBROS / RBAC ============ -->
+  <sc-if value="{{ showMembers }}" hint-placeholder-val="">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+      <header style="flex:none;display:flex;align-items:center;gap:14px;padding:16px 34px;background:var(--surface);border-bottom:1px solid var(--line);">
+        <button onClick="{{ goGallery }}" style="display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:7px 13px;font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-2);cursor:pointer;" style-hover="background:var(--navy-soft);color:var(--navy);">‹ Boards</button>
+        <div><div style="font-family:var(--disp);font-size:18px;font-weight:600;letter-spacing:-0.01em;">Members &amp; Permissions</div><div style="font-size:12px;color:var(--muted);">Profiles, regions and access matrix (RBAC)</div></div>
+        <div style="flex:1;"></div>
+        <button style="display:flex;align-items:center;gap:7px;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:9px 15px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;" style-hover="background:var(--navy-ink);"><span style="font-size:16px;line-height:1;">+</span> Invite member</button>
+      </header>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:26px 34px 60px;">
+        <div style="max-width:1120px;">
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--faint);margin-bottom:12px;">Team ({{ memberCount }})</div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:13px;overflow:hidden;margin-bottom:34px;">
+            <div style="display:grid;grid-template-columns:1.4fr 150px 130px 150px;gap:16px;padding:13px 22px;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--faint);">
+              <span>Member</span><span>Role</span><span>Region</span><span>Status</span>
+            </div>
+            <sc-for list="{{ members }}" as="m" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:1.4fr 150px 130px 150px;gap:16px;padding:14px 22px;border-bottom:1px solid var(--line-2);align-items:center;">
+                <span style="display:inline-flex;align-items:center;gap:11px;min-width:0;"><span style="{{ m.avatarStyle }}">{{ m.initials }}</span><span style="min-width:0;"><span style="display:block;font-size:13.5px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ m.name }}</span><span style="display:block;font-family:var(--mono);font-size:11px;color:var(--faint);">{{ m.email }}</span></span></span>
+                <span><span style="{{ m.roleStyle }}">{{ m.role }}</span></span>
+                <span style="font-size:12.5px;color:var(--ink-2);">{{ m.region }}</span>
+                <span><span style="{{ m.statusStyle }}">{{ m.statusLabel }}</span></span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--faint);margin-bottom:12px;">Permissions matrix · role × module</div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:13px;overflow:hidden;">
+            <div style="display:grid;grid-template-columns:200px repeat(5,1fr);gap:10px;padding:13px 22px;border-bottom:1px solid var(--line);align-items:center;">
+              <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--faint);">Module</span>
+              <sc-for list="{{ permCols }}" as="c" hint-placeholder-count="5">
+                <span style="font-size:12px;font-weight:600;color:var(--ink-2);text-align:center;">{{ c }}</span>
+              </sc-for>
+            </div>
+            <sc-for list="{{ permMatrix }}" as="row" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:200px repeat(5,1fr);gap:10px;padding:12px 22px;border-bottom:1px solid var(--line-2);align-items:center;">
+                <span style="font-size:13px;font-weight:500;color:var(--ink);">{{ row.module }}</span>
+                <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="5">
+                  <span style="{{ cell.style }}">{{ cell.label }}</span>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:18px;margin-top:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);">
+            <span>Full = create/edit/delete</span><span>Region = restricted to own region</span><span>Own = only assigned items</span><span>View = read only</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ FUNCIONÁRIOS (roster base) ============ -->
+  <sc-if value="{{ showRoster }}" hint-placeholder-val="">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+      <header style="flex:none;display:flex;align-items:center;gap:14px;padding:16px 34px;background:var(--surface);border-bottom:1px solid var(--line);">
+        <button onClick="{{ goGallery }}" style="display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:7px 13px;font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink-2);cursor:pointer;" style-hover="background:var(--navy-soft);color:var(--navy);">‹ Boards</button>
+        <div><div style="font-family:var(--disp);font-size:18px;font-weight:600;letter-spacing:-0.01em;">Employees</div><div style="font-size:12px;color:var(--muted);">Base list · every new board starts with these columns</div></div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;width:230px;">
+          <span style="color:var(--faint);display:inline-flex;" innerHTML="{{ iconSearch }}"></span>
+          <input value="{{ rosterSearch }}" onInput="{{ onRosterSearch }}" placeholder="Search employee…" style="border:none;background:none;outline:none;font-family:var(--sans);font-size:13px;width:100%;" />
+        </div>
+      </header>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:24px 34px 60px;">
+        <div style="max-width:900px;">
+          <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:10px;margin-bottom:26px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;">
+              <input value="{{ rosterName }}" onInput="{{ onRosterName }}" onKeyDown="{{ rosterNameKey }}" placeholder="Employee or company name…" style="flex:1;border:1px solid var(--line);background:var(--surface-2);border-radius:9px;padding:10px 12px;font-family:var(--sans);font-size:13px;outline:none;" style-focus="border-color:var(--navy);background:#fff;" />
+              <select value="{{ rosterRegion }}" onChange="{{ onRosterRegion }}" style="border:1px solid var(--line);background:var(--surface-2);border-radius:9px;padding:10px 12px;font-family:var(--sans);font-size:13px;outline:none;cursor:pointer;">
+                <sc-for list="{{ rosterRegionOpts }}" as="o" hint-placeholder-count="4">
+                  <option value="{{ o.value }}">{{ o.label }}</option>
+                </sc-for>
+              </select>
+              <button onClick="{{ addWorker }}" style="background:var(--navy);color:#fff;border:none;border-radius:9px;padding:10px 16px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;" style-hover="background:var(--navy-ink);">+ Add</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ notAdmin }}" hint-placeholder-val="">
+            <div style="margin-bottom:26px;background:var(--surface-2);border:1px dashed var(--line);border-radius:12px;padding:13px 16px;font-size:12.5px;color:var(--muted);">Only an <strong style="color:var(--ink-2);">Admin</strong> can add or delete employees. Switch the board profile to Admin to manage the list.</div>
+          </sc-if>
+          <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--faint);margin-bottom:12px;">Base team · {{ rosterCount }} people</div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:13px;overflow:hidden;">
+            <div style="display:grid;grid-template-columns:1fr 150px 150px 160px 60px;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--faint);">
+              <span>Employee</span><span>Region</span><span>Type</span><span>Access</span><span></span>
+            </div>
+            <sc-for list="{{ rosterList }}" as="w" hint-placeholder-count="10">
+              <div style="display:grid;grid-template-columns:1fr 150px 150px 160px 60px;gap:14px;padding:9px 20px;border-bottom:1px solid var(--line-2);align-items:center;">
+                <span style="display:inline-flex;align-items:center;gap:11px;min-width:0;"><span style="{{ w.avatarStyle }}">{{ w.initials }}</span><span style="font-size:13.5px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ w.name }}</span></span>
+                <select value="{{ w.regionValue }}" onChange="{{ w.onRegion }}" style="border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:7px 9px;font-family:var(--sans);font-size:12.5px;color:var(--ink-2);outline:none;cursor:pointer;">
+                  <sc-for list="{{ rosterRegionOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+                </select>
+                <select value="{{ w.kindValue }}" onChange="{{ w.onKind }}" style="border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:7px 9px;font-family:var(--sans);font-size:12.5px;color:var(--ink-2);outline:none;cursor:pointer;">
+                  <sc-for list="{{ kindOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+                </select>
+                <span style="display:inline-flex;align-items:center;gap:8px;"><span style="{{ w.accessBadge }}"></span>
+                  <select value="{{ w.accessValue }}" onChange="{{ w.onAccess }}" style="border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:7px 9px;font-family:var(--sans);font-size:12.5px;color:var(--ink-2);outline:none;cursor:pointer;flex:1;">
+                    <sc-for list="{{ accessOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+                  </select>
+                </span>
+                <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ w.onRemove }}" title="Remove" style="width:28px;height:28px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;font-size:13px;" style-hover="background:oklch(0.97 0.03 25);border-color:oklch(0.85 0.09 25);color:oklch(0.53 0.19 25);">✕</button>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5;">Access: <strong style="color:var(--ink-2);">Admin</strong> does everything (including deleting cards and employees). <strong style="color:var(--ink-2);">Editor</strong> fixes and edits cards, but cannot delete. <strong style="color:var(--ink-2);">No access</strong> can only view.</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ CARD MODAL ============ -->
+  <sc-if value="{{ modal }}" hint-placeholder-val="">
+    <div onClick="{{ closeModal }}" style="position:fixed;inset:0;background:rgba(28,27,46,0.4);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;">
+      <div onClick="{{ stop }}" style="width:820px;max-width:100%;background:var(--surface);border-radius:16px;box-shadow:0 24px 70px rgba(28,27,46,0.28);overflow:hidden;">
+        <div style="height:64px;background:linear-gradient(120deg,var(--navy),var(--navy-2));display:flex;align-items:center;justify-content:space-between;padding:0 20px;">
+          <span style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.16);border-radius:8px;padding:5px 12px;font-size:12.5px;color:#fff;font-weight:500;">{{ modal.listName }} <span style="opacity:0.7;">▾</span></span>
+          <button onClick="{{ closeModal }}" style="width:32px;height:32px;border-radius:8px;border:none;background:rgba(255,255,255,0.16);color:#fff;cursor:pointer;font-size:15px;line-height:1;" style-hover="background:rgba(255,255,255,0.28);">✕</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 300px;">
+          <div style="padding:24px 26px;border-right:1px solid var(--line);">
+            <div style="display:flex;gap:13px;margin-bottom:22px;">
+              <span onClick="{{ modal.onToggle }}" style="{{ modal.checkStyle }}" innerHTML="{{ modal.check }}"></span>
+              <h2 style="font-family:var(--sans);font-weight:600;font-size:19px;line-height:1.35;margin:2px 0 0;color:var(--ink);"><strong style="font-weight:700;">{{ modal.head }}</strong>{{ modal.body }}</h2>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;">
+              <sc-for list="{{ modal.actions }}" as="a" hint-placeholder-count="5">
+                <button onClick="{{ a.onClick }}" style="{{ a.style }}" style-hover="{{ a.hover }}"><span style="display:inline-flex;" innerHTML="{{ a.icon }}"></span>{{ a.label }}</button>
+              </sc-for>
+            </div>
+            <div style="margin-bottom:24px;">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--faint);margin-bottom:9px;">Labels</div>
+              <div style="display:flex;flex-wrap:wrap;gap:7px;">
+                <sc-for list="{{ modal.labels }}" as="l" hint-placeholder-count="3">
+                  <span style="{{ l.style }}">{{ l.name }}</span>
+                </sc-for>
+                <span style="width:30px;height:28px;display:inline-flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--line);border-radius:7px;color:var(--muted);cursor:pointer;font-size:15px;">+</span>
+              </div>
+            </div>
+            <div style="margin-bottom:8px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">
+                <span style="color:var(--muted);display:inline-flex;" innerHTML="{{ iconDesc }}"></span>
+                <div style="font-size:14px;font-weight:600;">Structured description</div>
+              </div>
+              <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;grid-template-columns:auto 1fr;gap:9px 16px;">
+                <sc-for list="{{ modal.fields }}" as="f" hint-placeholder-count="6">
+                  <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--faint);white-space:nowrap;padding-top:1px;">{{ f.k }}</div>
+                  <div style="font-size:13.5px;color:var(--ink-2);line-height:1.35;">{{ f.v }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="padding:24px 22px;display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px;">
+              <span style="color:var(--muted);display:inline-flex;" innerHTML="{{ iconChat }}"></span>
+              <div style="font-size:14px;font-weight:600;">Comments and activity</div>
+            </div>
+            <div style="display:flex;gap:9px;margin-bottom:20px;">
+              <span style="width:30px;height:30px;flex:none;border-radius:50%;background:var(--navy);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;">MR</span>
+              <input placeholder="Write a comment…" style="flex:1;min-width:0;border:1px solid var(--line);background:var(--surface-2);border-radius:9px;padding:9px 12px;font-family:var(--sans);font-size:12.5px;outline:none;">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <sc-for list="{{ modal.activity }}" as="ev" hint-placeholder-count="2">
+                <div style="display:flex;gap:9px;">
+                  <span style="{{ ev.style }}">{{ ev.initials }}</span>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-size:12.5px;color:var(--ink-2);line-height:1.4;"><strong style="font-weight:600;color:var(--ink);">{{ ev.who }}</strong> {{ ev.text }}</div>
+                    <div style="font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:2px;">{{ ev.when }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { view:"login", authMode:"login", email:"", pass:"", remember:true, authError:"", day:"jul16", query:"", draggingId:null, openId:null, data:{}, customBoards:[], addingCol:null, cardText:"", addingList:false, listText:"", creatingBoard:false, boardText:"", roster:null, rosterName:"", rosterRegion:"north", rosterSearch:"", actingAccess:"admin", archiveOpen:null };
+
+  CURRENT_MONTH={key:"2026-07", label:"July 2026"};
+  ARCHIVE=[
+    {key:"2026-06", label:"June 2026", mon:"JUN", days:30, baseHue:200},
+    {key:"2026-05", label:"May 2026", mon:"MAY", days:31, baseHue:120},
+    {key:"2026-04", label:"April 2026", mon:"APR", days:30, baseHue:40},
+  ];
+  getArchiveDays(m){
+    if(!this._arch) this._arch={};
+    if(this._arch[m.key]) return this._arch[m.key];
+    const R=this.rng(m.key.split("").reduce((a,c)=>a*33+c.charCodeAt(0),9)>>>0);
+    const wdN=["SUN","MON","TUE","WED","THU","FRI","SAT"], wdF=["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];
+    const arr=[];
+    for(let d=1; d<=m.days; d++){ const dow=(d+2)%7; if(dow===0) continue;
+      const dd=String(d).padStart(2,"0");
+      arr.push({ id:m.key.replace("-","")+"_"+dd, weekday:wdN[dow], day:dd, title:`${m.mon}/${dd}/26 · ${wdF[dow]}`, status:"Closed board", n:60+Math.floor(R()*150), hue:(m.baseHue+d*7)%360, month:m.key });
+    }
+    this._arch[m.key]=arr; return arr;
+  }
+  findMeta(id){ return this.DAYS.find(d=>d.id===id) || (this.state.customBoards||[]).find(d=>d.id===id) || [].concat(...this.ARCHIVE.map(m=>this.getArchiveDays(m))).find(d=>d.id===id); }
+
+  REGIONS={north:"North", south:"South", st_george:"St George", another:"Another State"};
+  KINDS={employee:"Employee", contractor:"Contractor", company:"Company"};
+  ACCESS={admin:"Admin", editor:"Editor", none:"No access"};
+
+  componentDidMount(){
+    try{ const raw=localStorage.getItem("deltaPortal.v1"); if(raw){ const p=JSON.parse(raw);
+      const patch={}; if(p.data) patch.data=p.data; if(p.custom) patch.customBoards=p.custom; if(p.roster) patch.roster=p.roster;
+      if(patch.roster && !localStorage.getItem("deltaPortal.rosterReset2")){ patch.roster=patch.roster.map(w=>({...w,access:"none"})); localStorage.setItem("deltaPortal.rosterReset2","1"); }
+      if(Object.keys(patch).length) this.setState(patch); } }catch(e){}
+  }
+  componentDidUpdate(pp,ps){
+    if(ps.data!==this.state.data || ps.customBoards!==this.state.customBoards || ps.roster!==this.state.roster){
+      try{ localStorage.setItem("deltaPortal.v1", JSON.stringify({data:this.state.data, custom:this.state.customBoards, roster:this.state.roster})); }catch(e){}
+    }
+  }
+  getRosterState(){ let r=this.state.roster; if(!r){ r=this.getRoster(); this.state.roster=r; } return r; }
+  addWorker(){
+    const n=(this.state.rosterName||"").trim(); if(!n) return;
+    const initials=(n.replace(/[,&]/g," ").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("")||"?").toUpperCase();
+    const kind=/llc|services|cleaning|ltda|\binc\b/i.test(n)?"company":"employee";
+    const w={name:n, initials, region:this.state.rosterRegion, kind, access:"none"};
+    this.setState(st=>({ roster:[...this.getRosterState(), w], rosterName:"" }));
+  }
+  removeWorkerAt(i){ this.setState(st=>({ roster:this.getRosterState().filter((_,j)=>j!==i) })); }
+  updateWorkerAt(i,patch){ this.setState(st=>({ roster:this.getRosterState().map((w,j)=>j===i?{...w,...patch}:w) })); }
+
+  submitCard(colId){
+    const t=(this.state.cardText||"").trim();
+    if(!t){ this.setState({addingCol:null,cardText:""}); return; }
+    const dd=this.state.data[this.state.day]; const col=dd.cols.find(c=>c.id===colId);
+    const card={ id:Date.now(), colId, raw:t, client:t, done:false, time:"", building:"", clean:"", addr:"", fin:"", ps:"", labels:["sched"], comments:0, member:(col&&col.initials)||"?" };
+    this.setState(st=>({ data:{...st.data,[st.day]:{...st.data[st.day], cards:[...st.data[st.day].cards, card]}}, addingCol:null, cardText:"" }));
+  }
+  submitList(){
+    const t=(this.state.listText||"").trim();
+    if(!t){ this.setState({addingList:false,listText:""}); return; }
+    const initials=(t.replace(/[,&]/g," ").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("")||"?").toUpperCase();
+    const col={ id:"col"+Date.now(), name:t, initials };
+    this.setState(st=>({ data:{...st.data,[st.day]:{...st.data[st.day], cols:[...st.data[st.day].cols, col]}}, addingList:false, listText:"" }));
+  }
+  copyCard(){
+    const day=this.state.day, dd=this.state.data[day];
+    const c=dd.cards.find(x=>x.id===this.state.openId); if(!c) return;
+    const nc={...c, id:Date.now(), done:false};
+    this.setState(st=>({ data:{...st.data,[day]:{...st.data[day], cards:[...st.data[day].cards, nc]}}, openId:nc.id }));
+  }
+  deleteCard(){
+    const day=this.state.day;
+    this.setState(st=>({ data:{...st.data,[day]:{...st.data[day], cards:st.data[day].cards.filter(x=>x.id!==st.openId)}}, openId:null }));
+  }
+  getRoster(){
+    if(this._roster) return this._roster;
+    const R=this.rng(20260716); const pick=a=>a[Math.floor(R()*a.length)];
+    const first=["James","Marcus","Aisha","Sophia","Liam","Olivia","Noah","Emma","Kai","Tariq","Nina","Omar","Grace","Leon","Maya","Andre","Rosa","Ethan","Zara","Malik","Chloe","Ravi","Ana","Pedro","Tania","Rui","Carla","Marcos","Vera","John","Sara","Kevin","Diane","Paulo","Ingrid","Tomas","Bianca","Keisha","Trevor","Nadia","Franciele","Natalia","Alejandra","Maycol","Daniel","Luz","David","Hannah","Isaac","Priya"];
+    const last=["Smith","Bascome","Dill","Simmons","Trott","Burgess","Santos","Silva","Costa","Reis","Prado","Melo","Nunes","Ferreira","Robinson","Tucker","Furbert","Wilson","Hayward","Minors","Swan","Darrell","Giacomelli Patrick","Gutierrez Bautista","Venegas","Morales","Orellana Cruz","Lopez Restrepo","Pearman","Cann"];
+    const companies=["M & L, Service Cleaning LLC","BH, Cleaning LLC-B","R&V, Professional Services","Shine In, Cleaning LLC","WGJ, Services","Ultra, Cleaning","Gray Star, Cleaning LLC","Bright Path, Cleaning LLC"];
+    const regions=["north","south","st_george","another"];
+    const arr=[], seen=new Set(); let i=0;
+    while(arr.length<200){ i++;
+      const isCo=R()<0.28; let name=isCo?pick(companies):`${pick(last)}, ${pick(first)}`;
+      if(seen.has(name)) name=name+" "+i; seen.add(name);
+      const initials=(name.replace(/[,&]/g," ").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("")||"?").toUpperCase();
+      arr.push({name, initials, region:regions[Math.floor(R()*4)], kind:isCo?"company":"employee", access:"none"});
+    }
+    this._roster=arr; return arr;
+  }
+  genDayCached(dayId){ if(!this._gen) this._gen={}; if(!this._gen[dayId]) this._gen[dayId]=this.genDay(dayId); return this._gen[dayId]; }
+  allCards(){
+    const out=[];
+    for(const d of this.DAYS){ const src=(this.state.data[d.id]&&this.state.data[d.id].cards)||this.genDayCached(d.id).cards; for(const c of src) out.push({card:c, dayTitle:d.title}); }
+    for(const b of (this.state.customBoards||[])){ const src=(this.state.data[b.id]&&this.state.data[b.id].cards)||[]; for(const c of src) out.push({card:c, dayTitle:b.title}); }
+    return out;
+  }
+  searchCards(q){
+    q=q.toLowerCase(); const out=[], seen=new Set();
+    for(const {card:c, dayTitle} of this.allCards()){
+      const hay=`${c.raw||""} ${c.client||""} ${c.building||""} ${c.address||""} ${c.clean||""} ${c.fin||""}`.toLowerCase();
+      if(hay.includes(q)){ const key=c.raw||`${c.client}|${c.building}|${c.clean}`; if(seen.has(key)) continue; seen.add(key); out.push({...c, _day:dayTitle}); if(out.length>=8) return out; }
+    }
+    return out;
+  }
+  pickSuggestion(src){
+    const day=this.state.day, colId=this.state.addingCol; if(!colId) return;
+    const col=this.state.data[day].cols.find(c=>c.id===colId);
+    const nc={...src, id:Date.now(), colId, done:false, member:(col&&col.initials)||src.member};
+    this.setState(st=>({ data:{...st.data,[day]:{...st.data[day], cards:[...st.data[day].cards, nc]}}, addingCol:null, cardText:"" }));
+  }
+  duplicateBoard(srcId){
+    const src=this.ensureDay(srcId);
+    const meta=this.DAYS.concat(this.state.customBoards).find(d=>d.id===srcId);
+    const newId="custom"+Date.now(); const idMap={};
+    const cols=src.cols.map((c,i)=>{ const nid="col"+Date.now()+"_"+i; idMap[c.id]=nid; return {...c, id:nid}; });
+    const cards=src.cards.map((c,i)=>({...c, id:Date.now()+i+1, colId:idMap[c.colId]||c.colId}));
+    const b={ id:newId, title:(meta?meta.title:"BOARD")+" (copy)", n:cols.length, hue:(meta&&meta.hue)||145, custom:true };
+    this.setState(st=>({ customBoards:[...st.customBoards, b], data:{...st.data,[newId]:{cols,cards}} }));
+  }
+  submitBoard(){
+    const t=(this.state.boardText||"").trim();
+    if(!t){ this.setState({creatingBoard:false,boardText:""}); return; }
+    const id="custom"+Date.now(); const now=Date.now();
+    const cols=this.getRosterState().map((w,i)=>({ id:"col"+now+"_"+i, name:w.name, initials:w.initials, region:w.region }));
+    const b={ id, title:t.toUpperCase(), n:cols.length, hue:145, custom:true };
+    this.setState(st=>({ customBoards:[...st.customBoards,b], data:{...st.data,[id]:{cols, cards:[]}}, creatingBoard:false, boardText:"", view:"board", day:id, query:"", openId:null }));
+  }
+
+  LBL = {
+    modelhome:{name:"Model Home", c:"oklch(0.5 0.11 155)"},
+    office:{name:"Office", c:"oklch(0.68 0.14 158)"},
+    residential:{name:"Residential", c:"oklch(0.75 0.14 95)"},
+    stgeorge:{name:"St George", c:"oklch(0.5 0.13 55)"},
+    floorcare:{name:"Floor Care", c:"oklch(0.72 0.17 65)"},
+    south:{name:"South", c:"oklch(0.55 0.17 30)"},
+    sched:{name:"Scheduled Time", c:"oklch(0.68 0.15 25)"},
+    north:{name:"North", c:"oklch(0.55 0.17 260)"},
+    another:{name:"Another State", c:"oklch(0.68 0.13 255)"},
+    janitorial:{name:"Janitorial", c:"oklch(0.45 0.07 220)"},
+    windows:{name:"Windows", c:"oklch(0.52 0.1 120)"},
+    quality:{name:"Quality Inspection", c:"oklch(0.58 0.13 130)"},
+    commercial:{name:"Commercial", c:"oklch(0.6 0.02 280)"},
+    hpw:{name:"HPW", c:"oklch(0.68 0.02 280)"},
+    emergency:{name:"Emergency", c:"oklch(0.78 0.015 280)"},
+  };
+
+  DAYS = [
+    {id:"jul01", weekday:"Wed", day:"01", title:"JUL/01/26 · WEDNESDAY", status:"Closed board", n:132, hue:200},
+    {id:"jul03", weekday:"Fri", day:"03", title:"JUL/03/26 · FRIDAY", n:118, hue:60},
+    {id:"jul06", weekday:"Mon", day:"06", title:"JUL/06/26 · MONDAY", n:141, hue:35},
+    {id:"jul07", weekday:"Tue", day:"07", title:"JUL/07/26 · TUESDAY", n:150, hue:45},
+    {id:"jul08", weekday:"Wed", day:"08", title:"JUL/08/26 · WEDNESDAY", n:139, hue:170},
+    {id:"jul09", weekday:"Thu", day:"09", title:"JUL/09/26 · THURSDAY", n:144, hue:250},
+    {id:"jul10", weekday:"Fri", day:"10", title:"JUL/10/26 · FRIDAY", n:127, hue:255},
+    {id:"jul11", weekday:"Sat", day:"11", title:"JUL/11/26 · SATURDAY", n:64, hue:220},
+    {id:"jul13", weekday:"Mon", day:"13", title:"JUL/13/26 · MONDAY", n:148, hue:195},
+    {id:"jul14", weekday:"Tue", day:"14", title:"JUL/14/26 · TUESDAY", n:156, hue:30},
+    {id:"jul15", weekday:"Wed", day:"15", title:"JUL/15/26 · WEDNESDAY", n:162, hue:150},
+    {id:"jul16", weekday:"Thu", day:"16", title:"JUL/16/26 · THURSDAY", n:200, hue:145, star:true, today:true},
+    {id:"jul17", weekday:"Fri", day:"17", title:"JUL/17/26 · FRIDAY", n:120, hue:155},
+    {id:"jul18", weekday:"Sat", day:"18", title:"JUL/18/26 · SATURDAY", n:42, hue:210},
+  ];
+
+  POOL = ["Shine In, Cleaning LLC-S","Shine In, Cleaning LLC2","Vanessa, Bortoloni","R&V, Professional Services","Reinaldo, Vidal Canova","Abraão, Valente","Luanna, Lorena da Cunha","Maria, Isabel Lopez Restrepo","WGJ, Services-W","Ultra, Cleaning","Ricardo, Barrote","Andrea, Gomez","Gray Star, Cleaning LLC"];
+
+  rng(seed){ let s=seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
+
+  genDay(dayId){
+    const meta=this.findMeta(dayId)||{n:120};
+    const R=this.rng(dayId.split("").reduce((a,c)=>a*33+c.charCodeAt(0),7)>>>0);
+    const pick=a=>a[Math.floor(R()*a.length)];
+    const first=["James","Marcus","Aisha","Sophia","Liam","Olivia","Noah","Emma","Kai","Tariq","Nina","Omar","Grace","Leon","Maya","Andre","Rosa","Ethan","Zara","Malik","Chloe","Ravi","Ana","Pedro","Tania","Rui","Carla","Marcos","Vera","John","Sara","Kevin","Diane","Paulo","Ingrid","Tomas","Bianca","Keisha","Trevor","Nadia","Franciele","Natalia","Alejandra","Maycol","Daniel","Luz"];
+    const last=["Smith","Bascome","Dill","Simmons","Trott","Burgess","Santos","Silva","Costa","Reis","Prado","Melo","Nunes","Ferreira","Robinson","Tucker","Furbert","Wilson","Hayward","Minors","Swan","Darrell","Giacomelli Patrick","Gutierrez Bautista","Venegas","Morales","Orellana Cruz","Lopez Restrepo"];
+    const companies=["M & L, Service Cleaning LLC","BH, Cleaning LLC-B","R&V, Professional Services","Shine In, Cleaning LLC","WGJ, Services","Ultra, Cleaning","Gray Star, Cleaning LLC","Bright Path, Cleaning LLC"];
+    const clients=["Okland Construction","Gray Star Construction","Grass Creek Construction","KIA Findlay","Aspire Club House","Layton Construction","Nestlé Plant","Big-D Construction"];
+    const buildings=["St. George Hospital Bldg 1","Seminary Cedar City - 9193","Aspire Club House - Common Areas","Main Office","Grass Creek - Model Homes","Tower B - 14th Floor","Warehouse North","Clinic - South Wing"];
+    const cleans=["Single Clean CML (T&M)","Power Washer CML (Extra Job)","Janitorial Services","Monthly Contract - 4 HOURS","Extra Job CML","Deep Clean CML"];
+    const addrs=["1380 E Medical Center Dr, St. George, UT 84790","803 W 600 S, Cedar City UT 84720","626 N 1100 E, Washington, UT 84780","1405 Sunland Dr, St. George, UT 84790","250 N Bluff St, St. George, UT 84770"];
+    const fins=["ROBERT","DAVID","GAVON","CHARLIE YOURSTON","PAULA","MICHAEL","STEVE"];
+    const times=["6am","7am","7:30am","8am","9am","1pm","2pm","7pm"];
+    const notes=["Do you have a girl available tomorrow afternoon to do a clean on the first floor?","PLEASE, DON'T LEAVE WITHOUT CHECKING THE JOB WITH THE MANAGER.","Called Paula.","Findlay Automotive of Utah. Monday to Friday - 4 hrs.","",""];
+    const regions=["north","south","stgeorge","another"];
+    const types=["commercial","residential","office","modelhome","janitorial","floorcare","windows"];
+    const cols=[]; const cards=[]; let cid=0;
+    for(let i=0;i<meta.n;i++){
+      const isCo=R()<0.35;
+      const name=isCo?pick(companies):`${pick(last)}, ${pick(first)}`;
+      const initials=(name.replace(/[,&]/g," ").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("")||"?").toUpperCase();
+      const colId="c"+i;
+      cols.push({id:colId, name, initials});
+      const jc=1+Math.floor(R()*4);
+      for(let j=0;j<jc;j++){ cid++;
+        const t=pick(times), cl=pick(clients), bld=pick(buildings), cln=pick(cleans), ad=pick(addrs), fn=pick(fins), ps=pick(notes);
+        const labels=[pick(regions), "sched", pick(types)];
+        if(/Power Washer/.test(cln)) labels.push("hpw"); else if(/Quality/.test(cln)) labels.push("quality");
+        cards.push({ id:cid, colId, done:R()<0.32, time:t, client:cl, building:bld, clean:cln, addr:ad, fin:fn, ps,
+          labels, comments: R()<0.4?1+Math.floor(R()*5):0, member:initials });
+      }
+    }
+    return { cols, cards };
+  }
+
+  ensureDay(day){ if(!this.state.data[day]){ const meta=this.findMeta(day); this.state.data[day]= meta? this.genDay(day) : {cols:[],cards:[]}; } return this.state.data[day]; }
+
+  head(c){ return c.raw ? "" : `SCHEDULED AT ${c.time}`; }
+  body(c){ if(c.raw) return c.raw; return ` — ${c.client} · ${c.building} · No Plan · No Lot · ${c.clean} · (${c.addr}) · FIN: ${c.fin}${c.ps?` · PS: ${c.ps}`:" · PS:"}`; }
+
+  colorFor(str){ let h=0; for(const ch of (str||"")) h=(h*31+ch.charCodeAt(0))%360; return `oklch(0.55 0.13 ${h})`; }
+  avatarStyle(str,size){ const s=size||30; return `width:${s}px;height:${s}px;flex:none;border-radius:50%;background:${this.colorFor(str)};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:${s>28?12:10.5}px;font-weight:600;`; }
+
+  renderVals(){
+    const S=this.state;
+    const ic={
+      search:'<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+      star:'<svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.5l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.3 4.2 13.3l.7-4.3-3.1-3 4.3-.6z"/></svg>',
+      boards:'<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M6 2.5v11" stroke="currentColor" stroke-width="1.4"/></svg>',
+      members:'<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="2.6" stroke="currentColor" stroke-width="1.4"/><path d="M3 13c0-2.6 2.3-4.2 5-4.2s5 1.6 5 4.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+      settings:'<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.4"/><path d="M8 1.5v1.8M8 12.7v1.8M2 4.6l1.5.9M12.5 10.5l1.5.9M2 11.4l1.5-.9M12.5 5.5l1.5-.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+      chat:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3.5A1.5 1.5 0 013.5 2h9A1.5 1.5 0 0114 3.5v6A1.5 1.5 0 0112.5 11H6l-3 2.5V11H3.5A1.5 1.5 0 012 9.5z" stroke="currentColor" stroke-width="1.3"/></svg>',
+      desc:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3.5h12M2 7h12M2 10.5h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+      mailBig:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M4 6.5l8 6 8-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      exp:'<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2v8m0 0L5 7m3 3l3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 11v2A1.5 1.5 0 004 14.5h8a1.5 1.5 0 001.5-1.5v-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+      plug:'<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M6 10l-2 2a2.2 2.2 0 01-3-3l2-2M10 6l2-2a2.2 2.2 0 013 3l-2 2M6 10l4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+      archive:'<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="3" rx="1" stroke="currentColor" stroke-width="1.4"/><path d="M3 6v6a1 1 0 001 1h8a1 1 0 001-1V6M6.5 9h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    };
+
+    const remBox=`width:18px;height:18px;flex:none;border-radius:5px;border:1.6px solid ${S.remember?"var(--navy)":"#cfcfda"};background:${S.remember?"var(--navy)":"transparent"};color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;`;
+
+    // ---- GALLERY ----
+    const allDays=this.DAYS.concat(S.customBoards||[]);
+    const mkCard=(d)=>{
+      const c1=`oklch(0.7 0.11 ${d.hue})`, c2=`oklch(0.42 0.1 ${(d.hue+30)%360})`;
+      const n=d.custom?((S.data[d.id]&&S.data[d.id].cols.length)||0):d.n;
+      return { title:d.title, meta:`${n} workers`,
+        onClick:()=>{ this.ensureDay(d.id); this.setState({view:"board", day:d.id, query:"", openId:null}); },
+        onDuplicate:(e)=>{ e.stopPropagation(); this.duplicateBoard(d.id); },
+        style:`background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;padding:0;font-family:var(--sans);transition:transform .12s,box-shadow .12s;text-align:left;${d.status?"opacity:0.82;":""}`,
+        coverStyle:`position:relative;height:96px;background:linear-gradient(135deg,${c1},${c2});`,
+        star:d.star?ic.star:ic.star,
+        starStyle:`position:absolute;top:10px;right:10px;color:${d.star?"oklch(0.85 0.15 85)":"rgba(255,255,255,0.55)"};`,
+        statusLabel:d.status||"" };
+    };
+    const boards=allDays.map(mkCard);
+    const currentMonthLabel=this.CURRENT_MONTH.label;
+    const archiveMonths=this.ARCHIVE.map(m=>{
+      const open=S.archiveOpen===m.key;
+      return { label:m.label, count:this.getArchiveDays(m).length,
+        onClick:()=>this.setState({archiveOpen: open?null:m.key}),
+        style:`display:inline-flex;align-items:center;gap:10px;background:${open?"var(--navy)":"var(--surface)"};border:1px solid ${open?"var(--navy)":"var(--line)"};border-radius:11px;padding:12px 16px;font-family:var(--sans);font-size:14px;font-weight:600;color:${open?"#fff":"var(--ink)"};cursor:pointer;`,
+        countStyle:`font-family:var(--mono);font-size:11px;font-weight:500;border-radius:20px;padding:2px 8px;background:${open?"rgba(255,255,255,0.2)":"var(--surface-2)"};color:${open?"#fff":"var(--muted)"};`,
+        caret:open?"▾":"▸" };
+    });
+    const archiveOpenMonth=this.ARCHIVE.find(m=>m.key===S.archiveOpen);
+    const archiveBoards= archiveOpenMonth ? this.getArchiveDays(archiveOpenMonth).map(mkCard) : [];
+    const archiveOpenLabel= archiveOpenMonth ? archiveOpenMonth.label : "";
+
+    // ---- BOARD ----
+    const dayMeta=allDays.find(d=>d.id===S.day)||this.DAYS[0];
+    const weekIds=["jul13","jul14","jul15","jul16","jul17","jul18"];
+    const baseDays=this.DAYS.filter(d=>weekIds.includes(d.id));
+    const wdMap={monday:"MON",tuesday:"TUE",wednesday:"WED",thursday:"THU",friday:"FRI",saturday:"SAT",sunday:"SUN",segunda:"MON","terça":"TUE",terca:"TUE",quarta:"WED",quinta:"THU",sexta:"FRI","sábado":"SAT",sabado:"SAT",domingo:"SUN"};
+    const wdFor=(t)=>{ const s=(t||"").toLowerCase(); for(const k in wdMap){ if(s.includes(k)) return wdMap[k]; } return "NEW"; };
+    const customPills=(S.customBoards||[]).map(b=>({ id:b.id, weekday:wdFor(b.title), day:((b.title.match(/(\d{1,2})/)||[])[1]||"•"), n:(this.state.data[b.id]&&this.state.data[b.id].cols.length)||0, custom:true }));
+    const days=baseDays.concat(customPills).map(d=>{
+      const on=S.day===d.id;
+      return { weekday:d.weekday, day:d.day, count:d.n,
+        onClick:()=>{ this.ensureDay(d.id); this.setState({day:d.id, query:"", openId:null}); },
+        style:`display:flex;flex-direction:column;align-items:center;gap:3px;flex:none;min-width:62px;padding:8px 12px;border-radius:11px;cursor:pointer;font-family:var(--sans);border:1px solid ${on?"var(--navy)":"var(--line)"};background:${on?"var(--navy)":"var(--surface)"};color:${on?"#fff":d.today?"var(--navy)":"var(--ink-2)"};`,
+        dotStyle:`font-family:var(--mono);font-size:10px;border-radius:20px;padding:1px 7px;margin-top:1px;background:${on?"rgba(255,255,255,0.2)":"var(--navy-soft)"};color:${on?"#fff":"var(--navy)"};` };
+    });
+
+    let columns=[], poolCount=this.POOL.length, totalJobs=0, doneJobs=0, workersCount=dayMeta.n||0;
+    if(S.view==="board"){
+      const dd=this.ensureDay(S.day);
+      const q=S.query.trim().toLowerCase();
+      totalJobs=dd.cards.length; doneJobs=dd.cards.filter(c=>c.done).length; workersCount=dd.cols.length;
+      const byCol={}; dd.cards.forEach(c=>{ (byCol[c.colId]=byCol[c.colId]||[]).push(c); });
+      const visCols = dd.cols.filter(col=>{
+        if(!q) return true;
+        if(col.name.toLowerCase().includes(q)) return true;
+        return (byCol[col.id]||[]).some(c=>c.client.toLowerCase().includes(q)||c.building.toLowerCase().includes(q));
+      });
+      columns=visCols.map(col=>{
+        const list=byCol[col.id]||[];
+        return {
+          name:col.name, initials:col.initials, count:list.length,
+          avatarStyle:this.avatarStyle(col.name,28),
+          onDrop:()=>{ if(S.draggingId==null) return; const id=S.draggingId;
+            this.setState(st=>({ data:{...st.data, [S.day]:{...st.data[S.day], cards:st.data[S.day].cards.map(c=>c.id===id?{...c,colId:col.id}:c)}}, draggingId:null })); },
+          adding:S.addingCol===col.id?true:"", notAdding:S.addingCol===col.id?"":true,
+          startAdd:()=>this.setState({addingCol:col.id, cardText:""}),
+          submitAdd:()=>this.submitCard(col.id),
+          cancelAdd:()=>this.setState({addingCol:null, cardText:""}),
+          cards:list.map(c=>{
+            const bars=c.labels.map(k=>({name:this.LBL[k].name, style:`width:26px;height:6px;border-radius:3px;background:${this.LBL[k].c};`}));
+            return { head:this.head(c), body:this.body(c), time:c.time, timeColor:c.done?"var(--green-ink)":"var(--ink-2)",
+              bars, comments:c.comments>0?true:"",
+              commentHtml:`${ic.chat.replace('width="16" height="16"','width="12" height="12"')} ${c.comments}`,
+              member:c.member, memberStyle:this.avatarStyle(c.member,22),
+              style:`background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:11px 12px;cursor:pointer;opacity:${S.draggingId===c.id?0.4:1};transition:box-shadow .12s,border-color .12s;`,
+              checkStyle:`width:18px;height:18px;flex:none;border-radius:50%;border:1.6px solid ${c.done?"var(--green)":"#cfcfda"};background:${c.done?"var(--green)":"transparent"};color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;`,
+              check:c.done?'<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2l2.2 2.3L9.5 3.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>':'',
+              onDragStart:()=>this.setState({draggingId:c.id}),
+              onToggle:(e)=>{ e.stopPropagation(); this.setState(st=>({ data:{...st.data,[S.day]:{...st.data[S.day], cards:st.data[S.day].cards.map(x=>x.id===c.id?{...x,done:!x.done}:x)}} })); },
+              onClick:()=>this.setState({openId:c.id}),
+            };
+          }),
+        };
+      });
+    }
+
+    // ---- MODAL ----
+    let modal=null;
+    if(S.openId!=null && S.data[S.day]){
+      const c=S.data[S.day].cards.find(x=>x.id===S.openId);
+      const col=S.data[S.day].cols.find(x=>x.id===c.colId);
+      if(c){
+        const actIcon=(p)=>`<svg width="14" height="14" viewBox="0 0 16 16" fill="none">${p}</svg>`;
+        modal={
+          listName:col?col.name:"—", head:this.head(c), body:this.body(c),
+          checkStyle:`width:24px;height:24px;flex:none;margin-top:2px;border-radius:50%;border:1.8px solid ${c.done?"var(--green)":"#cfcfda"};background:${c.done?"var(--green)":"transparent"};color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;`,
+          check:c.done?'<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7.2l2.5 2.6L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>':'',
+          onToggle:()=>this.setState(st=>({ data:{...st.data,[S.day]:{...st.data[S.day], cards:st.data[S.day].cards.map(x=>x.id===c.id?{...x,done:!x.done}:x)}} })),
+          actions:[
+            {label:"Checklist", icon:actIcon('<rect x="2.5" y="2.5" width="11" height="11" rx="1.4" stroke="currentColor" stroke-width="1.4"/><path d="M5 8l2 2 4-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'), onClick:()=>{}},
+            {label:"Members", icon:actIcon('<circle cx="8" cy="6" r="2.4" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 13c0-2.3 2-3.7 4.5-3.7s4.5 1.4 4.5 3.7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>'), onClick:()=>{}},
+            {label:"Attachment", icon:actIcon('<path d="M11.5 6.5l-4.3 4.3a2.4 2.4 0 01-3.4-3.4l4.6-4.6a1.6 1.6 0 012.3 2.3L6 9.7a.7.7 0 01-1-1l3.6-3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>'), onClick:()=>{}},
+            {label:"Copy", icon:actIcon('<rect x="5" y="5" width="8.5" height="8.5" rx="1.4" stroke="currentColor" stroke-width="1.4"/><path d="M3 10.5A1.5 1.5 0 012.5 9.5v-6A1.5 1.5 0 014 2h5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>'), onClick:()=>this.copyCard()},
+            {label:"Delete", icon:actIcon('<path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5a1 1 0 001 .9h3.8a1 1 0 001-.9l.6-8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>'), onClick:()=>this.deleteCard(), danger:true},
+          ].map(a=>({...a,
+            style:`display:inline-flex;align-items:center;gap:6px;background:${a.danger?"oklch(0.97 0.03 25)":"var(--surface-2)"};border:1px solid ${a.danger?"oklch(0.88 0.07 25)":"var(--line)"};border-radius:8px;padding:7px 12px;font-family:var(--sans);font-size:12.5px;font-weight:500;color:${a.danger?"oklch(0.53 0.19 25)":"var(--ink-2)"};cursor:pointer;`,
+            hover:a.danger?"background:oklch(0.94 0.05 25);":"background:var(--navy-soft);color:var(--navy);"})).filter(a=>S.actingAccess==="admin"||!a.danger),
+          labels:c.labels.map(k=>{const light=["residential","office","floorcare","hpw","emergency"].includes(k);return {name:this.LBL[k].name, style:`display:inline-flex;align-items:center;padding:5px 12px;border-radius:7px;font-size:12px;font-weight:600;color:${light?"var(--ink)":"#fff"};background:${this.LBL[k].c};`};}),
+          fields: c.raw ? [{k:"Service", v:c.raw}, {k:"Created", v:"created manually on the board"}] : [
+            {k:"Time", v:c.time}, {k:"Client", v:c.client}, {k:"Location", v:c.building},
+            {k:"Service", v:c.clean}, {k:"Plan / Lot", v:"No Plan · No Lot"}, {k:"Address", v:c.addr},
+            {k:"FIN", v:c.fin}, {k:"PS", v:c.ps||"—"},
+          ],
+          activity:[
+            {who:"Luciana Fernandes", text:`copied this card to list ${col?col.name:""}.`, when:"4 hours ago", key:"Luciana Fernandes"},
+            {who:"System", text:"logged the card creation in the audit log.", when:"4 hours ago", key:null},
+          ].map(ev=>({...ev, initials:ev.key?ev.key.split(" ").map(w=>w[0]).slice(0,2).join(""):"Δ",
+            style:ev.key?this.avatarStyle(ev.key,28):"width:28px;height:28px;flex:none;border-radius:50%;background:var(--ink-2);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-family:var(--disp);"})),
+        };
+      }
+    }
+
+    const navMap={Boards:"gallery","Employees":"roster",Exports:"exports",Audit:"audit","Integrations":"integ","Members":"members"};
+    const topnav=[
+      {label:"Boards", icon:ic.boards},
+      {label:"Employees", icon:ic.members},
+      {label:"Exports", icon:ic.exp},
+      {label:"Audit", icon:ic.boards},
+      {label:"Integrations", icon:ic.plug},
+      {label:"Members", icon:ic.members},
+    ].map(t=>{ const v=navMap[t.label]; return {...t, onClick:()=>this.setState({view:v}),
+      style:`display:inline-flex;align-items:center;gap:7px;background:${S.view===v?"var(--navy-soft)":"var(--surface-2)"};border:1px solid var(--line);border-radius:9px;padding:8px 14px;font-family:var(--sans);font-size:13px;font-weight:500;color:${S.view===v?"var(--navy)":"var(--ink-2)"};cursor:pointer;`}; });
+
+    // ---- INTEGRATION MONITOR (Field Control) ----
+    if(!this._integ){
+      this._integ=[
+        {id:"e1", dir:"push", entity:"Work order · OS-4821", attempts:1, status:"ok", key:"idmp-4821-a1", when:"09:42:07", err:""},
+        {id:"e2", dir:"pull", entity:"Team check-in · North", attempts:1, status:"ok", key:"idmp-north-ck", when:"09:40:11", err:""},
+        {id:"e3", dir:"push", entity:"Completion · KIA Findlay", attempts:3, status:"retry", key:"idmp-kia-fin", when:"09:38:02", err:"Field Control endpoint timeout (504)"},
+        {id:"e4", dir:"push", entity:"New client · Aspire Club House", attempts:5, status:"dlq", key:"idmp-aspire-01", when:"09:12:44", err:"Validation rejected: missing tax ID"},
+        {id:"e5", dir:"pull", entity:"Route update · South", attempts:1, status:"queue", key:"idmp-south-rt", when:"09:10:00", err:""},
+        {id:"e6", dir:"push", entity:"Work order · OS-4815", attempts:2, status:"dlq", key:"idmp-4815-b2", when:"08:55:19", err:"Version conflict (409) — reconciliation pending"},
+      ];
+    }
+    const iStatus={
+      ok:{label:"Synced", c:"var(--green-ink)", bg:"var(--green-soft)"},
+      retry:{label:"Retrying", c:"oklch(0.55 0.14 250)", bg:"oklch(0.95 0.03 250)"},
+      queue:{label:"Queued", c:"oklch(0.55 0.12 70)", bg:"oklch(0.96 0.05 90)"},
+      dlq:{label:"DLQ · failed", c:"oklch(0.55 0.19 25)", bg:"oklch(0.96 0.04 25)"},
+    };
+    const cnt=(k)=>this._integ.filter(e=>e.status===k).length;
+    const integStats=[
+      {label:"Queued", v:cnt("queue"), c:"oklch(0.55 0.12 70)"},
+      {label:"Retrying", v:cnt("retry"), c:"oklch(0.55 0.14 250)"},
+      {label:"Dead-letter (DLQ)", v:cnt("dlq"), c:"oklch(0.55 0.19 25)"},
+      {label:"Synced today", v:cnt("ok")+"/"+this._integ.length, c:"var(--green-ink)"},
+    ];
+    // ---- MEMBROS / RBAC ----
+    const memb=[
+      {name:"Marina Rocha", email:"marina@deltaproclean.com", role:"Coordinator", region:"All", status:"active"},
+      {name:"Rui Braga", email:"rui@deltaproclean.com", role:"Supervisor", region:"South", status:"active"},
+      {name:"Aisha Burgess", email:"aisha@deltaproclean.com", role:"Supervisor", region:"North", status:"active"},
+      {name:"David Tucker", email:"david@deltaproclean.com", role:"Supervisor", region:"St George", status:"active"},
+      {name:"Luciana Fernandes", email:"luciana@deltaproclean.com", role:"Operator", region:"North", status:"active"},
+      {name:"Paulo Santos", email:"paulo@deltaproclean.com", role:"Finance", region:"All", status:"active"},
+      {name:"new.manager@client.com", email:"pending invite", role:"Read only", region:"St George", status:"invited"},
+    ];
+    const roleColor={Coordinator:"var(--navy)",Supervisor:"oklch(0.5 0.13 200)",Operator:"var(--green-ink)",Finance:"oklch(0.55 0.14 300)","Read only":"var(--muted)","Admin":"oklch(0.55 0.18 25)"};
+    const members=memb.map(m=>({
+      name:m.status==="invited"?m.name:m.name, email:m.email,
+      initials:m.status==="invited"?"✉":m.name.split(" ").map(w=>w[0]).slice(0,2).join(""),
+      avatarStyle:m.status==="invited"?"width:30px;height:30px;flex:none;border-radius:50%;background:var(--line);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:12px;":this.avatarStyle(m.name,30),
+      role:m.role, roleStyle:`display:inline-flex;align-items:center;font-size:12px;font-weight:600;color:#fff;background:${roleColor[m.role]||"var(--muted)"};border-radius:6px;padding:3px 10px;`,
+      region:m.region,
+      statusLabel:m.status==="active"?"Active":"Pending invite",
+      statusStyle:m.status==="active"?"font-size:12px;color:var(--green-ink);background:var(--green-soft);border-radius:20px;padding:3px 11px;":"font-size:12px;color:oklch(0.55 0.12 70);background:oklch(0.96 0.05 90);border-radius:20px;padding:3px 11px;",
+    }));
+    const permCols=["Coordinator","Supervisor","Operator","Finance","Read"];
+    const permMod=[
+      {m:"Boards & Cards", p:["full","region","assigned","view","view"]},
+      {m:"Scheduling / allocation", p:["full","region","view","view","view"]},
+      {m:"Exports", p:["full","region","none","full","none"]},
+      {m:"Audit", p:["full","region","none","view","none"]},
+      {m:"Integrations", p:["full","none","none","view","none"]},
+      {m:"Members & RBAC", p:["full","none","none","none","none"]},
+    ];
+    const permMeta={full:{t:"Full",c:"var(--green-ink)",bg:"var(--green-soft)"},region:{t:"Region",c:"var(--navy)",bg:"var(--navy-soft)"},assigned:{t:"Own",c:"oklch(0.5 0.13 200)",bg:"oklch(0.95 0.03 200)"},view:{t:"View",c:"var(--muted)",bg:"var(--surface-2)"},none:{t:"—",c:"var(--faint)",bg:"transparent"}};
+    const permMatrix=permMod.map(row=>({ module:row.m, cells:row.p.map(k=>({label:permMeta[k].t, style:`display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:500;color:${permMeta[k].c};background:${permMeta[k].bg};border-radius:6px;padding:4px 0;width:100%;`})) }));
+
+    const integRows=this._integ.map(e=>({
+      entity:e.entity, key:e.key, when:e.when, attempts:`attempt ${e.attempts}`,
+      dirLabel:e.dir==="push"?"Delta → Field Control":"Field Control → Delta",
+      dirStyle:`font-family:var(--mono);font-size:11px;color:${e.dir==="push"?"var(--navy)":"oklch(0.5 0.12 200)"};`,
+      statusStyle:`display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:${iStatus[e.status].c};background:${iStatus[e.status].bg};border-radius:20px;padding:4px 11px;width:fit-content;`,
+      statusDot:`width:7px;height:7px;border-radius:50%;background:${iStatus[e.status].c};flex:none;`,
+      status:iStatus[e.status].label,
+      err:e.err||"—", errColor:e.err?"oklch(0.5 0.16 25)":"var(--faint)",
+      canReprocess:(e.status==="dlq"||e.status==="retry")?true:"",
+      onReprocess:()=>{ this._integ=this._integ.map(x=>x.id===e.id?{...x,status:"ok",attempts:x.attempts+1,err:""}:x); this.forceUpdate(); },
+    }));
+
+    // ---- EXPORT CENTER ----
+    const fmtColors={CSV:"var(--green-ink)", XLSX:"oklch(0.5 0.13 148)", PDF:"oklch(0.55 0.18 25)", JSON:"var(--navy)"};
+    const fmtPill=(f)=>`display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:600;color:#fff;background:${fmtColors[f]};border-radius:6px;padding:3px 9px;width:fit-content;`;
+    const exportFormats=[
+      {ext:"CSV", name:"Daily schedule", hint:"workers + services"},
+      {ext:"XLSX", name:"Billing", hint:"by client / region"},
+      {ext:"PDF", name:"Operational report", hint:"executive summary"},
+      {ext:"JSON", name:"Full backup", hint:"all boards"},
+    ].map(f=>({...f, badgeStyle:`${fmtPill(f.ext)}font-size:11px;padding:5px 10px;`}));
+    const statusMap={
+      done:{label:"Completed", c:"var(--green-ink)", bg:"var(--green-soft)"},
+      proc:{label:"Processing", c:"oklch(0.55 0.14 250)", bg:"oklch(0.95 0.03 250)"},
+      queue:{label:"Queued", c:"oklch(0.55 0.12 70)", bg:"oklch(0.96 0.05 90)"},
+    };
+    const stt=(k)=>`display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:${statusMap[k].c};background:${statusMap[k].bg};border-radius:20px;padding:4px 11px;width:fit-content;`;
+    const sdot=(k)=>`width:7px;height:7px;border-radius:50%;background:${statusMap[k].c};flex:none;`;
+    const exportJobs=[
+      {name:"Daily schedule — JUL/16/26", when:"Jul 16, 08:12", rows:"200 rows", fmt:"CSV", by:"Marina Rocha", st:"done"},
+      {name:"Weekly billing — W28", when:"Jul 16, 07:40", rows:"1,284 rows", fmt:"XLSX", by:"Marina Rocha", st:"done"},
+      {name:"Operational report — July", when:"Jul 16, 07:38", rows:"42 pages", fmt:"PDF", by:"Rui Braga", st:"proc"},
+      {name:"Full backup — all boards", when:"Jul 16, 06:00", rows:"18,902 rows", fmt:"JSON", by:"System (scheduled)", st:"queue"},
+      {name:"Daily schedule — JUL/15/26", when:"Jul 15, 18:20", rows:"162 rows", fmt:"CSV", by:"Aisha Burgess", st:"done"},
+    ].map(j=>({...j, fmtStyle:fmtPill(j.fmt), statusStyle:stt(j.st), statusDot:sdot(j.st), status:statusMap[j.st].label,
+      action:j.st==="done"?"Download":"—",
+      actionStyle:j.st==="done"?"font-size:12.5px;color:var(--navy);font-weight:600;cursor:pointer;":"font-size:12.5px;color:var(--faint);"}));
+
+    // ---- AUDITORIA ----
+    const auditFilters=["All users","Last 24h","All actions"];
+    const verbColors={CREATED:"var(--green-ink)",MOVED:"var(--navy)",EDITED:"oklch(0.55 0.14 250)",EXPORTED:"oklch(0.55 0.12 70)",LOGIN:"var(--muted)",COMPLETED:"var(--green-ink)"};
+    const vtag=(v)=>`display:inline-block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.04em;color:#fff;background:${verbColors[v]||"var(--muted)"};border-radius:5px;padding:2px 7px;margin-right:4px;`;
+    const auditLog=[
+      {ts:"Jul 16 · 09:42:07", user:"Marina Rocha", verb:"MOVED", detail:"OS service from Franciele → M & L Service", scope:"JUL/16 · St George", ip:"192.168.1.20"},
+      {ts:"Jul 16 · 09:41:12", user:"João Silva", verb:"COMPLETED", detail:"KIA Findlay - Main Office", scope:"JUL/16 · South", ip:"10.0.4.88"},
+      {ts:"Jul 16 · 09:38:55", user:"Marina Rocha", verb:"EXPORTED", detail:"Daily schedule (CSV, 200 rows)", scope:"JUL/16", ip:"192.168.1.20"},
+      {ts:"Jul 16 · 09:30:02", user:"Luciana Fernandes", verb:"CREATED", detail:"card in Franciele, Giacomelli Patrick", scope:"JUL/16 · St George", ip:"187.4.22.10"},
+      {ts:"Jul 16 · 09:12:44", user:"Rui Braga", verb:"EDITED", detail:"label Scheduled Time → Emergency", scope:"JUL/16 · North", ip:"10.0.4.15"},
+      {ts:"Jul 16 · 08:55:19", user:"Aisha Burgess", verb:"MOVED", detail:"worker between regions", scope:"JUL/16 · South", ip:"10.0.4.31"},
+      {ts:"Jul 16 · 08:12:00", user:"Marina Rocha", verb:"LOGIN", detail:"authentication with 2FA", scope:"—", ip:"192.168.1.20"},
+      {ts:"Jul 16 · 06:00:00", user:"System", verb:"EXPORTED", detail:"Scheduled backup (JSON)", scope:"All boards", ip:"cron"},
+    ].map(e=>({...e, initials:e.user==="System"?"Δ":e.user.split(" ").map(w=>w[0]).slice(0,2).join(""),
+      avatarStyle:e.user==="System"?"width:22px;height:22px;flex:none;border-radius:50%;background:var(--ink-2);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;font-family:var(--disp);":this.avatarStyle(e.user,22),
+      tagStyle:vtag(e.verb)}));
+
+    return {
+      showLogin:S.view==="login"?true:"",
+      authMode:{login:S.authMode==="login"?true:"", recover:S.authMode==="recover"?true:"", sent:S.authMode==="sent"?true:""},
+      email:S.email, pass:S.pass, authError:S.authError,
+      rememberBox:remBox, rememberCheck:S.remember?'<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2l2.2 2.3L9.5 3.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>':'',
+      iconMailBig:ic.mailBig,
+      onEmail:(e)=>this.setState({email:e.target.value, authError:""}),
+      onPass:(e)=>this.setState({pass:e.target.value, authError:""}),
+      toggleRemember:()=>this.setState(st=>({remember:!st.remember})),
+      toRecover:()=>this.setState({authMode:"recover", authError:""}),
+      toLogin:()=>this.setState({authMode:"login", authError:""}),
+      doRecover:()=>this.setState({authMode:"sent"}),
+      doLogin:()=>{ if(!S.email.trim()){ this.setState({authError:"Enter your corporate email."}); return; }
+        if(!S.pass){ this.setState({authError:"Enter your password."}); return; }
+        this.ensureDay("jul16"); this.setState({view:"gallery"}); },
+      onLogout:()=>this.setState({view:"login", authMode:"login", pass:""}),
+      showGallery:S.view==="gallery"?true:"", showBoard:S.view==="board"?true:"",
+      showExports:S.view==="exports"?true:"", showAudit:S.view==="audit"?true:"",
+      showInteg:S.view==="integ"?true:"", integStats, integRows,
+      showMembers:S.view==="members"?true:"", members, permCols, permMatrix, memberCount:members.length,
+      showRoster:S.view==="roster"?true:"",
+      rosterCount:this.getRosterState().length,
+      rosterList:this.getRosterState().map((w,i)=>({w,i})).sort((a,b)=>a.w.name.localeCompare(b.w.name,'pt',{sensitivity:'base'})).filter(o=>{ const q=(S.rosterSearch||"").trim().toLowerCase(); return !q || o.w.name.toLowerCase().includes(q); }).map(o=>({
+        name:o.w.name, initials:o.w.initials, avatarStyle:this.avatarStyle(o.w.name,30),
+        regionValue:o.w.region, kindValue:o.w.kind||"employee", accessValue:o.w.access||"editor",
+        accessBadge:`display:inline-block;width:8px;height:8px;border-radius:50%;background:${(o.w.access==="admin")?"var(--navy)":(o.w.access==="none")?"var(--faint)":"var(--green)"};`,
+        onRegion:(e)=>this.updateWorkerAt(o.i,{region:e.target.value}),
+        onKind:(e)=>this.updateWorkerAt(o.i,{kind:e.target.value}),
+        onAccess:(e)=>this.updateWorkerAt(o.i,{access:e.target.value}),
+        onRemove:()=>this.removeWorkerAt(o.i),
+      })),
+      rosterName:S.rosterName, onRosterName:(e)=>this.setState({rosterName:e.target.value}),
+      rosterNameKey:(e)=>{ if(e.key==="Enter"){ e.preventDefault(); this.addWorker(); } },
+      rosterRegion:S.rosterRegion, onRosterRegion:(e)=>this.setState({rosterRegion:e.target.value}),
+      rosterRegionOpts:Object.keys(this.REGIONS).map(k=>({value:k, label:this.REGIONS[k]})),
+      kindOpts:Object.keys(this.KINDS).map(k=>({value:k, label:this.KINDS[k]})),
+      accessOpts:Object.keys(this.ACCESS).map(k=>({value:k, label:this.ACCESS[k]})),
+      addWorker:()=>this.addWorker(),
+      rosterSearch:S.rosterSearch, onRosterSearch:(e)=>this.setState({rosterSearch:e.target.value}),
+      actingAccess:S.actingAccess, actingLabel:this.ACCESS[S.actingAccess]||"Admin", isAdmin:S.actingAccess==="admin"?true:"", notAdmin:S.actingAccess==="admin"?"":true,
+      onActingAccess:(e)=>this.setState({actingAccess:e.target.value}),
+      exportFormats, exportJobs, auditFilters, auditLog,
+      boards, topnav, currentMonthLabel, archiveMonths, archiveBoards, archiveOpenLabel,
+      hasArchiveOpen:archiveOpenMonth?true:"",
+      boardTitle:dayMeta.title, starIcon:ic.star,
+      daySummary:`${workersCount} workers · ${totalJobs} jobs · ${doneJobs} completed`,
+      cardText:S.cardText, onCardText:(e)=>this.setState({cardText:e.target.value}),
+      cardSuggestions: (S.addingCol && (S.cardText||"").trim().length>=2) ? this.searchCards(S.cardText.trim()).map(c=>({
+        text: c.raw || `${c.client} · ${c.building}`,
+        sub: (c.raw ? "manual card" : `${c.time} · FIN ${c.fin}`) + (c._day?` · ${c._day}`:""),
+        onPick: ()=>this.pickSuggestion(c),
+      })) : [],
+      hasSuggestions: (S.addingCol && (S.cardText||"").trim().length>=2 && this.searchCards(S.cardText.trim()).length>0) ? true : "",
+      cardKey:(e)=>{ if(e.key==="Enter"){ e.preventDefault(); this.submitCard(S.addingCol); } if(e.key==="Escape"){ this.setState({addingCol:null,cardText:""}); } },
+      addingList:S.addingList?true:"", notAddingList:S.addingList?"":true,
+      startList:()=>this.setState({addingList:true, listText:""}),
+      listText:S.listText, onListText:(e)=>this.setState({listText:e.target.value}),
+      submitList:()=>this.submitList(), cancelList:()=>this.setState({addingList:false,listText:""}),
+      listKey:(e)=>{ if(e.key==="Enter"){ e.preventDefault(); this.submitList(); } if(e.key==="Escape"){ this.setState({addingList:false,listText:""}); } },
+      creatingBoard:S.creatingBoard?true:"", notCreatingBoard:S.creatingBoard?"":true,
+      startBoard:()=>this.setState({creatingBoard:true, boardText:""}),
+      boardText:S.boardText, onBoardText:(e)=>this.setState({boardText:e.target.value}),
+      submitBoard:()=>this.submitBoard(), cancelBoard:()=>this.setState({creatingBoard:false,boardText:""}),
+      boardKey:(e)=>{ if(e.key==="Enter"){ e.preventDefault(); this.submitBoard(); } if(e.key==="Escape"){ this.setState({creatingBoard:false,boardText:""}); } },
+      days, columns, pool:this.POOL.map(name=>({name})), poolCount,
+      iconSearch:ic.search, iconChat:ic.chat, iconDesc:ic.desc, iconArchive:ic.archive,
+      query:S.query, onSearch:(e)=>this.setState({query:e.target.value}),
+      onDragOver:(e)=>e.preventDefault(),
+      panDown:(e)=>{ if(e.button!==0) return; if(e.target.closest('article,button,input,textarea,label,a,[draggable="true"]')) return; this._pan={x:e.clientX, left:e.currentTarget.scrollLeft, el:e.currentTarget}; e.currentTarget.style.cursor="grabbing"; },
+      panMove:(e)=>{ if(!this._pan) return; e.preventDefault(); this._pan.el.scrollLeft=this._pan.left-(e.clientX-this._pan.x); },
+      panUp:()=>{ if(this._pan){ this._pan.el.style.cursor="grab"; this._pan=null; } },
+      goGallery:()=>this.setState({view:"gallery", openId:null}),
+      modal, closeModal:()=>this.setState({openId:null}), stop:(e)=>e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>

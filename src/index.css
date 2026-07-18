@@ -15,14 +15,15 @@
   --line: #e8e8ef;
   --line-2: #f0f0f5;
 
-  --navy: oklch(0.36 0.088 288);
-  --navy-2: oklch(0.42 0.09 288);
-  --navy-soft: oklch(0.95 0.028 288);
-  --navy-ink: oklch(0.32 0.09 288);
+  /* Official brand palette — Manual_ID_Delta_Pro_Clean (docs/brand) */
+  --navy: #393766;        /* Azul Marinho · Pantone 276 · R57 G55 B102 */
+  --navy-2: #4c4a83;      /* lighter, for gradients */
+  --navy-soft: #ececf4;   /* light tint (badges/backgrounds) */
+  --navy-ink: #2b2950;    /* darker (hover/text) */
 
-  --green: oklch(0.68 0.16 148);
-  --green-ink: oklch(0.52 0.14 148);
-  --green-soft: oklch(0.95 0.05 148);
+  --green: #57b952;       /* Verde · Pantone 362 · R87 G185 B82 */
+  --green-ink: #3d8a39;   /* darker, for text/badges on light */
+  --green-soft: #e9f5e8;  /* light tint (badges/backgrounds) */
 
   --disp: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;

@@ -33,9 +33,9 @@ export const STATUS_META = {
   assigned: { label: 'Assigned', color: '#0ea5e9' },
   in_progress: { label: 'In progress', color: '#f59e0b' },
   on_hold: { label: 'On hold', color: '#a855f7' },
-  completed: { label: 'Completed', color: '#22c55e' },
+  completed: { label: 'Completed', color: 'var(--green)' },
   rework: { label: 'Rework', color: '#ef4444' },
   invoiced: { label: 'Invoiced', color: '#14b8a6' },
-  paid: { label: 'Paid', color: '#16a34a' },
+  paid: { label: 'Paid', color: 'var(--green-ink)' },
   cancelled: { label: 'Cancelled', color: '#64748b' },
 }

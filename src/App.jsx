@@ -70,6 +70,7 @@ export default function App() {
       {view === 'board' && (
         <Board
           boardId={boardId} boards={boards} cardVersion={cardVersion}
+          membership={membership} demo={demoMode}
           onBack={() => setView('gallery')}
           onSelectDay={(id) => setBoardId(id)}
           onOpenCard={(id) => setOpenCardId(id)}

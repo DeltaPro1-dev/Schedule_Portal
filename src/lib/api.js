@@ -4,10 +4,21 @@
 
 import { supabase } from './supabase.js'
 import { mockApi } from './mock.js'
-import { initials } from './present.js'
+import { initials, REGION_LABEL } from './present.js'
 
 export const configured =
   !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY
+
+// Members have no name column (identity lives in Supabase Auth); derive a
+// readable display name from the invite email's local part.
+function titleFromEmail(email) {
+  const local = String(email || '').split('@')[0]
+  const t = local.split(/[._-]+/).filter(Boolean).map((s) => s[0].toUpperCase() + s.slice(1)).join(' ')
+  return t || email || 'Unknown'
+}
+// DB role enum → the display keys the Members screen understands.
+const ROLE_DISPLAY = { admin: 'admin', coordinator: 'coordinator', supervisor: 'supervisor', operator: 'operator', finance: 'finance', viewer: 'read' }
+const regionText = (r) => (r === 'all' ? 'All' : REGION_LABEL[r] || r)
 
 function mapCard(row) {
   return {
@@ -17,8 +28,11 @@ function mapCard(row) {
     labelKeys: (row.card_labels || []).map((cl) => cl.label?.key).filter(Boolean),
     checklist: row.checklist_items || [],
     comments: row.comments || [],
+    attachments: row.attachments || [],
   }
 }
+
+export const ATTACH_BUCKET = 'schedule-attachments'
 
 let _orgId
 async function myOrg() {
@@ -59,7 +73,7 @@ const realApi = {
         supabase.from('lists').select('*').eq('board_id', boardId).order('position'),
         supabase
           .from('cards')
-          .select('*, client:clients(*), card_labels(label:labels(*)), checklist_items(*), comments(*)')
+          .select('*, client:clients(*), card_labels(label:labels(*)), checklist_items(*), comments(*), attachments(*)')
           .eq('board_id', boardId)
           .is('deleted_at', null)
           .order('position'),
@@ -187,10 +201,155 @@ const realApi = {
       .eq('id', itemId)
     if (error) throw error
   },
+
+  // Realtime: notify on any change to this board's cards/lists (and the board
+  // row itself). Returns an unsubscribe fn. RLS scopes the stream to our org.
+  // Requires migration 0006 (tables added to the supabase_realtime publication).
+  subscribeBoard(boardId, onChange) {
+    const channel = supabase
+      .channel(`board:${boardId}`)
+      .on('postgres_changes', { event: '*', schema: 'schedule_portal', table: 'cards', filter: `board_id=eq.${boardId}` }, onChange)
+      .on('postgres_changes', { event: '*', schema: 'schedule_portal', table: 'lists', filter: `board_id=eq.${boardId}` }, onChange)
+      .on('postgres_changes', { event: '*', schema: 'schedule_portal', table: 'boards', filter: `id=eq.${boardId}` }, onChange)
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  },
+
+  // ── Admin screens (real data) ──────────────────────────────────────────────
+  // Members: read the org's memberships. RLS returns all rows for admins and only
+  // the caller's own row otherwise (Members & RBAC is an admin/coordinator module).
+  async getMembers() {
+    const { data, error } = await supabase
+      .from('memberships')
+      .select('id, invited_email, role, region, status')
+      .order('status')
+    if (error) throw error
+    return (data || []).map((m) => ({
+      id: m.id,
+      name: titleFromEmail(m.invited_email),
+      email: m.invited_email || '',
+      role: ROLE_DISPLAY[m.role] || m.role,
+      region: regionText(m.region),
+      status: m.status,
+    }))
+  },
+
+  // Audit: immutable action log, newest first. Resolve actor names from the
+  // memberships we can see (best-effort — non-admins only resolve their own).
+  async getAudit() {
+    const [{ data: events, error }, { data: mems }] = await Promise.all([
+      supabase.from('audit_events').select('*').order('created_at', { ascending: false }).limit(100),
+      supabase.from('memberships').select('user_id, invited_email'),
+    ])
+    if (error) throw error
+    const emailByUser = Object.fromEntries((mems || []).filter((m) => m.user_id).map((m) => [m.user_id, m.invited_email]))
+    return (events || []).map((e) => {
+      const isSystem = e.actor_kind === 'system' || !e.actor_user_id
+      const email = emailByUser[e.actor_user_id]
+      const user = isSystem ? 'System' : email ? titleFromEmail(email) : 'User'
+      const d = e.detail || {}
+      const detail =
+        d.from && d.to ? `${e.entity_type || 'item'} ${d.from} → ${d.to}`
+        : d.toListId ? `${e.entity_type || 'card'} moved`
+        : `${(e.verb || '').toLowerCase()} ${e.entity_type || ''}`.trim() || (e.entity_type || 'action')
+      return {
+        id: e.id,
+        ts: new Date(e.created_at).toLocaleString(),
+        user, initials: initials(user),
+        verb: e.verb,
+        detail,
+        scope: e.scope || '—',
+        ip: e.ip || '—',
+      }
+    })
+  },
+
+  // Exports: static format cards + the org's recent export jobs (table may be
+  // empty until the export worker exists).
+  async getExports() {
+    const { data, error } = await supabase
+      .from('exports').select('*').order('created_at', { ascending: false }).limit(50)
+    if (error) throw error
+    const FMT = { csv: 'CSV', xlsx: 'XLSX', pdf: 'PDF', json: 'JSON' }
+    const jobs = (data || []).map((x) => ({
+      name: x.report_type || 'Export',
+      when: new Date(x.created_at).toLocaleString(),
+      rows: x.row_count != null ? `${x.row_count} rows` : '—',
+      fmt: FMT[x.format] || String(x.format || '').toUpperCase(),
+      by: x.requested_by ? '—' : 'System',
+      status: x.status === 'done' ? 'completed' : x.status,   // enum: queued|processing|done|failed
+    }))
+    return {
+      formats: [
+        { ext: 'CSV', name: 'Daily schedule', hint: 'workers + services', color: 'var(--green-ink)' },
+        { ext: 'XLSX', name: 'Billing', hint: 'by client / region', color: 'var(--green-ink)' },
+        { ext: 'PDF', name: 'Operational report', hint: 'executive summary', color: '#dc2626' },
+        { ext: 'JSON', name: 'Full backup', hint: 'all boards', color: 'var(--navy)' },
+      ],
+      jobs,
+    }
+  },
+
+  // Integration: Field Control sync queue + computed stats.
+  async getIntegration() {
+    const { data, error } = await supabase
+      .from('integration_events').select('*').order('created_at', { ascending: false }).limit(50)
+    if (error) throw error
+    const rows = (data || []).map((e) => ({
+      entity: `${e.entity_type || 'event'}${e.entity_id ? ' · ' + String(e.entity_id).slice(0, 8) : ''}`,
+      key: e.idempotency_key,
+      attempts: `attempt ${e.attempts}`,
+      when: new Date(e.created_at).toLocaleTimeString(),
+      direction: e.direction === 'push' ? 'Delta → Field Control' : 'Field Control → Delta',
+      status: e.status === 'done' ? 'synced' : e.status,     // enum: queued|retrying|done|dlq
+      err: e.last_error || '',
+    }))
+    const n = (s) => rows.filter((r) => r.status === s).length
+    const synced = rows.filter((r) => r.status === 'synced').length
+    return {
+      stats: [
+        { v: String(n('queued')), label: 'Queued', color: 'oklch(0.52 0.13 90)' },
+        { v: String(n('retrying')), label: 'Retrying', color: '#2563eb' },
+        { v: String(n('dlq')), label: 'Dead-letter (DLQ)', color: '#dc2626' },
+        { v: `${synced}/${rows.length}`, label: 'Synced', color: 'var(--green-ink)' },
+      ],
+      rows,
+    }
+  },
+
+  // ── Attachments (Supabase Storage bucket `schedule-attachments`) ────────────
+  // Upload to <card_id>/<ts>-<name>, then record the row. Bucket is private;
+  // read/write/delete are gated by the storage policies in migration 0003.
+  async addAttachment(cardId, file) {
+    const key = `${cardId}/${Date.now()}-${file.name}`
+    const { error: ue } = await supabase.storage.from(ATTACH_BUCKET).upload(key, file, {
+      contentType: file.type || 'application/octet-stream', upsert: false,
+    })
+    if (ue) throw ue
+    const { data: auth } = await supabase.auth.getUser()
+    const { data, error } = await supabase
+      .from('attachments')
+      .insert({ card_id: cardId, uploaded_by: auth?.user?.id ?? null, filename: file.name, mime: file.type || null, size: file.size, s3_key: key })
+      .select().single()
+    if (error) {
+      // roll back the orphaned object so storage and table stay consistent
+      await supabase.storage.from(ATTACH_BUCKET).remove([key])
+      throw error
+    }
+    return data
+  },
+  // Short-lived signed URL to open/preview a private attachment.
+  async attachmentUrl(s3_key) {
+    const { data, error } = await supabase.storage.from(ATTACH_BUCKET).createSignedUrl(s3_key, 3600)
+    if (error) throw error
+    return data.signedUrl
+  },
 }
 
-// In real mode, realApi implements the CRUD/board endpoints; reference-only
-// screens (roster/members/perm-matrix/integration/exports/audit) fall back to
-// mock data until their backend endpoints exist.
+// In real mode, realApi implements the CRUD/board endpoints; the permissions
+// matrix stays mock-served (static reference data, identical in both modes).
+// Demo mode has no realtime backend — provide a no-op so Board can always call it.
+if (!mockApi.subscribeBoard) mockApi.subscribeBoard = () => () => {}
+
 export const api = configured ? { ...mockApi, ...realApi } : mockApi
 export const demoMode = !configured

@@ -165,7 +165,7 @@ function genBoard(board) {
         fin_contact: pick(r, FINS), ps_note: pick(r, PS_NOTES), raw_title: null,
         done, version: 1,
         labelKeys: [regionLabelKey(region), 'commercial', r() < 0.4 ? 'scheduled_time' : 'floor_care'].filter(Boolean),
-        checklist: [], comments: c === 0 ? [{ id: nid('cm'), author: 'Coordinator', body: 'Confirmed with client.', created_at: '2026-07-16T18:00:00Z' }] : [],
+        checklist: [], comments: c === 0 ? [{ id: nid('cm'), author: 'Coordinator', body: 'Confirmed with client.', created_at: '2026-07-16T18:00:00Z' }] : [], attachments: [],
       })
     }
   })
@@ -182,7 +182,7 @@ function detail(id) {
   return boardCache[id]
 }
 function resolveCard(c) {
-  return { ...clone(c), labels: (c.labelKeys || []).map((k) => labelByKey[k]).filter(Boolean) }
+  return { ...clone(c), labels: (c.labelKeys || []).map((k) => labelByKey[k]).filter(Boolean), attachments: c.attachments || [] }
 }
 
 export const mockApi = {
@@ -317,7 +317,7 @@ export const mockApi = {
     await wait()
     const d = detail(board_id)
     const pos = d.cards.filter((c) => c.list_id === list_id).length
-    const card = { id: nid('card'), board_id, list_id, position: pos, status: 'unscheduled', raw_title: raw_title || null, done: false, version: 1, labelKeys: ['scheduled_time'], checklist: [], comments: [], client: null, ...fields }
+    const card = { id: nid('card'), board_id, list_id, position: pos, status: 'unscheduled', raw_title: raw_title || null, done: false, version: 1, labelKeys: ['scheduled_time'], checklist: [], comments: [], attachments: [], client: null, ...fields }
     d.cards.push(card)
     return resolveCard(card)
   },
@@ -368,5 +368,29 @@ export const mockApi = {
       const c = boardCache[id].cards.find((x) => x.id === cardId)
       if (c) { const it = c.checklist.find((i) => i.id === itemId); if (it) it.done = !it.done; return resolveCard(c) }
     }
+  },
+  async addAttachment(cardId, file) {
+    await wait()
+    for (const id in boardCache) {
+      const c = boardCache[id].cards.find((x) => x.id === cardId)
+      if (c) {
+        ;(c.attachments ||= []).push({
+          id: nid('att'), card_id: cardId, filename: file.name, mime: file.type || null,
+          size: file.size, s3_key: `${cardId}/${file.name}`, scan_status: 'clean',
+          created_at: new Date().toISOString(), _url: URL.createObjectURL(file),
+        })
+        return resolveCard(c)
+      }
+    }
+  },
+  async attachmentUrl(s3_key) {
+    await wait(30)
+    for (const id in boardCache) {
+      for (const c of boardCache[id].cards) {
+        const a = (c.attachments || []).find((x) => x.s3_key === s3_key)
+        if (a) return a._url || '#'
+      }
+    }
+    return '#'
   },
 }

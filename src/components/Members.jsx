@@ -4,12 +4,15 @@ import { initials, avatarStyle } from '../lib/present.js'
 import SectionHeader, { sectionScroll, eyebrow, panel, navyBtn } from './SectionHeader.jsx'
 
 const ROLE = {
+  admin: { label: 'Admin', color: '#fff', bg: 'var(--navy-2, #1c1b2e)' },
   coordinator: { label: 'Coordinator', color: '#fff', bg: 'var(--navy)' },
   supervisor: { label: 'Supervisor', color: '#fff', bg: 'oklch(0.52 0.1 200)' },
   operator: { label: 'Operator', color: '#fff', bg: 'var(--green-ink)' },
   finance: { label: 'Finance', color: '#fff', bg: 'oklch(0.5 0.15 300)' },
   read: { label: 'Read only', color: '#fff', bg: 'var(--muted)' },
+  viewer: { label: 'Read only', color: '#fff', bg: 'var(--muted)' },
 }
+const ROLE_FALLBACK = { label: 'Member', color: '#fff', bg: 'var(--muted)' }
 const CELL = {
   full: { c: 'var(--green-ink)', b: 'var(--green-soft)' },
   region: { c: 'var(--navy)', b: 'var(--navy-soft)' },
@@ -37,7 +40,7 @@ export default function Members({ onBack }) {
                 <span>Member</span><span>Role</span><span>Region</span><span>Status</span>
               </div>
               {members.map((m) => {
-                const role = ROLE[m.role]
+                const role = ROLE[m.role] || ROLE_FALLBACK
                 const pending = m.status !== 'active'
                 return (
                   <div key={m.id} style={{ display: 'grid', gridTemplateColumns: TEAM_GRID, gap: 16, padding: '14px 22px', borderBottom: '1px solid var(--line-2)', alignItems: 'center' }}>

@@ -140,3 +140,27 @@ embeds `checklist_items(*)`) — only the UI was missing.
   `access = none`.
 
 No schema or API change — purely the missing presentation layer.
+
+---
+
+## G1.5 — Attachment upload UI (2026-07-18)
+**Approved by:** Eder (owner), in chat.
+Fourth G1.1 "Deferred" item. The storage backend already existed (bucket
+`schedule-attachments` + read/write/delete policies in 0003, `attachments` table
+in 0001) — the API layer and UI were missing.
+
+- `realApi.addAttachment(cardId, file)`: uploads to `<card_id>/<ts>-<name>` in the
+  private bucket, then inserts the `attachments` row (filename/mime/size/s3_key,
+  uploaded_by = auth uid). Rolls back the storage object if the row insert fails, so
+  storage and table never drift.
+- `realApi.attachmentUrl(s3_key)`: 1-hour signed URL to open/preview (bucket is
+  private). Mock returns an in-memory object URL.
+- `getBoardDetail` now embeds `attachments(*)`; `mapCard` exposes `card.attachments`.
+- `CardModal`: Attachments section lists files (name + size) that open in a new tab
+  via signed URL; editors+ get a file picker ("+ Add"). Uploads reuse `run()`
+  refresh + error surfacing. Read-only for `access = none`.
+
+Storage policies (0003) enforce access: any member reads, editors+ upload, admins
+delete. Delete-from-UI deferred (admin-only server-side) to keep this pass focused.
+No AV/scan pipeline in G1 (that was G0's S3 design), so `scan_status` stays `pending`
+and is not surfaced yet.

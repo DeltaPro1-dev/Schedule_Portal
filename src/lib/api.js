@@ -28,8 +28,11 @@ function mapCard(row) {
     labelKeys: (row.card_labels || []).map((cl) => cl.label?.key).filter(Boolean),
     checklist: row.checklist_items || [],
     comments: row.comments || [],
+    attachments: row.attachments || [],
   }
 }
+
+export const ATTACH_BUCKET = 'schedule-attachments'
 
 let _orgId
 async function myOrg() {
@@ -70,7 +73,7 @@ const realApi = {
         supabase.from('lists').select('*').eq('board_id', boardId).order('position'),
         supabase
           .from('cards')
-          .select('*, client:clients(*), card_labels(label:labels(*)), checklist_items(*), comments(*)')
+          .select('*, client:clients(*), card_labels(label:labels(*)), checklist_items(*), comments(*), attachments(*)')
           .eq('board_id', boardId)
           .is('deleted_at', null)
           .order('position'),
@@ -312,6 +315,34 @@ const realApi = {
       ],
       rows,
     }
+  },
+
+  // ── Attachments (Supabase Storage bucket `schedule-attachments`) ────────────
+  // Upload to <card_id>/<ts>-<name>, then record the row. Bucket is private;
+  // read/write/delete are gated by the storage policies in migration 0003.
+  async addAttachment(cardId, file) {
+    const key = `${cardId}/${Date.now()}-${file.name}`
+    const { error: ue } = await supabase.storage.from(ATTACH_BUCKET).upload(key, file, {
+      contentType: file.type || 'application/octet-stream', upsert: false,
+    })
+    if (ue) throw ue
+    const { data: auth } = await supabase.auth.getUser()
+    const { data, error } = await supabase
+      .from('attachments')
+      .insert({ card_id: cardId, uploaded_by: auth?.user?.id ?? null, filename: file.name, mime: file.type || null, size: file.size, s3_key: key })
+      .select().single()
+    if (error) {
+      // roll back the orphaned object so storage and table stay consistent
+      await supabase.storage.from(ATTACH_BUCKET).remove([key])
+      throw error
+    }
+    return data
+  },
+  // Short-lived signed URL to open/preview a private attachment.
+  async attachmentUrl(s3_key) {
+    const { data, error } = await supabase.storage.from(ATTACH_BUCKET).createSignedUrl(s3_key, 3600)
+    if (error) throw error
+    return data.signedUrl
   },
 }
 

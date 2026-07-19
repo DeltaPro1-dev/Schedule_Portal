@@ -14,6 +14,13 @@ export default function CardModal({ card, listName, canEdit, onChanged, onClose 
   const checklist = (card.checklist || []).slice().sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
   const doneCount = checklist.filter((c) => c.done).length
   const pct = checklist.length ? Math.round((doneCount / checklist.length) * 100) : 0
+  const attachments = card.attachments || []
+
+  async function openAttachment(a) {
+    setErr('')
+    try { const url = await api.attachmentUrl(a.s3_key); if (url) window.open(url, '_blank', 'noopener') }
+    catch (e) { setErr(String(e.message || e)) }
+  }
 
   async function run(fn) {
     setBusy(true); setErr('')
@@ -107,6 +114,34 @@ export default function CardModal({ card, listName, canEdit, onChanged, onClose 
                   placeholder="Add an item…" style={{ marginTop: 10, width: '100%', border: '1px solid var(--line)', background: 'var(--surface-2)', borderRadius: 9, padding: '9px 12px', fontFamily: 'var(--sans)', fontSize: 12.5, outline: 'none' }} />
               )}
             </div>
+
+            {/* attachments */}
+            <div style={{ marginTop: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>Attachments</div>
+                {canEdit && (
+                  <label style={{ fontSize: 12, color: busy ? 'var(--faint)' : 'var(--navy)', cursor: busy ? 'default' : 'pointer', fontWeight: 600 }}>
+                    + Add
+                    <input type="file" disabled={busy} style={{ display: 'none' }}
+                      onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) run(() => api.addAttachment(card.id, f)) }} />
+                  </label>
+                )}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                {attachments.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--faint)' }}>No attachments.</div>}
+                {attachments.map((a) => (
+                  <button key={a.id} onClick={() => openAttachment(a)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 9, padding: '9px 11px', cursor: 'pointer', fontFamily: 'var(--sans)' }}>
+                    <span style={{ fontSize: 15, flex: 'none' }}>📎</span>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 12.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.filename}</span>
+                      <span style={{ display: 'block', fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--faint)' }}>{formatBytes(a.size)}</span>
+                    </span>
+                    <span style={{ fontSize: 11.5, color: 'var(--navy)', flex: 'none' }}>Open ↗</span>
+                  </button>
+                ))}
+              </div>
+            </div>
             {err && <p style={{ marginTop: 16, fontSize: 12.5, color: 'oklch(0.55 0.19 25)' }}>{err}</p>}
           </div>
 
@@ -136,4 +171,11 @@ export default function CardModal({ card, listName, canEdit, onChanged, onClose 
       </div>
     </div>
   )
+}
+
+function formatBytes(n) {
+  if (n == null) return ''
+  if (n < 1024) return `${n} B`
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
+  return `${(n / 1024 / 1024).toFixed(1)} MB`
 }

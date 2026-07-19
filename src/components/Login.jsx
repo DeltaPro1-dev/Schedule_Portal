@@ -25,6 +25,7 @@ export default function Login({ onEnter }) {
     if (demoMode) return onEnter({ email: email || 'demo@deltaproclean.com' })
     const { error } = await supabase.auth.signInWithPassword({ email, password: pass })
     if (error) setError(error.message)
+    else supabase.rpc('audit_login')   // fire-and-forget LOGIN audit (real mode)
   }
   async function doRecover() {
     setError('')

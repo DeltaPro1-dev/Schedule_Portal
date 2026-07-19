@@ -199,3 +199,33 @@ as fake behavior):**
 Only member today is admin/region=all (sees & does everything), so 0007 changes
 nothing observable for the current user until region-scoped members are invited —
 by design, low-risk to apply.
+
+---
+
+## G1.7 — Full audit via database triggers (2026-07-19)
+**Approved by:** Eder (owner), in chat ("quero que o Audit grave todos os acontecimentos").
+Audit was only written by the card_transition/card_move RPCs (UPDATE/MOVE/COMPLETE).
+Now every domain mutation is recorded, server-side and non-forgeable.
+
+- `0008_audit_triggers.sql`:
+  - `audit_row()` SECURITY DEFINER trigger fn attached (AFTER INSERT/UPDATE/DELETE)
+    to boards, lists, cards, workers, clients, memberships, checklist_items,
+    comments, attachments, exports. It derives the verb
+    (CREATE/UPDATE/MOVE/COMPLETE/DELETE, EXPORT for exports), resolves org (direct or
+    via the parent card), and writes a small jsonb detail.
+  - Soft-deletes (deleted_at null→set) log DELETE; card list change → MOVE; card
+    status→completed → COMPLETE.
+  - `audit_login()` RPC → SPA calls it after a successful sign-in (LOGIN).
+  - card_transition/card_move redefined WITHOUT their explicit audit insert — the
+    trigger is now the single source of truth (no double-logging). Role matrix and
+    region guards from 0007 are unchanged.
+- Client: `Login.jsx` fires `audit_login()` on real-mode sign-in; `getAudit` detail
+  rendering improved (LOGIN → "signed in"; shows title/name/filename/email/etc.).
+
+Why triggers, not client inserts: the audit INSERT policy was removed in 0005
+(audit is server-only), so a definer trigger is the tamper-proof way to capture BOTH
+direct PostgREST writes and RPC writes uniformly. Trade-off (intended): high volume —
+e.g. creating a board with 20 columns logs 1 board + 20 list CREATE rows.
+
+Not yet covered (documented): REPROCESS (integration reprocessing isn't built),
+labels/card_labels (config/noise), integration_events. Add later if needed.

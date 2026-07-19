@@ -248,10 +248,15 @@ const realApi = {
       const email = emailByUser[e.actor_user_id]
       const user = isSystem ? 'System' : email ? titleFromEmail(email) : 'User'
       const d = e.detail || {}
-      const detail =
-        d.from && d.to ? `${e.entity_type || 'item'} ${d.from} → ${d.to}`
-        : d.toListId ? `${e.entity_type || 'card'} moved`
-        : `${(e.verb || '').toLowerCase()} ${e.entity_type || ''}`.trim() || (e.entity_type || 'action')
+      let detail
+      if (e.verb === 'LOGIN') detail = 'signed in'
+      else if (d.toListId) detail = `moved ${e.entity_type || 'card'}`
+      else if (d.from && d.to) detail = `${e.entity_type || 'card'} ${d.from} → ${d.to}`
+      else {
+        const label = d.title || d.name || d.filename || d.invited_email || d.report_type || d.text || ''
+        detail = `${(e.verb || '').toLowerCase()} ${e.entity_type || ''}`.trim() + (label ? ` · ${label}` : '')
+        if (!detail) detail = e.entity_type || 'action'
+      }
       return {
         id: e.id,
         ts: new Date(e.created_at).toLocaleString(),

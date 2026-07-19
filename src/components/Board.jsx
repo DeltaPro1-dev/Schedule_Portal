@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api.js'
 import { cardHeadBody, initials, avatarStyle } from '../lib/present.js'
 import { STATUS_META } from '../lib/stateMachine.js'
@@ -16,6 +16,16 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
   const load = useCallback(async () => setDetail(await api.getBoardDetail(boardId)), [boardId])
   useEffect(() => { setDetail(null); load() }, [load])              // reset only when the board changes
   useEffect(() => { if (cardVersion) load() }, [cardVersion])       // silent refresh after edits (no blank)
+
+  // Realtime: reload (debounced) when another client changes this board.
+  const refreshTimer = useRef(null)
+  useEffect(() => {
+    const unsub = api.subscribeBoard?.(boardId, () => {
+      clearTimeout(refreshTimer.current)
+      refreshTimer.current = setTimeout(load, 300)
+    })
+    return () => { clearTimeout(refreshTimer.current); unsub?.() }
+  }, [boardId, load])
 
   if (!detail) return <div style={{ padding: 30, color: 'var(--faint)' }}>Loading board…</div>
   const { board, lists, cards, vendors = [] } = detail

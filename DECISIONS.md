@@ -73,3 +73,53 @@ on invoiced/paid.
 
 **Deferred (documented, not blocking):** Realtime, attachment upload UI, wiring the
 admin screens to real endpoints, finer RBAC region/role enforcement in RLS.
+
+---
+
+## G1.2 — Realtime enabled (2026-07-18)
+**Approved by:** Eder (owner), in chat.
+First of the G1.1 "Deferred" items delivered. Realtime now backs the board so a
+change by one client is reflected on others without a manual reload.
+
+- `0006_realtime.sql`: adds `cards`, `lists`, `boards` to the `supabase_realtime`
+  publication and sets `replica identity full` on `cards`/`lists` (so UPDATE/DELETE
+  events carry the full OLD row for row-filtering). RLS still scopes every stream to
+  the member's org — no cross-org leakage.
+- `api.subscribeBoard(boardId, onChange)`: opens one channel with `postgres_changes`
+  listeners on the three tables (filtered to the board); returns an unsubscribe fn.
+  Mock mode ships a no-op so the API surface is identical.
+- `Board.jsx`: subscribes on mount and reloads `getBoardDetail` (debounced 300ms) on
+  any event; unsubscribes on unmount / board switch. Optimistic local updates stay;
+  the remote event just triggers a reconciling refetch.
+
+Maps to events.md (card.created/updated/moved/completed, list.created, board.updated)
+— we consume the Postgres-change stream rather than re-emitting named socket events.
+
+---
+
+## G1.3 — Admin screens wired to Supabase (2026-07-18)
+**Approved by:** Eder (owner), in chat.
+Second G1.1 "Deferred" item. In real mode the admin screens now read live
+`schedule_portal` data instead of falling through to the mock.
+
+- `realApi.getMembers()` → `memberships` (RLS returns all rows for admins, own row
+  otherwise). No `name` column exists (identity is in Supabase Auth), so the display
+  name is derived from the invite email's local part; role enum maps to the screen's
+  display keys (`viewer` → read).
+- `realApi.getAudit()` → `audit_events` (newest 100). Actor names resolved best-effort
+  from visible memberships; `system`/unknown actors show "System"/"User". `detail`
+  jsonb rendered to a readable phrase.
+- `realApi.getExports()` → static format cards + `exports` rows (empty until an export
+  worker exists). Status enum `done` → `completed`.
+- `realApi.getIntegration()` → `integration_events` + stats computed from the rows.
+  Status enum `done` → `synced`; direction push/pull → human labels.
+- `getPermMatrix()` stays mock-served on purpose: it is static reference data (the
+  permissions-matrix.md RBAC grid), identical in both modes — not per-org state.
+- Components hardened for the real enums: `Members` ROLE map gains `admin`/`viewer`
+  (+ fallback); `Exports`/`Integration` status maps gain `failed`/fallback so unknown
+  statuses never crash.
+
+Tables other than audit are typically empty today, so these screens render valid
+empty states in real mode until their producers (export worker, Field Control queue)
+are built. Actor/requester name resolution is limited by memberships RLS for
+non-admins — acceptable for MVP.

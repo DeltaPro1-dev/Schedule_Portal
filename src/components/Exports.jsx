@@ -6,7 +6,9 @@ const JOB_STATUS = {
   completed: { label: 'Completed', color: 'var(--green-ink)', bg: 'var(--green-soft)', dot: 'var(--green)' },
   processing: { label: 'Processing', color: '#2563eb', bg: '#eff4ff', dot: '#2563eb' },
   queued: { label: 'Queued', color: 'oklch(0.5 0.12 90)', bg: 'oklch(0.96 0.05 90)', dot: 'oklch(0.6 0.13 90)' },
+  failed: { label: 'Failed', color: '#dc2626', bg: '#fef2f2', dot: '#dc2626' },
 }
+const JOB_FALLBACK = { label: 'Unknown', color: 'var(--muted)', bg: 'var(--surface-2)', dot: 'var(--faint)' }
 const FMT_COLOR = { CSV: 'var(--green-ink)', XLSX: 'var(--green-ink)', PDF: '#dc2626', JSON: 'var(--navy)' }
 const GRID = '1fr 120px 150px 130px 90px'
 
@@ -35,7 +37,7 @@ export default function Exports({ onBack }) {
                 <span>Report</span><span>Format</span><span>Requested by</span><span>Status</span><span />
               </div>
               {data.jobs.map((j, i) => {
-                const st = JOB_STATUS[j.status]
+                const st = JOB_STATUS[j.status] || JOB_FALLBACK
                 return (
                   <div key={i} style={{ display: 'grid', gridTemplateColumns: GRID, gap: 16, padding: '15px 20px', borderBottom: '1px solid var(--line-2)', alignItems: 'center' }}>
                     <div><div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--ink)' }}>{j.name}</div><div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--faint)', marginTop: 2 }}>{j.when} · {j.rows}</div></div>

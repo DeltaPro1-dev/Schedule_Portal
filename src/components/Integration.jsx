@@ -9,6 +9,7 @@ const STATUS = {
   dlq: { label: 'DLQ · failed', color: '#dc2626', bg: '#fef2f2', dot: '#dc2626' },
   queued: { label: 'Queued', color: 'oklch(0.5 0.12 90)', bg: 'oklch(0.96 0.05 90)', dot: 'oklch(0.6 0.13 90)' },
 }
+const STATUS_FALLBACK = { label: 'Unknown', color: 'var(--muted)', bg: 'var(--surface-2)', dot: 'var(--faint)' }
 const GRID = '1.4fr 170px 130px 1.1fr 120px'
 
 export default function Integration({ onBack }) {
@@ -36,7 +37,7 @@ export default function Integration({ onBack }) {
                 <span>Event</span><span>Direction</span><span>Status</span><span>Error / reason</span><span />
               </div>
               {data.rows.map((e, i) => {
-                const st = STATUS[e.status]
+                const st = STATUS[e.status] || STATUS_FALLBACK
                 return (
                   <div key={i} style={{ display: 'grid', gridTemplateColumns: GRID, gap: 16, padding: '15px 22px', borderBottom: '1px solid var(--line-2)', alignItems: 'center' }}>
                     <div><div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--ink)' }}>{e.entity}</div><div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--faint)', marginTop: 2 }}>{e.key} · {e.attempts} · {e.when}</div></div>

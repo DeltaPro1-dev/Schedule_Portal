@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api.js'
-import { cardHeadBody, initials, avatarStyle } from '../lib/present.js'
+import { cardHeadBody, initials, avatarStyle, REGION_LABEL } from '../lib/present.js'
 import { STATUS_META } from '../lib/stateMachine.js'
 
-export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay, cardVersion }) {
+export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay, cardVersion, membership, demo }) {
   const [detail, setDetail] = useState(null)
   const [query, setQuery] = useState('')
   const [acting, setActing] = useState('admin')
@@ -11,7 +11,9 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
   const [cardText, setCardText] = useState('')
   const [addingList, setAddingList] = useState(false)
   const [listText, setListText] = useState('')
-  const canEdit = acting !== 'none'
+  // Demo mode: the Profile selector drives access (to showcase roles). Real mode:
+  // access comes from the signed-in member (RLS/RPCs enforce the rest server-side).
+  const canEdit = demo ? acting !== 'none' : ['admin', 'editor'].includes(membership?.access)
 
   const load = useCallback(async () => setDetail(await api.getBoardDetail(boardId)), [boardId])
   useEffect(() => { setDetail(null); load() }, [load])              // reset only when the board changes
@@ -75,15 +77,22 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
               <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search worker or client…"
                 style={{ border: 'none', background: 'none', outline: 'none', fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--ink)', width: '100%' }} />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: '5px 6px 5px 11px' }}>
-              <span style={{ fontSize: 11, color: 'var(--muted)' }}>Profile</span>
-              <select value={acting} onChange={(e) => setActing(e.target.value)}
-                style={{ border: 'none', background: 'none', outline: 'none', fontFamily: 'var(--sans)', fontSize: 12.5, fontWeight: 600, color: 'var(--navy)', cursor: 'pointer' }}>
-                <option value="admin">Admin</option>
-                <option value="editor">Editor</option>
-                <option value="none">No access</option>
-              </select>
-            </div>
+            {demo ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: '5px 6px 5px 11px' }}>
+                <span style={{ fontSize: 11, color: 'var(--muted)' }}>Profile</span>
+                <select value={acting} onChange={(e) => setActing(e.target.value)}
+                  style={{ border: 'none', background: 'none', outline: 'none', fontFamily: 'var(--sans)', fontSize: 12.5, fontWeight: 600, color: 'var(--navy)', cursor: 'pointer' }}>
+                  <option value="admin">Admin</option>
+                  <option value="editor">Editor</option>
+                  <option value="none">No access</option>
+                </select>
+              </div>
+            ) : membership && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: '7px 12px' }}>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--navy)', textTransform: 'capitalize' }}>{membership.role}</span>
+                <span style={{ fontSize: 11, color: 'var(--muted)' }}>{REGION_LABEL[membership.region] || membership.region}</span>
+              </div>
+            )}
             {canEdit && (
               <button onClick={() => setAddingList(true)} className="h-navy" style={primaryBtn}><span style={{ fontSize: 16, lineHeight: 1 }}>+</span> List</button>
             )}

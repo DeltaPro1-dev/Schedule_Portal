@@ -164,3 +164,38 @@ Storage policies (0003) enforce access: any member reads, editors+ upload, admin
 delete. Delete-from-UI deferred (admin-only server-side) to keep this pass focused.
 No AV/scan pipeline in G1 (that was G0's S3 design), so `scan_status` stays `pending`
 and is not surfaced yet.
+
+---
+
+## G1.6 — Finer RBAC: role gates + region scoping (2026-07-18)
+**Approved by:** Eder (owner), in chat (source of role/region = real membership;
+enforcement layer = RLS + RPCs).
+Last G1.1 "Deferred" item. Region/role are now enforced server-side per
+permissions-matrix.md and service-state-machine.md, as far as the schema allows.
+
+- `0007_rbac.sql`:
+  - `sees_all_regions()` helper (admin/coordinator/finance/viewer, or region=all).
+  - RLS on `lists`/`cards` adds region scoping: region-bound members only see/write
+    rows whose list's worker is in their region (pool lists visible to all). Delete
+    stays admin-only; access-level `can_edit()` still required for writes.
+  - `card_transition()` now enforces the full role×transition matrix (admin does
+    anything) plus a region guard.
+  - `card_move()` gains a region guard on source and target list.
+- App uses the **real membership** in real mode: `Board` derives `canEdit` from
+  `membership.access` and shows a role/region badge; the "Profile" selector is now
+  demo-only (it never reflected real identity). Mock/demo behavior unchanged.
+- The client `stateMachine` still lists all structurally-valid transitions; the UI
+  shows them and the RPC rejects unauthorized ones (error surfaced in the modal).
+
+**Documented gaps (need a contract + schema decision — Regra de Ouro, NOT implemented
+as fake behavior):**
+1. No `membership <-> worker` link, so operator "assigned" scope ("only my own list")
+   is not expressible. Operators are treated as region-scoped (safe superset).
+   Proposed fix: add `memberships.worker_id`.
+2. Boards span regions (region lives on the worker behind a list), so region scoping
+   applies to lists/cards, not boards. Region-bound users see pool lists but not pool
+   cards.
+
+Only member today is admin/region=all (sees & does everything), so 0007 changes
+nothing observable for the current user until region-scoped members are invited —
+by design, low-risk to apply.

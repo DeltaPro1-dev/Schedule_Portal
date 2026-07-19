@@ -123,3 +123,20 @@ Tables other than audit are typically empty today, so these screens render valid
 empty states in real mode until their producers (export worker, Field Control queue)
 are built. Actor/requester name resolution is limited by memberships RLS for
 non-admins — acceptable for MVP.
+
+---
+
+## G1.4 — Checklist UI in the card modal (2026-07-18)
+**Approved by:** Eder (owner), in chat.
+Third G1.1 "Deferred" item. The checklist data path already existed end-to-end
+(`checklist_items` table + RLS in 0001/0002, `api.addChecklistItem` /
+`api.toggleChecklistItem` in both mock and realApi, and `getBoardDetail` already
+embeds `checklist_items(*)`) — only the UI was missing.
+
+- `CardModal.jsx`: renders the card's checklist with a done/total counter and a
+  progress bar, per-item toggle checkboxes, and an "Add an item" input (editors+).
+  Mutations go through the existing `run()` helper, so they reuse optimistic-refresh
+  (onChanged → cardVersion → board/modal refetch) and error surfacing. Read-only for
+  `access = none`.
+
+No schema or API change — purely the missing presentation layer.

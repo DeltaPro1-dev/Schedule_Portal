@@ -5,11 +5,15 @@ import { allowedTransitions, STATUS_META } from '../lib/stateMachine.js'
 
 export default function CardModal({ card, listName, canEdit, onChanged, onClose }) {
   const [comment, setComment] = useState('')
+  const [item, setItem] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const { head, body } = cardHeadBody(card)
   const meta = STATUS_META[card.status] || { label: card.status || 'unknown', color: 'var(--muted)' }
   const fields = cardFields(card)
+  const checklist = (card.checklist || []).slice().sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+  const doneCount = checklist.filter((c) => c.done).length
+  const pct = checklist.length ? Math.round((doneCount / checklist.length) * 100) : 0
 
   async function run(fn) {
     setBusy(true); setErr('')
@@ -75,6 +79,34 @@ export default function CardModal({ card, listName, canEdit, onChanged, onClose 
                 </div>
               </div>
             )}
+
+            {/* checklist */}
+            <div style={{ marginTop: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>Checklist</div>
+                {checklist.length > 0 && <span style={{ fontFamily: 'var(--mono)', fontSize: 11.5, color: 'var(--faint)' }}>{doneCount}/{checklist.length}</span>}
+              </div>
+              {checklist.length > 0 && (
+                <div style={{ height: 6, borderRadius: 20, background: 'var(--surface-2)', overflow: 'hidden', marginBottom: 12 }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: 'var(--green)', borderRadius: 20, transition: 'width 0.2s' }} />
+                </div>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                {checklist.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--faint)' }}>No checklist items yet.</div>}
+                {checklist.map((it) => (
+                  <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13 }}>
+                    <span onClick={() => canEdit && !busy && run(() => api.toggleChecklistItem(card.id, it.id, it.done))}
+                      style={{ width: 17, height: 17, flex: 'none', borderRadius: 5, border: `1.5px solid ${it.done ? 'var(--green)' : 'var(--line)'}`, background: it.done ? 'var(--green)' : '#fff', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, cursor: canEdit ? 'pointer' : 'default' }}>{it.done ? '✓' : ''}</span>
+                    <span style={{ textDecoration: it.done ? 'line-through' : 'none', color: it.done ? 'var(--faint)' : 'var(--ink-2)' }}>{it.text}</span>
+                  </div>
+                ))}
+              </div>
+              {canEdit && (
+                <input value={item} onChange={(e) => setItem(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && item.trim()) { const t = item; setItem(''); run(() => api.addChecklistItem(card.id, t)) } }}
+                  placeholder="Add an item…" style={{ marginTop: 10, width: '100%', border: '1px solid var(--line)', background: 'var(--surface-2)', borderRadius: 9, padding: '9px 12px', fontFamily: 'var(--sans)', fontSize: 12.5, outline: 'none' }} />
+              )}
+            </div>
             {err && <p style={{ marginTop: 16, fontSize: 12.5, color: 'oklch(0.55 0.19 25)' }}>{err}</p>}
           </div>
 

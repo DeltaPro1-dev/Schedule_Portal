@@ -224,8 +224,13 @@ Now every domain mutation is recorded, server-side and non-forgeable.
 
 Why triggers, not client inserts: the audit INSERT policy was removed in 0005
 (audit is server-only), so a definer trigger is the tamper-proof way to capture BOTH
-direct PostgREST writes and RPC writes uniformly. Trade-off (intended): high volume —
-e.g. creating a board with 20 columns logs 1 board + 20 list CREATE rows.
+direct PostgREST writes and RPC writes uniformly.
+
+Noise control (owner's call): list INSERTs are NOT audited — creating a board
+auto-generates ~20 columns and logging each made the audit unreadable; only the
+board's own CREATE is recorded. Side effect: manual "+ Add worker" list adds aren't
+audited either (rare, low-stakes). Revisit via a create_board RPC that suppresses
+only the auto-generated batch if manual adds ever need auditing.
 
 Not yet covered (documented): REPROCESS (integration reprocessing isn't built),
 labels/card_labels (config/noise), integration_events. Add later if needed.

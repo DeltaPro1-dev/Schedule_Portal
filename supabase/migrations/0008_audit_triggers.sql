@@ -26,6 +26,13 @@ begin
   if TG_OP = 'DELETE' then v_rec := OLD; else v_rec := NEW; end if;
   v_id := v_rec.id;
 
+  -- Creating a board auto-generates the pool + one list per worker (~20 rows).
+  -- Skip logging those list CREATEs to keep the audit readable; the board's own
+  -- CREATE is still recorded. (Manual list adds are therefore not audited either.)
+  if TG_TABLE_NAME = 'lists' and TG_OP = 'INSERT' then
+    return NEW;
+  end if;
+
   -- organization_id: direct column, or resolved through the parent card
   if TG_TABLE_NAME in ('boards','lists','cards','workers','clients','memberships','exports') then
     v_org := v_rec.organization_id;

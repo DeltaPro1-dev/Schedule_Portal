@@ -21,10 +21,14 @@ Organization 1─* AuditEvent | Export | IntegrationEvent
 `id, email (unique), password_hash, name, mfa_secret?, mfa_enabled, failed_attempts, locked_until?, last_login_at?, created_at`
 
 ### memberships
-`id, organization_id, user_id, role (enum), region (enum|all), access (admin|editor|none), status (active|invited|disabled), invited_email?, created_at`
+`id, organization_id, user_id, role (enum), region (enum|all), access (admin|editor|none), status (active|invited|disabled), invited_email?, worker_id?, created_at`
 - `role`: admin | coordinator | supervisor | operator | finance | viewer
 - `region`: north | south | st_george | another | all
 - `access`: admin | editor | none  (default `none`)
+- `worker_id` (D6, migration 0010): links the membership to its `workers` row —
+  gives operators the exact "assigned" scope (only their own list). Nullable;
+  unique where set (one login per worker). Unlinked operators fall back to region
+  scope (safe superset).
 
 ### workers  (roster — base for board generation)
 `id, organization_id, kind (employee|contractor|company), name, initials, region, access (admin|editor|none default none), active, position, created_at, deleted_at?`

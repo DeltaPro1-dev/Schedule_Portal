@@ -234,7 +234,7 @@ const realApi = {
   async getMembers() {
     const { data, error } = await supabase
       .from('memberships')
-      .select('id, invited_email, role, region, status')
+      .select('id, invited_email, role, region, status, worker:workers(name)')
       .order('status')
     if (error) throw error
     return (data || []).map((m) => ({
@@ -244,6 +244,7 @@ const realApi = {
       role: ROLE_DISPLAY[m.role] || m.role,
       region: regionText(m.region),
       status: m.status,
+      worker: m.worker?.name || null,   // D6: linked worker (operator "assigned" scope)
     }))
   },
 

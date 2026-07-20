@@ -51,7 +51,13 @@ export default function Members({ onBack }) {
                         <span style={{ display: 'block', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--faint)' }}>{pending ? 'pending invite' : m.email}</span>
                       </span>
                     </span>
-                    <span><span style={{ fontSize: 11.5, fontWeight: 600, color: role.color, background: role.bg, borderRadius: 7, padding: '4px 10px' }}>{role.label}</span></span>
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ fontSize: 11.5, fontWeight: 600, color: role.color, background: role.bg, borderRadius: 7, padding: '4px 10px' }}>{role.label}</span>
+                      {m.worker && (
+                        <span title={`Assigned scope: only ${m.worker}'s list`}
+                          style={{ display: 'block', fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--faint)', marginTop: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>⛓ {m.worker}</span>
+                      )}
+                    </span>
                     <span style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>{m.region}</span>
                     <span><span style={{ fontSize: 12, fontWeight: 500, color: pending ? 'oklch(0.5 0.12 90)' : 'var(--green-ink)', background: pending ? 'oklch(0.96 0.05 90)' : 'var(--green-soft)', borderRadius: 20, padding: '4px 11px' }}>{pending ? 'Pending invite' : 'Active'}</span></span>
                   </div>

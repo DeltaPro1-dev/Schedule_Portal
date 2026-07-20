@@ -137,8 +137,9 @@ acesso (`access`)** + **região**, o que cobre os 9 casos sem redundância:
 
 **Status:** ✅ papéis, regiões e níveis existem no schema (`memberships`), são
 resolvidos via `provision_me()` e enforce via RLS + RPCs (G1.6).
-🟡 O escopo "assigned" do operador ainda é tratado como "region" (superset seguro) —
-falta `memberships.worker_id` (**decisão pendente #1**).
+✅ (D6) Escopo "assigned" do operador agora é **exato**: `memberships.worker_id`
+(migração `0010_worker_link.sql`) — operador vinculado vê pool + a própria lista e
+só edita/reordena os próprios cards; sem vínculo, fallback = região (superset).
 
 ## 3. Matriz de permissões (RBAC)
 
@@ -419,9 +420,9 @@ integrações e mobile.
 ### G4 — Governança avançada (em andamento)
 - ✅ Audit: diff previous/new + filtros + busca + correlation id + export CSV; colunas
   correlation/request/session + funções de retenção prontas p/ deploy (G4.1).
-- 🟡 Notificações **in-app** ✅ (bell + panel + mark-read; producer `export.ready`
-  pronto p/ deploy) — G4.1. E-mail/push/Teams: futuro. `assignment.new`/
-  `service.completed`/`integration.dlq` dependem de D6 (documentado).
+- 🟡 Notificações **in-app** ✅ (bell + panel + mark-read) — G4.1. Producers prontos
+  p/ deploy: `export.ready` (0009) + `assignment.new`/`service.completed`/
+  `integration.dlq` (0010, destravados pelo D6). E-mail/push/Teams: futuro.
 - ⬜ Data retention aplicada / soft-delete policy / privacy controls; threat model formal.
 
 ### G5 — Operations (calendar/workload/teams/customers/locations)
@@ -459,7 +460,7 @@ Registro completo em [DECISIONS.md](DECISIONS.md). Resumo das decisões estrutur
 | D3 | Schema `schedule_portal` em projeto compartilhado | Projeto Supabase dedicado | Compartilhado, isolado por schema | ✅ Aprovado (G1) |
 | D4 | Supabase Auth como identidade (sem tabela `users`) | Tabela `users` própria | Supabase Auth + memberships | ✅ Aprovado (G1) |
 | D5 | RBAC via RLS + RPCs | Guards só no app | Server-side (RLS+RPC) | ✅ Aprovado (G1.6) |
-| D6 | `memberships.worker_id` p/ escopo "assigned" do operador | Tratar operador como region (superset) | Adicionar o link | ⏳ **Pendente** |
+| D6 | `memberships.worker_id` p/ escopo "assigned" do operador | Tratar operador como region (superset) | Adicionar o link | ✅ Aprovado (2026-07-20, `0010_worker_link.sql`) |
 | D7 | Host do front-end = **Vercel** | Netlify / Supabase Hosting | Vercel (deploy simples + previews) | ✅ Aprovado (2026-07-20) |
 | D8 | Momento de abrir integrações (G6/G7) | Agora vs. após G5 | Após G5 + credenciais | ⏳ **Pendente** |
 
@@ -504,9 +505,9 @@ compartilhado isolado), D4 (Supabase Auth), D5 (RBAC server-side). Todas em prod
 via G0–G1.6.
 
 ### 2. Decisões pendentes (bloqueiam quais fases)
-- **D6** — adicionar `memberships.worker_id` para escopo "assigned" do operador.
-  *Bloqueia:* fidelidade total do RBAC (G3/G5). *Impacto:* migração pequena + ajuste
-  de RLS.
+- ~~**D6** — adicionar `memberships.worker_id`.~~ ✅ **Resolvido** (2026-07-20) —
+  migração `0010_worker_link.sql` pronta p/ deploy: escopo "assigned" exato do
+  operador (RLS + RPCs) + producers de notificação que dependiam do link.
 - ~~**D7** — host do front-end.~~ ✅ **Resolvido: Vercel** (2026-07-20) — `vercel.json`
   adicionado; deploy da G2 destravado.
 - **D8** — quando abrir Field Control/NetSuite. *Bloqueia:* G6/G7 (+ credenciais).

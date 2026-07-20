@@ -71,7 +71,7 @@ const MEMBERS = [
   { id: 'm2', name: 'Rui Braga', email: 'rui@deltaproclean.com', role: 'supervisor', region: 'South', status: 'active' },
   { id: 'm3', name: 'Aisha Burgess', email: 'aisha@deltaproclean.com', role: 'supervisor', region: 'North', status: 'active' },
   { id: 'm4', name: 'David Tucker', email: 'david@deltaproclean.com', role: 'supervisor', region: 'St George', status: 'active' },
-  { id: 'm5', name: 'Luciana Fernandes', email: 'luciana@deltaproclean.com', role: 'operator', region: 'North', status: 'active' },
+  { id: 'm5', name: 'Luciana Fernandes', email: 'luciana@deltaproclean.com', role: 'operator', region: 'North', status: 'active', worker: 'Fernandes, Luciana' },
   { id: 'm6', name: 'Paulo Santos', email: 'paulo@deltaproclean.com', role: 'finance', region: 'All', status: 'active' },
   { id: 'm7', name: 'new.manager@client.com', email: 'new.manager@client.com', role: 'read', region: 'St George', status: 'invited' },
 ]

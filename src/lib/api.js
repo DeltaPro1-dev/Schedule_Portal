@@ -132,6 +132,77 @@ const realApi = {
     if (error) throw error
   },
 
+  // ── Settings data (read-only surfaces) ──────────────────────────────────────
+  async getOrganization() {
+    const { data, error } = await supabase.from('organizations').select('*').eq('id', await myOrg()).single()
+    if (error) throw error
+    return data
+  },
+  async getLabels() {
+    const { data, error } = await supabase.from('labels').select('*').order('name')
+    if (error) throw error
+    return data || []
+  },
+
+  // ── Customers (clients table — RLS from 0002, no migration needed) ─────────
+  async getClients() {
+    const { data, error } = await supabase.from('clients').select('*').is('deleted_at', null).order('name')
+    if (error) throw error
+    return data || []
+  },
+  async addClient({ name, address, fin_contact, notes }) {
+    const { data, error } = await supabase
+      .from('clients')
+      .insert({ organization_id: await myOrg(), name, address: address || null, fin_contact: fin_contact || null, notes: notes || null })
+      .select().single()
+    if (error) throw error
+    return data
+  },
+  async updateClient(id, patch) {
+    const { error } = await supabase.from('clients').update(patch).eq('id', id)
+    if (error) throw error
+  },
+  async removeClient(id) {
+    const { error } = await supabase.from('clients').update({ deleted_at: new Date().toISOString() }).eq('id', id)
+    if (error) throw error
+  },
+
+  // ── Teams (migration 0011; callers tolerate a missing table → empty state) ──
+  async getTeams() {
+    const { data, error } = await supabase
+      .from('teams')
+      .select('*, team_members(id, worker:workers(id, name, region))')
+      .is('deleted_at', null)
+      .order('name')
+    if (error) throw error
+    return (data || []).map((t) => ({
+      ...t,
+      members: (t.team_members || []).map((tm) => ({ id: tm.id, worker: tm.worker })).filter((m) => m.worker),
+    }))
+  },
+  async addTeam({ name, region }) {
+    const { data, error } = await supabase
+      .from('teams')
+      .insert({ organization_id: await myOrg(), name, region: region || null })
+      .select().single()
+    if (error) throw error
+    return { ...data, members: [] }
+  },
+  async removeTeam(id) {
+    const { error } = await supabase.from('teams').update({ deleted_at: new Date().toISOString() }).eq('id', id)
+    if (error) throw error
+  },
+  async addTeamMember(teamId, workerId) {
+    const { error } = await supabase
+      .from('team_members')
+      .insert({ organization_id: await myOrg(), team_id: teamId, worker_id: workerId })
+    if (error) throw error
+  },
+  async removeTeamMember(memberId) {
+    const { error } = await supabase.from('team_members').delete().eq('id', memberId)
+    if (error) throw error
+  },
+
   async addList({ board_id, name }) {
     const org = await myOrg()
     const { count } = await supabase.from('lists').select('id', { count: 'exact', head: true }).eq('board_id', board_id)
@@ -151,6 +222,19 @@ const realApi = {
       .from('cards')
       .insert({ organization_id: org, board_id, list_id, position: count ?? 0, raw_title: raw_title || null, ...fields })
       .select('*, client:clients(*), card_labels(label:labels(*))')
+      .single()
+    if (error) throw error
+    return mapCard(data)
+  },
+
+  // Patch free-text card fields (inline editing). RLS/region guards decide if the
+  // caller may edit; status changes still go through card_transition (the FSM).
+  async updateCard(cardId, patch) {
+    const { data, error } = await supabase
+      .from('cards')
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq('id', cardId)
+      .select('*, client:clients(*), card_labels(label:labels(*)), checklist_items(*), comments(*), attachments(*)')
       .single()
     if (error) throw error
     return mapCard(data)
@@ -221,7 +305,7 @@ const realApi = {
   async getMembers() {
     const { data, error } = await supabase
       .from('memberships')
-      .select('id, invited_email, role, region, status')
+      .select('id, invited_email, role, region, status, worker:workers(name)')
       .order('status')
     if (error) throw error
     return (data || []).map((m) => ({
@@ -231,6 +315,7 @@ const realApi = {
       role: ROLE_DISPLAY[m.role] || m.role,
       region: regionText(m.region),
       status: m.status,
+      worker: m.worker?.name || null,   // D6: linked worker (operator "assigned" scope)
     }))
   },
 
@@ -248,20 +333,70 @@ const realApi = {
       const email = emailByUser[e.actor_user_id]
       const user = isSystem ? 'System' : email ? titleFromEmail(email) : 'User'
       const d = e.detail || {}
+      // structured before→after diff, when the event carries one
+      const diff =
+        d.from && d.to ? { field: 'status', from: d.from, to: d.to }
+        : d.toListId ? { field: 'list', from: d.fromListId || '—', to: d.toListId }
+        : null
       const detail =
-        d.from && d.to ? `${e.entity_type || 'item'} ${d.from} → ${d.to}`
-        : d.toListId ? `${e.entity_type || 'card'} moved`
+        diff?.field === 'status' ? 'status change'
+        : diff?.field === 'list' ? 'moved card between workers'
         : `${(e.verb || '').toLowerCase()} ${e.entity_type || ''}`.trim() || (e.entity_type || 'action')
       return {
         id: e.id,
         ts: new Date(e.created_at).toLocaleString(),
         user, initials: initials(user),
         verb: e.verb,
-        detail,
+        entity: e.entity_type || null,
+        detail, diff,
+        correlation: e.correlation_id || e.request_id || null,
         scope: e.scope || '—',
         ip: e.ip || '—',
       }
     })
+  },
+
+  // ── notifications (in-app) ──────────────────────────────────────────────────
+  // Reads the caller's own notifications (RLS: user_id = auth.uid()). The table +
+  // producers ship in migration 0009 (export.ready trigger today; more via triggers
+  // once deployed). Empty until 0009 is applied — the UI shows a valid empty state.
+  async getNotifications() {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50)
+    if (error) throw error
+    return (data || []).map((n) => ({
+      id: n.id, kind: n.kind, title: n.title, body: n.body, read: n.read,
+      created_at: n.created_at,
+    }))
+  },
+  async markNotificationRead(id) {
+    const { error } = await supabase.from('notifications').update({ read: true }).eq('id', id)
+    if (error) throw error
+  },
+  async markAllNotificationsRead() {
+    const { error } = await supabase.from('notifications').update({ read: true }).eq('read', false)
+    if (error) throw error
+  },
+
+  // Record a completed client-side export (audit trail). Uses the exports_insert
+  // RLS policy (member inserts their own row for their org). Best-effort — the
+  // file download already happened, so a logging failure must not surface as a
+  // failed export.
+  async logExport({ report_type, format, row_count, params_json }) {
+    const { data: auth } = await supabase.auth.getUser()
+    const { data, error } = await supabase
+      .from('exports')
+      .insert({
+        organization_id: await myOrg(), requested_by: auth?.user?.id ?? null,
+        report_type, format, row_count: row_count ?? null, params_json: params_json || {},
+        status: 'done', finished_at: new Date().toISOString(),
+      })
+      .select().single()
+    if (error) throw error
+    return data
   },
 
   // Exports: static format cards + the org's recent export jobs (table may be

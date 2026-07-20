@@ -6,13 +6,19 @@ import TopNav from './components/TopNav.jsx'
 import Gallery from './components/Gallery.jsx'
 import Board from './components/Board.jsx'
 import CardModal from './components/CardModal.jsx'
+import TableView from './components/TableView.jsx'
+import Dashboard from './components/Dashboard.jsx'
+import Calendar from './components/Calendar.jsx'
 import Roster from './components/Roster.jsx'
+import Teams from './components/Teams.jsx'
+import Customers from './components/Customers.jsx'
 import Members from './components/Members.jsx'
 import Exports from './components/Exports.jsx'
 import Integration from './components/Integration.jsx'
 import Audit from './components/Audit.jsx'
+import Settings from './components/Settings.jsx'
 
-const SECTIONS = { roster: Roster, members: Members, exports: Exports, integration: Integration, audit: Audit }
+const SECTIONS = { dashboard: Dashboard, calendar: Calendar, roster: Roster, teams: Teams, customers: Customers, members: Members, exports: Exports, integration: Integration, audit: Audit, settings: Settings }
 
 export default function App() {
   const [entered, setEntered] = useState(false)
@@ -46,7 +52,7 @@ export default function App() {
     api.getBoardDetail(boardId).then((d) => {
       const card = d.cards.find((c) => c.id === openCardId)
       const list = card && d.lists.find((l) => l.id === card.list_id)
-      setModalData(card ? { card, listName: list?.name || '' } : null)
+      setModalData(card ? { card, listName: list?.name || '', lists: d.lists } : null)
     })
   }, [openCardId, boardId, cardVersion])
 
@@ -74,6 +80,17 @@ export default function App() {
           onBack={() => setView('gallery')}
           onSelectDay={(id) => setBoardId(id)}
           onOpenCard={(id) => setOpenCardId(id)}
+          onSwitchView={(v) => setView(v)}
+        />
+      )}
+      {view === 'table' && (
+        <TableView
+          boardId={boardId} boards={boards} cardVersion={cardVersion}
+          canEdit={demoMode || ['admin', 'editor'].includes(membership?.access)}
+          onBack={() => setView('gallery')}
+          onSelectDay={(id) => setBoardId(id)}
+          onOpenCard={(id) => setOpenCardId(id)}
+          onSwitchView={(v) => setView(v)}
         />
       )}
       {view === 'gallery' && (
@@ -82,11 +99,18 @@ export default function App() {
           <Gallery onOpenBoard={(id) => { setBoardId(id); setView('board') }} onCreateBoard={createBoard} />
         </>
       )}
-      {Section && <Section onBack={() => setView('gallery')} />}
+      {Section && (
+        <Section
+          onBack={() => setView('gallery')}
+          onOpenBoard={(id) => { setBoardId(id); setView('board') }}
+          canEdit={demoMode || ['admin', 'editor'].includes(membership?.access)}
+          membership={membership}
+        />
+      )}
 
       {modalData && (
         <CardModal
-          card={modalData.card} listName={modalData.listName}
+          card={modalData.card} listName={modalData.listName} lists={modalData.lists}
           canEdit={demoMode || ['admin', 'editor'].includes(membership?.access)}
           onChanged={() => setCardVersion((v) => v + 1)}
           onClose={() => setOpenCardId(null)}

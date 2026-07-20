@@ -1,6 +1,6 @@
 export default function SectionHeader({ title, subtitle, onBack, right }) {
   return (
-    <header style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 34px', background: 'var(--surface)', borderBottom: '1px solid var(--line)' }}>
+    <header className="topnav" style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 34px', background: 'var(--surface)', borderBottom: '1px solid var(--line)' }}>
       <button onClick={onBack} className="h-navysoft" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 9, padding: '7px 13px', fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 500, color: 'var(--ink-2)', cursor: 'pointer' }}>‹ Boards</button>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontFamily: 'var(--disp)', fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em' }}>{title}</div>

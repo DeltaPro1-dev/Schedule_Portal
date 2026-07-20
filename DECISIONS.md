@@ -199,3 +199,344 @@ as fake behavior):**
 Only member today is admin/region=all (sees & does everything), so 0007 changes
 nothing observable for the current user until region-scoped members are invited —
 by design, low-risk to apply.
+
+---
+
+## Planning consolidation (2026-07-20)
+`PLANO_MESTRE.md` added: reconciles the master-planning prompt with the built
+system (G0 → G1.6), maps its 30 sections to Done/Partial/Pending, and lays out the
+completion roadmap (G2 → G8) plus the approval gate. No code, planning artifact.
+
+---
+
+## G3.1 — Table view + Dashboard (2026-07-20)
+**Approved by:** Eder (owner), "continue a execução" (express go on the plan gate).
+First execution items of roadmap **G3 (operational views)** — the top self-contained
+screens that need none of the pending decisions (D6 `worker_id`, D7 host, D8
+integrations). Front-end only; no schema/API surface change.
+
+- **Table view** (`src/components/TableView.jsx`, §9.2): spreadsheet of one board's
+  cards. Sortable columns (Worker/Status/Client/Building/Service/Scheduled/Done),
+  text + status filter, row → card modal, client-side **CSV export** of the filtered
+  rows. Reuses `api.getBoardDetail` + realtime `subscribeBoard`, so it works in mock
+  and real mode identically. Reached via a **Board / Table** segmented toggle
+  (`ViewToggle`, exported from TableView and reused in `Board.jsx`).
+- **Dashboard** (`src/components/Dashboard.jsx`, §9.7): current-month operational
+  overview — KPI tiles (jobs, completed, completion %, in-progress, rework,
+  ready-to-invoice, integration errors), jobs-by-status bar, jobs-by-region and
+  top-clients bars. Aggregates from existing `getBoards` + `getBoardDetail`
+  (capped to the 12 most recent boards of the month, scope shown in the header) +
+  `getIntegration`. Added to `TopNav` and `App` SECTIONS.
+- **CSV helper** (`src/lib/csv.js`): RFC-4180-ish quoting + browser download. Serves
+  the §13 "small export" path; large/scheduled exports still go to the async export
+  worker (roadmap G2).
+
+**Honest gaps (NOT faked):** hours planned-vs-actual is not a tracked card field yet
+(roadmap G5) — the dashboard states this and omits the metric rather than inventing
+it. "Overdue" is likewise not shown (cards carry `scheduled_time` as free text, not a
+comparable timestamp).
+
+Verified: `npm run build` green; headless (Playwright) smoke — login → Dashboard
+renders & aggregates, board → Table renders 24 jobs with sort + CSV, Board↔Table
+toggle both ways, zero page errors.
+
+---
+
+## D7 — Front-end host = Vercel (2026-07-20)
+**Approved by:** Eder (owner), in chat. Pending decision D7 from `PLANO_MESTRE.md`
+resolved. Vercel chosen for the Vite/React SPA (simplest deploy, per-PR previews).
+- `vercel.json` added: framework `vite`, build `npm run build`, output `dist`, SPA
+  rewrite to `/index.html` (excluding `/assets/*` and files with an extension).
+- Supabase env vars (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) are set in the
+  Vercel project settings, not committed (see `.env.example`). No `.env` → demo mode.
+Unblocks the deploy step of roadmap G2.
+
+---
+
+## G3.2 — Calendar view (2026-07-20)
+**Approved by:** Eder (owner), chose "Calendar view" as the next G3 item.
+Second execution item of roadmap **G3**. Front-end only; no schema/API change.
+
+- `src/components/Calendar.jsx` (§9.3): month + week grid over the day-boards
+  (Board = one operating day). Each populated cell opens that board; cells show
+  workers count, open/closed, starred. Month/week toggle + prev/next navigation.
+  Uses `api.getBoards` only (no per-day detail fetch — cheap in real mode); works
+  in mock and real mode. Added to `TopNav` + `App` SECTIONS; `App` now passes
+  `onOpenBoard` to section screens.
+
+**Honest scope:** cards carry `scheduled_time` as free text (not a comparable
+timestamp), so a true per-event/per-hour calendar isn't meaningful yet — the view
+is a board-per-day navigator, not an hour grid. Team/service filters on the calendar
+are deferred (board list doesn't carry that without loading each day's detail).
+
+Verified: build green; headless smoke — Calendar renders month (July) with open/
+closed cells, week toggle shows the week range, prev/next navigates, clicking an
+open day opens that board. Zero page errors.
+
+---
+
+## G3.3 — Responsiveness + accessibility pass (2026-07-20)
+**Approved by:** Eder (owner), "continue com responsividade e acessibilidade".
+Closes the **G3 gate** item (WCAG/keyboard/ARIA + mobile/tablet). Front-end only;
+no schema/API change.
+
+**Accessibility (`src/index.css` + components):**
+- Global: `:focus-visible` ring for keyboard users (white variant `.on-navy` on dark
+  surfaces), `.sr-only` utility, `prefers-reduced-motion` disables transitions/lift.
+- **CardModal → dialog**: `role="dialog"`, `aria-modal`, `aria-labelledby` the title;
+  **Escape closes**; focus moves into the dialog on open and is **restored to the
+  trigger** on close; close button `aria-label`. Done + checklist checkboxes are now
+  real `<button role="checkbox" aria-checked>` (keyboard operable) instead of
+  `<span onClick>`. Comment/checklist inputs get `aria-label`.
+- **Keyboard drag-and-drop alternative**: CardModal gains a labelled **"Move to"**
+  `<select>` of the board's lists (App now passes `lists` to the modal) →
+  `api.moveCard`. Cards can be re-assigned without a mouse, closing the DnD a11y gap
+  noted in `PLANO_MESTRE.md` §C.
+- **Board**: card tiles are `role="button"` + `tabIndex=0` + Enter/Space to open,
+  with descriptive `aria-label`; done checkbox → accessible button; add-card /
+  add-worker are `<button>`s; search + profile inputs labelled; decorative
+  glyphs/avatars `aria-hidden`.
+- **TableView**: sortable headers are `<th scope="col" aria-sort>` wrapping a
+  `<button>`; rows are keyboard-openable (Enter); search/status inputs labelled;
+  ViewToggle uses `aria-pressed` in a labelled `role="group"`.
+- **Calendar**: nav arrows `aria-label` (Previous/Next), month label `aria-live`,
+  mode toggle `aria-pressed`, day-cell buttons carry a descriptive `aria-label`.
+- **TopNav**: `<nav aria-label>` + `aria-current="page"` on the active item.
+
+**Responsiveness (`src/index.css` breakpoints + classNames):**
+- ≤860px: Login brand panel hidden (`.login-brand`), form takes the screen.
+- ≤760px: TopNav / section / board / table headers wrap and reduce horizontal
+  padding; control clusters grow to full width (`.resp-header`, `.resp-grow`,
+  `.topnav`, `.board-head`, `.board-main`, `.section-scroll`).
+- ≤520px: CardModal collapses from two columns to one (`.card-modal-grid`).
+- The board keeps horizontal scroll (columns) — the intended mobile pattern.
+
+Verified: build + lint green; headless (Playwright) — keyboard-focus a card tile →
+Enter opens the dialog (`aria-modal=true`), Escape closes it, the "Move to" control
+is present; at 375px the brand panel is hidden and there is **no horizontal page
+overflow**. Zero page errors.
+
+**Remaining G3 item:** inline editing in the Table + saved views (`SavedView`) +
+global search. After that, G3 gate is fully clear.
+
+---
+
+## G3.4 — Table inline editing + saved views (2026-07-20) — G3 gate clear
+**Approved by:** Eder (owner), "continue com a edição inline e saved views".
+Last **G3** item. Front-end + one additive API method; **no schema change**.
+
+- **`api.updateCard(cardId, patch)`** (mock + real): patches free-text card fields.
+  Real mode updates `cards` directly (RLS/region guards decide if the caller may
+  edit) and bumps `updated_at`; returns the mapped card. Status changes still go
+  through `card_transition` (the FSM) — not editable inline by design; client is a
+  relation (also modal-only).
+- **Inline editing in the Table** (`TableView.jsx`): Building, Service and Scheduled
+  cells are editable in place — click (or keyboard-focus) → input → Enter/blur saves
+  via `updateCard`, Escape cancels. Editable cells `stopPropagation` so they never
+  open the card modal; the other cells (Worker/Status/Client) and row-Enter still
+  open it. Done is an inline accessible toggle (`button[role=checkbox]`) →
+  `toggleDone`. Read-only when `canEdit` is false (App passes `canEdit` from the
+  membership, same rule as the modal).
+- **Saved views** (`src/lib/savedViews.js`, localStorage): save the current
+  {query, status, sort} as a named view; chips apply / delete them. **MVP scope:
+  per-browser, no schema change.** Shared/cross-device views (the `SavedView` table
+  in data-model.md) remain a future item needing a migration + contract decision
+  (Regra de Ouro) — documented, not faked.
+- Global search across boards is **not** included here (this is the per-board table
+  filter); a cross-board global search stays on the G3 backlog as a nice-to-have.
+
+Verified: build + lint green (only pre-existing mock.js warnings); headless
+(Playwright) — 72 editable cells, inline edit persists ("ZZZ-INLINE-TEST" shows
+after Enter), Done toggle flips `aria-checked`, a saved view chip is created and
+re-applying it restores the search term. Zero page errors.
+
+**G3 (operational views) gate: CLEAR** — Table, Dashboard, Calendar,
+responsiveness + accessibility, inline editing + saved views all delivered. Open
+backlog (non-blocking): cross-board global search; shared SavedView table.
+
+---
+
+## G2.1 — Export worker + deploy prep (2026-07-20)
+**Approved by:** Eder (owner), "continue com o export worker + deploy (G2)".
+Two-layer export strategy so exports work **today** while the async worker is
+prepared for deployment. The build environment has no Supabase/Vercel account
+access, so server/infra pieces are shipped **ready-to-deploy and are explicitly
+NOT yet deployed** (honest boundary; steps in DEPLOY.md).
+
+**Working now (client-side, tested):**
+- `src/lib/exporters.js`: builds real **CSV** (daily schedule, newest board) and
+  **JSON** (full backup, current month capped at 12 boards) from live data and
+  downloads them. `src/lib/csv.js` reused.
+- `Exports.jsx`: CSV/JSON format cards are actionable → generate + download +
+  success/row-count feedback; **XLSX/PDF are disabled** with "via worker (deploy
+  pending)". "Recent exports" refreshes after each run.
+- `api.logExport(...)`: records a completed export. Real mode inserts an `exports`
+  row via the **existing `exports_insert` RLS policy** (no migration needed);
+  best-effort (a logging failure never fails the download). Mock keeps a mutable
+  jobs list so the audit/history updates live in demo.
+
+**Ready to deploy (NOT deployed — no account access):**
+- `supabase/migrations/0008_exports.sql`: private `schedule-exports` bucket + member
+  read policy (own-org folder) + `request_export(report_type, format, params)` RPC
+  (enqueue, status `queued`).
+- `supabase/functions/export-worker/index.ts`: Deno Edge Function that drains queued
+  `exports` rows → builds CSV/JSON → uploads to `schedule-exports/<org>/<id>.<ext>` →
+  marks `done`. XLSX/PDF marked `failed` until a formatter lib is added.
+- `DEPLOY.md`: Vercel front-end steps (env vars, SPA config) + worker deploy
+  (migration, `functions deploy`, schedule) + UI follow-up.
+
+**Deferred (documented):** XLSX/PDF generation (needs a worker-side library);
+switching XLSX/PDF/large exports in the UI to `request_export` + signed-URL download
+once the worker is live; actually running `vercel` / `supabase functions deploy`
+(needs the Delta accounts).
+
+Verified: build + lint green; headless (Playwright) — CSV downloads
+`daily-schedule-…​.csv` (header + 24 rows, commas quoted), JSON downloads
+`full-backup-2026-07.json`, XLSX/PDF disabled, "Recent exports" gains a "You" row.
+Zero page errors. Migration + Edge Function reviewed against the schema (enums
+`export_format`/`export_status`, columns, existing RLS) but not executed.
+
+---
+
+## G4.1 — In-app notifications + audit governance (2026-07-20)
+**Approved by:** Eder (owner), "continue com G4 notificações e governança de audit".
+Notifications (in-app) + audit prev→after diff / correlation / retention. UI is
+demo-complete & tested; DB pieces ship ready-to-deploy (no Supabase access here).
+
+**Notifications (in-app) — working:**
+- `NotificationBell.jsx` in `TopNav`: unread badge, dropdown panel, mark one / mark
+  all read, kind icons (assignment/status/comment/mention/export/integration),
+  relative time, outside-click/Escape close, accessible (`aria-label` w/ unread
+  count, `aria-expanded`, `role="dialog"`). Tolerant of a missing backend → empty
+  state (never errors).
+- `api.getNotifications / markNotificationRead / markAllNotificationsRead`: mock is
+  full (6 seeded, mark-read sticks); real reads the `notifications` table (RLS:
+  own rows), best-effort in the UI.
+
+**Audit governance — working:**
+- `Audit.jsx`: verb filter + text search + **before→after diff chips** (from → to)
+  + correlation id column + **CSV export of the filtered log** (client-side, §10/§13).
+  `getAudit` (mock + real) now emits a structured `diff {field,from,to}`, `entity`
+  and `correlation`; real derives the diff from the existing audit `detail`
+  (`{from,to}` / `{fromListId,toListId}`) — no producer change needed.
+
+**Ready to deploy (NOT applied) — `0009_notifications_audit.sql`:**
+- `notifications` table + RLS (user reads/updates own; **no client insert** — same
+  non-forgeable stance as audit).
+- Producer trigger **`notify_export_ready`**: an `exports` row reaching `done`
+  notifies the requester (fires for client-side logged exports and the worker) —
+  a real, self-contained producer that pairs with G2.1.
+- Audit columns `correlation_id / request_id / session_id` (additive).
+- Retention helpers `prune_notifications(days=90)` and `prune_audit(days≥730)` with a
+  2-year audit floor guardrail (contract), for pg_cron.
+
+**Deferred (documented, not faked):** assignment.new needs the membership↔worker
+link (D6); service.completed / integration.dlq target a role+region audience — both
+added as triggers once D6 lands. Email/push/Teams channels remain future.
+
+Verified: build + lint green; headless (Playwright) — bell shows "3 unread" → panel
+lists 6 → "Mark all read" clears the badge; Audit shows diff arrows, verb filter
+narrows to "3 of 14 events", CSV downloads `audit-log.csv`. Zero page errors.
+Migration reviewed against the schema, not executed.
+
+---
+
+## D6 — memberships.worker_id: operator "assigned" scope (2026-07-20)
+**Approved by:** Eder (owner), "D6 agora". **Contract + schema change** — closes the
+gap documented in G1.6 and updates the frozen G0 artifacts (`data-model.md`,
+`permissions-matrix.md`) with the D6 annotation, per the Regra de Ouro.
+
+**Migration `0010_worker_link.sql` (ready to deploy — NOT applied; prerequisite 0009):**
+- Schema: `memberships.worker_id` (nullable FK → workers, `on delete set null`),
+  unique where set (one login per worker).
+- Helpers: `my_worker()`, `operator_assigned()`, `list_in_scope()`, `card_scope_ok()`
+  — the operator check runs **before** `sees_all_regions()`, so a linked operator
+  with region='all' is still confined to their own list.
+- RLS replaced (lists/cards): linked operator sees pool lists + own list; sees/
+  edits cards **only on own list**; operators never insert/update lists (allocation
+  is scheduler work, matrix "Schedule/allocation = view"). Unlinked operators keep
+  the 0007 region fallback (safe superset). All other roles: identical to 0007.
+- RPCs: `card_transition` + `card_move` gain the assigned guard — the FSM's
+  "operator (próprio)" is now exact; a linked operator may only reorder within
+  their own list (moving across workers = reassignment = scheduler work).
+- **Notification producers deferred from 0009, now expressible:**
+  `notify_card_assigned` (card lands on a worker's list → linked member, skips
+  self), `notify_service_completed` (→ supervisors of the worker's region or
+  region='all', skips actor), `notify_integration_dlq` (→ admins + coordinators).
+
+**App (small, tested):** `getMembers` embeds the linked worker (`worker:workers(name)`);
+Members screen shows a "⛓ worker" chip under the role with an assigned-scope
+tooltip; mock operator (Luciana) demonstrates it. No client enforcement added — the
+UI already surfaces RPC/RLS denials; server is the barrier (contract).
+
+**Docs updated:** `data-model.md` (memberships row + D6 note), `permissions-matrix.md`
+(assigned scope now exact), `SETUP.md` (migration list + linking SQL snippet).
+
+Verified: build + lint green; headless smoke — Members shows the operator's linked
+worker chip; all prior flows unaffected (board/table/modal). Migration reviewed
+against 0007's policies/RPCs line-by-line (same bodies + guards), not executed.
+Current sole member is admin/region=all → zero observable change until operator
+memberships are linked, by design.
+
+---
+
+## G5.1 — Customers, Locations & Teams screens (2026-07-20)
+**Approved by:** Eder (owner), "g5". Delivers priority screens 12/13/14; only
+Settings remains from the 16-screen list.
+
+- **Customers** (`Customers.jsx`): full CRUD on the existing `clients` table — its
+  RLS shipped in 0002, so **real mode needs no migration**. Add form (name required),
+  inline editing of address / finance contact / notes, archive (soft delete, same
+  pattern as workers). Read-only when `canEdit` is false; App now passes `canEdit`
+  to all section screens.
+- **Locations**: sub-view inside Customers (tab) — an **honest derived view**
+  grouping customers by address with counts. A dedicated CustomerLocation entity
+  (multiple sites per customer, geo data) remains future work needing a contract
+  decision; stated on-screen and here, not faked.
+- **Teams** (`Teams.jsx` + migration **`0011_teams.sql`**, ready to deploy — NOT
+  applied): `teams` + `team_members` per the contract's data model (§17), RLS in
+  the standard 0002 org-scoped pattern; removing a member is editor-level (link
+  row), team delete is admin (UI archives via soft delete). Screen: create team
+  (name + optional region), member chips with add-picker from the roster (employees)
+  and remove, archive. In real mode before 0011 it shows an honest banner + empty
+  state instead of breaking. Mock seeds 3 crews.
+- `data-model.md` gains the teams tables (G5 annotation); SETUP.md lists 0011.
+- TopNav gains Teams + Customers (nav now wraps to stay usable at any width).
+
+Verified: build + lint green; headless (Playwright) — customer added (7→8), inline
+finance edit persists, Locations tab groups the new address; Teams renders 3 seeded
+crews, "ZZ Night Shift" created with region, member added from the roster picker
+("1 member"). Zero page errors. Migration reviewed, not executed.
+
+**16-screen scoreboard: 15/16 — only Settings left.**
+
+---
+
+## G5.2 — Settings screen (2026-07-20) — 16/16 screens complete
+**Approved by:** Eder (owner), picked "Settings" as the next step.
+Last of the 16 priority screens. Honest surfaces only — no fake toggles.
+
+- `Settings.jsx` (in TopNav + SECTIONS; App passes `membership` down):
+  - **My session** — email, role, region, access level, linked worker (D6),
+    demo/live mode. Real data from the signed-in membership.
+  - **Organization** — name/slug from the `organizations` table (read-only;
+    no org-update policy exists server-side, and the panel says so).
+  - **In-app notification preferences** — WORKING per-kind mute switches
+    (`role="switch"`, accessible) stored in localStorage (`src/lib/prefs.js`,
+    same per-browser MVP stance as saved views). The NotificationBell filters
+    muted kinds on load. E-mail/push/Teams stay labeled as future phases.
+  - **Label catalog** — the 15 contract labels rendered from `api.getLabels()`
+    (read-only; catalog editing is backlog).
+  - **Data & governance** — documents the policies that actually ship in the
+    migrations (audit floor 730d, notification pruning, soft-delete matrix,
+    attachment/export rules) with an explicit "documents, does not toggle" note.
+- API additions: `getOrganization()` + `getLabels()` (mock + real).
+
+Verified: build + lint green; headless (Playwright) — all 5 sections render,
+15 labels listed, muting "Integration errors" flips the switch (aria-checked
+true→false), the bell then hides that notification (badge 3→2 unread) while
+others remain. Zero page errors.
+
+**All 16 priority screens are now built.** Remaining product work is deploy-gated
+(migrations 0008–0011, export worker, Vercel) or contract-gated (D8 integrations;
+Workload view needs estimated/actual hours on the card).

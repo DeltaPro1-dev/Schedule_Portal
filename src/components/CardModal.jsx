@@ -1,13 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api.js'
 import { cardHeadBody, cardFields, initials, avatarStyle } from '../lib/present.js'
 import { allowedTransitions, STATUS_META } from '../lib/stateMachine.js'
 
-export default function CardModal({ card, listName, canEdit, onChanged, onClose }) {
+export default function CardModal({ card, listName, lists, canEdit, onChanged, onClose }) {
   const [comment, setComment] = useState('')
   const [item, setItem] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  const dialogRef = useRef(null)
+  const titleId = `card-${card.id}-title`
+
+  // Dialog a11y: close on Escape, move focus into the dialog on open, and
+  // restore focus to the trigger on close.
+  useEffect(() => {
+    const prev = document.activeElement
+    dialogRef.current?.focus()
+    function onKey(e) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('keydown', onKey); if (prev && prev.focus) prev.focus() }
+  }, [onClose])
+
   const { head, body } = cardHeadBody(card)
   const meta = STATUS_META[card.status] || { label: card.status || 'unknown', color: 'var(--muted)' }
   const fields = cardFields(card)
@@ -29,26 +42,40 @@ export default function CardModal({ card, listName, canEdit, onChanged, onClose 
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(28,27,46,0.4)', zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 20px', overflowY: 'auto' }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 820, maxWidth: '100%', background: 'var(--surface)', borderRadius: 16, boxShadow: '0 24px 70px rgba(28,27,46,0.28)', overflow: 'hidden' }}>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}
+        onClick={(e) => e.stopPropagation()} style={{ width: 820, maxWidth: '100%', background: 'var(--surface)', borderRadius: 16, boxShadow: '0 24px 70px rgba(28,27,46,0.28)', overflow: 'hidden', outline: 'none' }}>
         {/* navy header */}
         <div style={{ height: 64, background: 'linear-gradient(120deg,var(--navy),var(--navy-2))', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.16)', borderRadius: 8, padding: '5px 12px', fontSize: 12.5, color: '#fff', fontWeight: 500 }}>{listName}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: meta.color, borderRadius: 20, padding: '3px 10px' }}>{meta.label}</span>
-            <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.16)', color: '#fff', cursor: 'pointer', fontSize: 15, lineHeight: 1 }}>✕</button>
+            <button onClick={onClose} className="on-navy" aria-label="Close card" style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.16)', color: '#fff', cursor: 'pointer', fontSize: 15, lineHeight: 1 }}>✕</button>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px' }}>
+        <div className="card-modal-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px' }}>
           {/* left */}
           <div style={{ padding: '24px 26px', borderRight: '1px solid var(--line)' }}>
             <div style={{ display: 'flex', gap: 13, marginBottom: 22 }}>
-              <span onClick={() => canEdit && run(() => api.toggleDone(card.id, card.done))}
-                style={{ marginTop: 2, width: 22, height: 22, flex: 'none', borderRadius: 6, border: `2px solid ${card.done ? 'var(--green)' : 'var(--line)'}`, background: card.done ? 'var(--green)' : '#fff', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, cursor: canEdit ? 'pointer' : 'default' }}>{card.done ? '✓' : ''}</span>
-              <h2 style={{ fontFamily: 'var(--sans)', fontWeight: 600, fontSize: 19, lineHeight: 1.35, margin: '2px 0 0', color: 'var(--ink)' }}>
+              <button type="button" role="checkbox" aria-checked={card.done} aria-label="Mark service completed"
+                disabled={!canEdit || busy} onClick={() => run(() => api.toggleDone(card.id, card.done))}
+                style={{ marginTop: 2, width: 22, height: 22, flex: 'none', borderRadius: 6, border: `2px solid ${card.done ? 'var(--green)' : 'var(--line)'}`, background: card.done ? 'var(--green)' : '#fff', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, cursor: canEdit ? 'pointer' : 'default', padding: 0 }}>{card.done ? '✓' : ''}</button>
+              <h2 id={titleId} style={{ fontFamily: 'var(--sans)', fontWeight: 600, fontSize: 19, lineHeight: 1.35, margin: '2px 0 0', color: 'var(--ink)' }}>
                 <strong style={{ fontWeight: 700 }}>{head}</strong>{body}
               </h2>
             </div>
+
+            {/* move (keyboard-accessible alternative to drag-and-drop) */}
+            {canEdit && Array.isArray(lists) && lists.filter((l) => l.id !== card.list_id).length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                <label htmlFor={`move-${card.id}`} style={{ fontSize: 12, color: 'var(--muted)' }}>Move to</label>
+                <select id={`move-${card.id}`} value={card.list_id} disabled={busy}
+                  onChange={(e) => { const to = e.target.value; if (to !== card.list_id) run(() => api.moveCard(card.id, to, 1_000_000, card.version)) }}
+                  style={{ border: '1px solid var(--line)', background: 'var(--surface-2)', borderRadius: 9, padding: '7px 10px', fontFamily: 'var(--sans)', fontSize: 12.5, color: 'var(--ink-2)', cursor: 'pointer', outline: 'none', maxWidth: 240 }}>
+                  {lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                </select>
+              </div>
+            )}
 
             {/* transition actions */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
@@ -102,14 +129,15 @@ export default function CardModal({ card, listName, canEdit, onChanged, onClose 
                 {checklist.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--faint)' }}>No checklist items yet.</div>}
                 {checklist.map((it) => (
                   <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13 }}>
-                    <span onClick={() => canEdit && !busy && run(() => api.toggleChecklistItem(card.id, it.id, it.done))}
-                      style={{ width: 17, height: 17, flex: 'none', borderRadius: 5, border: `1.5px solid ${it.done ? 'var(--green)' : 'var(--line)'}`, background: it.done ? 'var(--green)' : '#fff', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, cursor: canEdit ? 'pointer' : 'default' }}>{it.done ? '✓' : ''}</span>
+                    <button type="button" role="checkbox" aria-checked={it.done} aria-label={`${it.done ? 'Uncheck' : 'Check'}: ${it.text}`}
+                      disabled={!canEdit || busy} onClick={() => run(() => api.toggleChecklistItem(card.id, it.id, it.done))}
+                      style={{ width: 17, height: 17, flex: 'none', borderRadius: 5, border: `1.5px solid ${it.done ? 'var(--green)' : 'var(--line)'}`, background: it.done ? 'var(--green)' : '#fff', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, cursor: canEdit ? 'pointer' : 'default', padding: 0 }}>{it.done ? '✓' : ''}</button>
                     <span style={{ textDecoration: it.done ? 'line-through' : 'none', color: it.done ? 'var(--faint)' : 'var(--ink-2)' }}>{it.text}</span>
                   </div>
                 ))}
               </div>
               {canEdit && (
-                <input value={item} onChange={(e) => setItem(e.target.value)}
+                <input value={item} onChange={(e) => setItem(e.target.value)} aria-label="Add a checklist item"
                   onKeyDown={(e) => { if (e.key === 'Enter' && item.trim()) { const t = item; setItem(''); run(() => api.addChecklistItem(card.id, t)) } }}
                   placeholder="Add an item…" style={{ marginTop: 10, width: '100%', border: '1px solid var(--line)', background: 'var(--surface-2)', borderRadius: 9, padding: '9px 12px', fontFamily: 'var(--sans)', fontSize: 12.5, outline: 'none' }} />
               )}
@@ -146,11 +174,11 @@ export default function CardModal({ card, listName, canEdit, onChanged, onClose 
           </div>
 
           {/* right — comments */}
-          <div style={{ padding: '24px 22px', display: 'flex', flexDirection: 'column' }}>
+          <div className="card-modal-right" style={{ padding: '24px 22px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 14 }}>Comments and activity</div>
             <div style={{ display: 'flex', gap: 9, marginBottom: 20 }}>
-              <span style={{ width: 30, height: 30, flex: 'none', borderRadius: '50%', background: 'var(--navy)', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600 }}>ME</span>
-              <input value={comment} onChange={(e) => setComment(e.target.value)}
+              <span aria-hidden="true" style={{ width: 30, height: 30, flex: 'none', borderRadius: '50%', background: 'var(--navy)', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600 }}>ME</span>
+              <input value={comment} onChange={(e) => setComment(e.target.value)} aria-label="Write a comment"
                 onKeyDown={(e) => { if (e.key === 'Enter' && comment.trim()) { const b = comment; setComment(''); run(() => api.addComment(card.id, b)) } }}
                 placeholder="Write a comment…" style={{ flex: 1, minWidth: 0, border: '1px solid var(--line)', background: 'var(--surface-2)', borderRadius: 9, padding: '9px 12px', fontFamily: 'var(--sans)', fontSize: 12.5, outline: 'none' }} />
             </div>

@@ -25,5 +25,10 @@ Levels: **full** · **region** (own region only) · **assigned** (own items only
 ## Scope rules
 - `region`: supervisor sees/edits only boards/lists/cards in their membership region.
 - `assigned`: operator edits only cards on their own worker list (mark done, comment, move within the day).
+  **Enforced exactly since D6** (`memberships.worker_id`, migration 0010): a linked
+  operator sees pool lists + their own list, sees/edits/reorders only own-list cards,
+  and FSM transitions check "operator (próprio)" server-side. Operators without a
+  worker link fall back to region scope (safe superset). Operators never create/edit
+  lists (allocation is scheduler work).
 - `editor` access can edit/correct but the **Delete** action is hidden and rejected server-side (403).
 - Every denial → `403` `error.code=FORBIDDEN` and an audit entry.

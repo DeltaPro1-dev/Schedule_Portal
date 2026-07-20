@@ -71,7 +71,7 @@ const MEMBERS = [
   { id: 'm2', name: 'Rui Braga', email: 'rui@deltaproclean.com', role: 'supervisor', region: 'South', status: 'active' },
   { id: 'm3', name: 'Aisha Burgess', email: 'aisha@deltaproclean.com', role: 'supervisor', region: 'North', status: 'active' },
   { id: 'm4', name: 'David Tucker', email: 'david@deltaproclean.com', role: 'supervisor', region: 'St George', status: 'active' },
-  { id: 'm5', name: 'Luciana Fernandes', email: 'luciana@deltaproclean.com', role: 'operator', region: 'North', status: 'active' },
+  { id: 'm5', name: 'Luciana Fernandes', email: 'luciana@deltaproclean.com', role: 'operator', region: 'North', status: 'active', worker: 'Fernandes, Luciana' },
   { id: 'm6', name: 'Paulo Santos', email: 'paulo@deltaproclean.com', role: 'finance', region: 'All', status: 'active' },
   { id: 'm7', name: 'new.manager@client.com', email: 'new.manager@client.com', role: 'read', region: 'St George', status: 'invited' },
 ]
@@ -175,6 +175,66 @@ function genBoard(board) {
   return { board: { ...board }, lists, cards, vendors: [...new Set(vendors)] }
 }
 
+// export jobs — mutable so a client-side export shows up in "Recent exports"
+let exportJobs = null
+function getExportJobs() {
+  if (!exportJobs) exportJobs = [
+    { name: 'Daily schedule — JUL/16/26', when: 'Jul 16, 08:12', rows: '200 rows', fmt: 'CSV', by: 'Marina Rocha', status: 'completed' },
+    { name: 'Weekly billing — W28', when: 'Jul 16, 07:40', rows: '1,284 rows', fmt: 'XLSX', by: 'Marina Rocha', status: 'completed' },
+    { name: 'Operational report — July', when: 'Jul 16, 07:38', rows: '42 pages', fmt: 'PDF', by: 'Rui Braga', status: 'processing' },
+    { name: 'Full backup — all boards', when: 'Jul 16, 06:00', rows: '18,902 rows', fmt: 'JSON', by: 'System (scheduled)', status: 'queued' },
+    { name: 'Daily schedule — JUL/15/26', when: 'Jul 15, 18:20', rows: '162 rows', fmt: 'CSV', by: 'Aisha Burgess', status: 'completed' },
+  ]
+  return exportJobs
+}
+
+// clients — mutable CRUD store seeded from the demo palette
+let clientsStore = null
+function getClientsStore() {
+  if (!clientsStore) {
+    const r = rng(seedOf('clients'))
+    clientsStore = CLIENTS.map((name, i) => ({
+      id: 'cl' + i, name,
+      address: pick(r, ADDRESSES),
+      fin_contact: pick(r, FINS),
+      notes: r() < 0.3 ? 'Monthly contract' : null,
+    }))
+  }
+  return clientsStore
+}
+
+// teams — mutable store seeded from the roster
+let teamsStore = null
+function getTeamsStore() {
+  if (!teamsStore) {
+    const emps = getRosterList().filter((w) => w.kind === 'employee')
+    const mk = (id, name, region, idxs) => ({
+      id, name, region, notes: null,
+      members: idxs.map((i, j) => ({ id: `${id}-m${j}`, worker: { id: emps[i].id, name: emps[i].name, region: emps[i].region } })),
+    })
+    teamsStore = [
+      mk('t1', 'St George Crew', 'st_george', [0, 3, 7]),
+      mk('t2', 'North Route', 'north', [1, 4, 9, 12]),
+      mk('t3', 'South Floor Care', 'south', [2, 5]),
+    ]
+  }
+  return teamsStore
+}
+
+// notifications — mutable so mark-as-read sticks within a demo session
+let notifs = null
+function getNotifs() {
+  if (!notifs) notifs = [
+    { id: 'n1', kind: 'assignment', title: 'New assignment', body: 'KIA Findlay · Single Clean CML assigned to your list', read: false, created_at: '2026-07-17T09:42:00Z' },
+    { id: 'n2', kind: 'status', title: 'Service completed', body: 'Okland Construction · St. George Hospital marked completed', read: false, created_at: '2026-07-17T09:20:00Z' },
+    { id: 'n3', kind: 'integration', title: 'Integration error', body: 'New client · Aspire Club House fell into the DLQ (missing tax ID)', read: false, created_at: '2026-07-17T09:12:00Z' },
+    { id: 'n4', kind: 'export', title: 'Export ready', body: 'Weekly billing — W28 (XLSX) finished · 1,284 rows', read: true, created_at: '2026-07-16T07:41:00Z' },
+    { id: 'n5', kind: 'comment', title: 'New comment', body: 'Marina Rocha commented on Gray Star card: "Confirmed with client."', read: true, created_at: '2026-07-16T18:03:00Z' },
+    { id: 'n6', kind: 'mention', title: 'You were mentioned', body: 'Rui Braga mentioned you on the South route card', read: true, created_at: '2026-07-15T14:10:00Z' },
+  ]
+  return notifs
+}
+
 const clone = (x) => structuredClone(x)
 const wait = (ms = 90) => new Promise((res) => setTimeout(res, ms))
 function detail(id) {
@@ -221,6 +281,59 @@ export const mockApi = {
     roster = getRosterList().filter((x) => x.id !== id)
   },
   async getMembers() { await wait(); return MEMBERS.map(clone) },
+
+  // ── settings data ──────────────────────────────────────────────────────────
+  async getOrganization() {
+    await wait(30)
+    return { id: 'org-demo', name: 'Delta Pro Clean', slug: 'delta-pro-clean', created_at: '2026-07-17T00:00:00Z' }
+  },
+  async getLabels() { await wait(30); return LABELS.map(clone) },
+
+  // ── customers (clients) ────────────────────────────────────────────────────
+  async getClients() { await wait(); return getClientsStore().map(clone) },
+  async addClient({ name, address, fin_contact, notes }) {
+    await wait()
+    const c = { id: nid('cl'), name, address: address || null, fin_contact: fin_contact || null, notes: notes || null }
+    getClientsStore().unshift(c)
+    return clone(c)
+  },
+  async updateClient(id, patch) {
+    await wait()
+    const c = getClientsStore().find((x) => x.id === id)
+    if (c) Object.assign(c, patch)
+  },
+  async removeClient(id) {
+    await wait()
+    clientsStore = getClientsStore().filter((x) => x.id !== id)
+  },
+
+  // ── teams ──────────────────────────────────────────────────────────────────
+  async getTeams() { await wait(); return getTeamsStore().map(clone) },
+  async addTeam({ name, region }) {
+    await wait()
+    const t = { id: nid('t'), name, region: region || null, notes: null, members: [] }
+    getTeamsStore().unshift(t)
+    return clone(t)
+  },
+  async removeTeam(id) {
+    await wait()
+    teamsStore = getTeamsStore().filter((x) => x.id !== id)
+  },
+  async addTeamMember(teamId, workerId) {
+    await wait()
+    const t = getTeamsStore().find((x) => x.id === teamId)
+    const w = getRosterList().find((x) => x.id === workerId)
+    if (t && w && !t.members.some((m) => m.worker.id === workerId)) {
+      t.members.push({ id: nid('tm'), worker: { id: w.id, name: w.name, region: w.region } })
+    }
+  },
+  async removeTeamMember(memberId) {
+    await wait()
+    for (const t of getTeamsStore()) {
+      const i = t.members.findIndex((m) => m.id === memberId)
+      if (i >= 0) { t.members.splice(i, 1); return }
+    }
+  },
   async getPermMatrix() {
     await wait()
     const g = (label, kind) => ({ label, kind })
@@ -264,31 +377,59 @@ export const mockApi = {
         { ext: 'PDF', name: 'Operational report', hint: 'executive summary', color: '#dc2626' },
         { ext: 'JSON', name: 'Full backup', hint: 'all boards', color: 'var(--navy)' },
       ],
-      jobs: [
-        { name: 'Daily schedule — JUL/16/26', when: 'Jul 16, 08:12', rows: '200 rows', fmt: 'CSV', by: 'Marina Rocha', status: 'completed' },
-        { name: 'Weekly billing — W28', when: 'Jul 16, 07:40', rows: '1,284 rows', fmt: 'XLSX', by: 'Marina Rocha', status: 'completed' },
-        { name: 'Operational report — July', when: 'Jul 16, 07:38', rows: '42 pages', fmt: 'PDF', by: 'Rui Braga', status: 'processing' },
-        { name: 'Full backup — all boards', when: 'Jul 16, 06:00', rows: '18,902 rows', fmt: 'JSON', by: 'System (scheduled)', status: 'queued' },
-        { name: 'Daily schedule — JUL/15/26', when: 'Jul 15, 18:20', rows: '162 rows', fmt: 'CSV', by: 'Aisha Burgess', status: 'completed' },
-      ],
+      jobs: [...getExportJobs()],
     }
+  },
+  async logExport({ report_type, format, row_count }) {
+    await wait(40)
+    getExportJobs().unshift({
+      name: report_type || 'Export',
+      when: new Date().toLocaleString(),
+      rows: row_count != null ? `${row_count} rows` : '—',
+      fmt: String(format || '').toUpperCase(),
+      by: 'You', status: 'completed',
+    })
   },
   async getAudit() {
     await wait()
     const verbs = ['LOGIN', 'CREATE', 'UPDATE', 'MOVE', 'COMPLETE', 'EXPORT', 'DELETE']
     const users = MEMBERS.slice(0, 6)
     const r = rng(seedOf('audit'))
+    const STATES = ['unscheduled', 'scheduled', 'assigned', 'in_progress', 'completed']
     const rows = []
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 14; i++) {
       const u = pick(r, users)
+      const verb = pick(r, verbs)
+      // structured before→after diff for the verbs that carry one
+      let diff = null, entity = 'card', detail
+      if (verb === 'MOVE') { diff = { field: 'list', from: pick(r, COMPANIES), to: pick(r, COMPANIES) }; detail = 'moved card between workers' }
+      else if (verb === 'UPDATE' || verb === 'COMPLETE') { const a = pick(r, STATES); diff = { field: 'status', from: a, to: verb === 'COMPLETE' ? 'completed' : pick(r, STATES) }; detail = 'status change' }
+      else if (verb === 'CREATE') { entity = pick(r, ['card', 'board']); detail = `created ${entity}` }
+      else if (verb === 'EXPORT') { entity = 'export'; detail = pick(r, ['daily schedule (CSV)', 'full backup (JSON)']) }
+      else if (verb === 'DELETE') { detail = 'archived card' }
+      else { entity = 'session'; detail = 'signed in' }
       rows.push({
         id: 'a' + i, ts: `2026-07-17 09:${String(59 - i * 3).padStart(2, '0')}:0${i % 9}`,
-        user: u.name, initials: initials(u.name), verb: pick(r, verbs),
-        detail: pick(r, ['card on Gray Star', 'board JUL/17', 'export daily schedule', 'member invite', 'St George Crew card']),
+        user: u.name, initials: initials(u.name), verb, entity, detail, diff,
         scope: pick(r, ['North', 'South', 'St George', 'All']), ip: `10.0.${Math.floor(r() * 9)}.${Math.floor(r() * 250)}`,
+        correlation: `cor-${(seedOf('c' + i) % 100000).toString(16)}`,
       })
     }
     return rows
+  },
+
+  // ── notifications (in-app) ─────────────────────────────────────────────────
+  async getNotifications() {
+    await wait(40)
+    return getNotifs().map(clone)
+  },
+  async markNotificationRead(id) {
+    await wait(20)
+    const n = getNotifs().find((x) => x.id === id); if (n) n.read = true
+  },
+  async markAllNotificationsRead() {
+    await wait(20)
+    getNotifs().forEach((n) => { n.read = true })
   },
 
   // ── mutations (act on the board cache) ─────────────────────────────────────
@@ -320,6 +461,14 @@ export const mockApi = {
     const card = { id: nid('card'), board_id, list_id, position: pos, status: 'unscheduled', raw_title: raw_title || null, done: false, version: 1, labelKeys: ['scheduled_time'], checklist: [], comments: [], attachments: [], client: null, ...fields }
     d.cards.push(card)
     return resolveCard(card)
+  },
+  async updateCard(cardId, patch) {
+    await wait()
+    for (const id in boardCache) {
+      const c = boardCache[id].cards.find((x) => x.id === cardId)
+      if (c) { Object.assign(c, patch); c.version++; return resolveCard(c) }
+    }
+    throw new Error('not_found')
   },
   async moveCard(cardId, toListId, position, version) {
     await wait()

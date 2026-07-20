@@ -36,7 +36,7 @@ export default function Roster({ onBack }) {
           <span style={{ color: 'var(--faint)' }}>⌕</span>
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search employee…" style={{ border: 'none', background: 'none', outline: 'none', fontFamily: 'var(--sans)', fontSize: 13, width: '100%' }} />
         </div>} />
-      <div style={sectionScroll}>
+      <div className="section-scroll" style={sectionScroll}>
         {!list ? <div style={{ color: 'var(--faint)' }}>Loading…</div> : (
           <div style={{ maxWidth: 900 }}>
             <div style={{ display: 'flex', gap: 10, marginBottom: 26, alignItems: 'center', ...panel, padding: '14px 16px' }}>

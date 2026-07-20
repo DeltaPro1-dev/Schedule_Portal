@@ -29,7 +29,7 @@ export default function Integration({ onBack, canEdit }) {
     <>
       <SectionHeader onBack={onBack} title="Integration Monitor · Field Control" subtitle="Queue with retries, DLQ and idempotency · manual reprocessing"
         right={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--green-ink)', background: 'var(--green-soft)', borderRadius: 20, padding: '6px 13px', fontWeight: 500 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)' }} />Integration service active</span>} />
-      <div style={sectionScroll}>
+      <div className="section-scroll" style={sectionScroll}>
         {!data ? <Loading /> : (
           <div style={{ maxWidth: 1120 }}>
             {err && <div style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 14 }}>{err}</div>}

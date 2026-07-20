@@ -15,5 +15,7 @@ export default function SectionHeader({ title, subtitle, onBack, right }) {
 export const navyBtn = { display: 'flex', alignItems: 'center', gap: 7, background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: 10, padding: '9px 15px', fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }
 export const sectionScroll = { flex: 1, minHeight: 0, overflowY: 'auto', padding: '26px 34px 60px' }
 export const eyebrow = { fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--faint)', marginBottom: 12 }
-export const panel = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 13, overflow: 'hidden' }
+// overflowX auto (not hidden) so wide data tables scroll horizontally on mobile
+// instead of being clipped by the app frame; corners still clip via overflowY hidden.
+export const panel = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 13, overflowX: 'auto', overflowY: 'hidden' }
 export const th = { fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--faint)' }

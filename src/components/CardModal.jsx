@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from '../lib/api.js'
 import { cardHeadBody, cardFields, initials, avatarStyle } from '../lib/present.js'
 import { allowedTransitions, STATUS_META } from '../lib/stateMachine.js'
@@ -8,6 +8,10 @@ export default function CardModal({ card, listName, canEdit, onChanged, onClose 
   const [item, setItem] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  const [editingLabels, setEditingLabels] = useState(false)
+  const [allLabels, setAllLabels] = useState(null)
+  useEffect(() => { if (editingLabels && !allLabels) api.getLabels?.().then(setAllLabels) }, [editingLabels, allLabels])
+  const cardKeys = new Set((card.labels || []).map((l) => l.key))
   const { head, body } = cardHeadBody(card)
   const meta = STATUS_META[card.status] || { label: card.status || 'unknown', color: 'var(--muted)' }
   const fields = cardFields(card)
@@ -62,16 +66,37 @@ export default function CardModal({ card, listName, canEdit, onChanged, onClose 
               ))}
             </div>
 
-            {card.labels?.length > 0 && (
-              <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--faint)', marginBottom: 9 }}>Labels</div>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 9 }}>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--faint)' }}>Labels</div>
+                {canEdit && (
+                  <button onClick={() => setEditingLabels((v) => !v)} style={{ fontSize: 11.5, color: 'var(--navy)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                    {editingLabels ? 'Done' : 'Edit'}
+                  </button>
+                )}
+              </div>
+              {!editingLabels ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                  {card.labels.map((l) => (
+                  {(card.labels || []).length === 0 && <span style={{ fontSize: 12.5, color: 'var(--faint)' }}>No labels.</span>}
+                  {(card.labels || []).map((l) => (
                     <span key={l.key} style={{ fontSize: 12, fontWeight: 500, color: '#fff', background: l.color, borderRadius: 7, padding: '4px 10px' }}>{l.name}</span>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                  {!allLabels && <span style={{ fontSize: 12, color: 'var(--faint)' }}>Loading…</span>}
+                  {(allLabels || []).map((l) => {
+                    const on = cardKeys.has(l.key)
+                    return (
+                      <button key={l.id} disabled={busy} onClick={() => run(() => api.toggleCardLabel(card.id, l, !on))}
+                        style={{ fontSize: 12, fontWeight: 500, borderRadius: 7, padding: '4px 10px', cursor: busy ? 'default' : 'pointer', color: on ? '#fff' : l.color, background: on ? l.color : 'transparent', border: `1px solid ${l.color}`, opacity: busy ? 0.6 : 1 }}>
+                        {on ? '✓ ' : ''}{l.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
 
             {fields.length > 0 && (
               <div>

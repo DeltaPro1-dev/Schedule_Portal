@@ -35,7 +35,14 @@ export const LABELS = [
   { key: 'hpw', name: 'HPW', color: '#673AB7', kind: 'type' },
   { key: 'emergency', name: 'Emergency', color: '#E91E63', kind: 'type' },
 ]
-const labelByKey = Object.fromEntries(LABELS.map((l) => [l.key, l]))
+// Mutable label list for demo CRUD; ids mirror the key so cards (which carry
+// labelKeys) resolve regardless of real/mock. labelByKey is rebuilt on changes.
+let labelsList = LABELS.map((l) => ({ ...l, id: 'lb-' + l.key }))
+let labelByKey = Object.fromEntries(labelsList.map((l) => [l.key, l]))
+const rebuildLabels = () => { labelByKey = Object.fromEntries(labelsList.map((l) => [l.key, l])) }
+const mockLabelKey = (name) =>
+  String(name || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'label'
 
 const FIRST = ['Tariq', 'Chloe', 'Carla', 'Isabel', 'Lorena', 'Hannah', 'Priya', 'Tomas', 'Alejandra', 'Emma', 'John', 'Vanessa', 'Reinaldo', 'Valente', 'Luanna', 'Ricardo', 'Andrea', 'Marina', 'Rui', 'Aisha', 'David', 'Luciana', 'Paulo', 'Gabriel', 'Sofia', 'Miguel', 'Beatriz', 'Diego', 'Camila', 'Mateo']
 const LAST = ['Furbert', 'Gutierrez Bautista', 'Tucker', 'Burgess', 'Bortoloni', 'Vidal Canova', 'Lopez Restrepo', 'da Cunha', 'Barrote', 'Gomez', 'Bascome', 'Santos', 'Fernandes', 'Rocha', 'Braga', 'Silva', 'Costa', 'Oliveira', 'Reis', 'Nunes']
@@ -392,5 +399,41 @@ export const mockApi = {
       }
     }
     return '#'
+  },
+
+  // ── Labels (Etiquetas) ──────────────────────────────────────────────────────
+  async getLabels() {
+    await wait()
+    return labelsList.map(clone).sort((a, b) => a.kind.localeCompare(b.kind) || a.name.localeCompare(b.name))
+  },
+  async addLabel({ name, color, kind }) {
+    await wait()
+    const key = mockLabelKey(name)
+    if (labelsList.some((l) => l.key === key)) throw new Error(`A label like "${name}" already exists.`)
+    const lb = { id: 'lb-' + key, key, name, color, kind }
+    labelsList.unshift(lb); rebuildLabels()
+    return clone(lb)
+  },
+  async updateLabel(id, patch) {
+    await wait()
+    const lb = labelsList.find((l) => l.id === id)
+    if (lb) { Object.assign(lb, patch); rebuildLabels() }
+    return lb ? clone(lb) : null
+  },
+  async removeLabel(id) {
+    await wait()
+    labelsList = labelsList.filter((l) => l.id !== id); rebuildLabels()
+  },
+  async toggleCardLabel(cardId, label, on) {
+    await wait()
+    for (const bid in boardCache) {
+      const c = boardCache[bid].cards.find((x) => x.id === cardId)
+      if (c) {
+        c.labelKeys = c.labelKeys || []
+        if (on) { if (!c.labelKeys.includes(label.key)) c.labelKeys.push(label.key) }
+        else c.labelKeys = c.labelKeys.filter((k) => k !== label.key)
+        return resolveCard(c)
+      }
+    }
   },
 }

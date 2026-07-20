@@ -220,12 +220,12 @@ Previstos como `CustomField`/`CustomFieldValue` — **fora do MVP**.
 | View | Status |
 |---|---|
 | Board (Kanban, drag-and-drop, realtime) | ✅ (G1.2 realtime) |
-| Table (spreadsheet, edição inline, export) | ⬜ **próxima prioridade** |
+| Table (spreadsheet, filtros, sort, CSV export) | ✅ (G3.1) |
 | Calendar (dia/semana/mês) | ⬜ (G5) |
 | Timeline | 🔒 fase futura |
 | Workload (carga por worker/equipe, horas) | ⬜ (G5) |
 | Map | 🔒 fase futura |
-| Dashboard (status, atrasos, retrabalho, horas, integração) | 🟡 básico ⬜ completo |
+| Dashboard (status, região, top clientes, integração) | ✅ (G3.1) · horas prev×real ⬜ (G5) |
 
 ## 8. Regras de negócio consolidadas
 - Board único por `date` por org; meses passados = `closed`, agrupados na galeria.
@@ -255,11 +255,11 @@ Mapa das **16 telas prioritárias** do prompt:
 | # | Tela | Componente | Status |
 |---|---|---|---|
 | 1 | Login | `Login.jsx` | ✅ |
-| 2 | Dashboard | — | 🟡 básico / ⬜ completo |
+| 2 | Dashboard | `Dashboard.jsx` | ✅ (G3.1) |
 | 3 | Boards | `Gallery.jsx` | ✅ |
 | 4 | Kanban Board | `Board.jsx` | ✅ (realtime, DnD) |
 | 5 | Card Detail | `CardModal.jsx` | ✅ (checklist, anexos, labels) |
-| 6 | Table View | — | ⬜ |
+| 6 | Table View | `TableView.jsx` | ✅ (G3.1 — filtros, sort, CSV) |
 | 7 | Calendar | — | ⬜ |
 | 8 | Audit Log | `Audit.jsx` | ✅ |
 | 9 | Export Center | `Exports.jsx` | 🟡 UI ✅ / worker ⬜ |
@@ -271,8 +271,9 @@ Mapa das **16 telas prioritárias** do prompt:
 | 15 | Integration Monitor | `Integration.jsx` | ✅ (UI) / produtor ⬜ |
 | 16 | Settings | — | ⬜ |
 
-**8/16 telas prontas; 3 parciais; 5 a fazer.** Card Detail full-page: o produto usa
-modal/drawer — full page é opcional (fase futura).
+**10/16 telas prontas; 3 parciais; 3 a fazer** (Calendar, Teams, Settings + Customers/
+Locations parciais). Card Detail full-page: o produto usa modal/drawer — full page é
+opcional (fase futura).
 
 ## Design system
 ✅ Tokens de design aplicados via Tailwind v4 + paleta oficial da marca (Manual ID
@@ -396,11 +397,11 @@ integrações e mobile.
 - Diagrama ER visual; testes automatizados base (ver Parte "Testes").
 - **Gate:** governança e deploy prontos.
 
-### G3 — Views operacionais
-- **Table View** (spreadsheet, edição inline, filtros salvos, export) — prioridade.
-- **Dashboard** completo (status, atrasos, retrabalho, horas prev×real, integração).
-- Filtros/busca global e saved views (`SavedView`).
-- Auditoria de responsividade + acessibilidade (WCAG/teclado/ARIA no DnD).
+### G3 — Views operacionais (em andamento)
+- ✅ **Table View** (spreadsheet, filtros, sort, CSV export) — G3.1.
+- ✅ **Dashboard** (status, região, top clientes, integração) — G3.1.
+- ⬜ Edição inline na Table + saved views (`SavedView`); busca global.
+- ⬜ Auditoria de responsividade + acessibilidade (WCAG/teclado/ARIA no DnD).
 - **Gate:** operação diária completa em desktop/tablet/mobile.
 
 ### G4 — Governança avançada

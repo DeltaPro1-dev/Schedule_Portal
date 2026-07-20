@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api.js'
 import { cardHeadBody, initials, avatarStyle, REGION_LABEL } from '../lib/present.js'
 import { STATUS_META } from '../lib/stateMachine.js'
+import { ViewToggle } from './TableView.jsx'
 
-export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay, cardVersion, membership, demo }) {
+export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay, onSwitchView, cardVersion, membership, demo }) {
   const [detail, setDetail] = useState(null)
   const [query, setQuery] = useState('')
   const [acting, setActing] = useState('admin')
@@ -72,6 +73,7 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
           </div>
           <div style={{ flex: 1 }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {onSwitchView && <ViewToggle view="board" onSwitchView={onSwitchView} />}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 12px', width: 250 }}>
               <span style={{ color: 'var(--faint)' }}>⌕</span>
               <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search worker or client…"

@@ -6,13 +6,15 @@ import TopNav from './components/TopNav.jsx'
 import Gallery from './components/Gallery.jsx'
 import Board from './components/Board.jsx'
 import CardModal from './components/CardModal.jsx'
+import TableView from './components/TableView.jsx'
+import Dashboard from './components/Dashboard.jsx'
 import Roster from './components/Roster.jsx'
 import Members from './components/Members.jsx'
 import Exports from './components/Exports.jsx'
 import Integration from './components/Integration.jsx'
 import Audit from './components/Audit.jsx'
 
-const SECTIONS = { roster: Roster, members: Members, exports: Exports, integration: Integration, audit: Audit }
+const SECTIONS = { dashboard: Dashboard, roster: Roster, members: Members, exports: Exports, integration: Integration, audit: Audit }
 
 export default function App() {
   const [entered, setEntered] = useState(false)
@@ -74,6 +76,16 @@ export default function App() {
           onBack={() => setView('gallery')}
           onSelectDay={(id) => setBoardId(id)}
           onOpenCard={(id) => setOpenCardId(id)}
+          onSwitchView={(v) => setView(v)}
+        />
+      )}
+      {view === 'table' && (
+        <TableView
+          boardId={boardId} boards={boards} cardVersion={cardVersion}
+          onBack={() => setView('gallery')}
+          onSelectDay={(id) => setBoardId(id)}
+          onOpenCard={(id) => setOpenCardId(id)}
+          onSwitchView={(v) => setView(v)}
         />
       )}
       {view === 'gallery' && (

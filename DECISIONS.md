@@ -199,3 +199,43 @@ as fake behavior):**
 Only member today is admin/region=all (sees & does everything), so 0007 changes
 nothing observable for the current user until region-scoped members are invited —
 by design, low-risk to apply.
+
+---
+
+## Planning consolidation (2026-07-20)
+`PLANO_MESTRE.md` added: reconciles the master-planning prompt with the built
+system (G0 → G1.6), maps its 30 sections to Done/Partial/Pending, and lays out the
+completion roadmap (G2 → G8) plus the approval gate. No code, planning artifact.
+
+---
+
+## G3.1 — Table view + Dashboard (2026-07-20)
+**Approved by:** Eder (owner), "continue a execução" (express go on the plan gate).
+First execution items of roadmap **G3 (operational views)** — the top self-contained
+screens that need none of the pending decisions (D6 `worker_id`, D7 host, D8
+integrations). Front-end only; no schema/API surface change.
+
+- **Table view** (`src/components/TableView.jsx`, §9.2): spreadsheet of one board's
+  cards. Sortable columns (Worker/Status/Client/Building/Service/Scheduled/Done),
+  text + status filter, row → card modal, client-side **CSV export** of the filtered
+  rows. Reuses `api.getBoardDetail` + realtime `subscribeBoard`, so it works in mock
+  and real mode identically. Reached via a **Board / Table** segmented toggle
+  (`ViewToggle`, exported from TableView and reused in `Board.jsx`).
+- **Dashboard** (`src/components/Dashboard.jsx`, §9.7): current-month operational
+  overview — KPI tiles (jobs, completed, completion %, in-progress, rework,
+  ready-to-invoice, integration errors), jobs-by-status bar, jobs-by-region and
+  top-clients bars. Aggregates from existing `getBoards` + `getBoardDetail`
+  (capped to the 12 most recent boards of the month, scope shown in the header) +
+  `getIntegration`. Added to `TopNav` and `App` SECTIONS.
+- **CSV helper** (`src/lib/csv.js`): RFC-4180-ish quoting + browser download. Serves
+  the §13 "small export" path; large/scheduled exports still go to the async export
+  worker (roadmap G2).
+
+**Honest gaps (NOT faked):** hours planned-vs-actual is not a tracked card field yet
+(roadmap G5) — the dashboard states this and omits the metric rather than inventing
+it. "Overdue" is likewise not shown (cards carry `scheduled_time` as free text, not a
+comparable timestamp).
+
+Verified: `npm run build` green; headless (Playwright) smoke — login → Dashboard
+renders & aggregates, board → Table renders 24 jobs with sort + CSV, Board↔Table
+toggle both ways, zero page errors.

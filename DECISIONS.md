@@ -234,3 +234,31 @@ only the auto-generated batch if manual adds ever need auditing.
 
 Not yet covered (documented): REPROCESS (integration reprocessing isn't built),
 labels/card_labels (config/noise), integration_events. Add later if needed.
+
+---
+
+## G1.8 — Field Control CSV export (2026-07-19)
+**Approved by:** Eder (owner), in chat — CSV must match the Field Control import
+template exactly (reference file "Agenda_2026-07-20.xlsx", sheet "Ordens").
+(Sibling branch to G1.7/audit; both branch off main.)
+
+Per-board export: a "⬇ CSV" button on the board header downloads
+`Agenda_<board.date>.csv`, one row per card (pool list excluded), ordered by column
+(list position) then card position.
+
+Exact format (extracted from the template):
+- 13 columns, fixed order and PT-BR headers: Identificador, Tipo de OS, Documento do
+  cliente, Nome do cliente, Nome da localização, Número de série, Nome do colaborador,
+  Nomes dos colaboradores secundarios, Data de agendamento, Hora de agendamento,
+  Descrição, Descrição da tarefa, Etiquetas.
+- A/C/F/H/J/L are always blank. UTF-8 **with BOM**, comma-separated, CRLF.
+- Field mapping: B=service_type, D=client, E=`building - plan|No Plan - lot|No Lot`,
+  G=worker (list name), I=board date as **mm/dd/yyyy**, K=`[& **SCHEDULED AT {time}** ]PS: {ps_note}`,
+  M=label names alphabetical joined by " ; " with a trailing space.
+- `src/lib/fieldControlCsv.js` builds it (pure, unit-checked); `Board.jsx` wires the
+  button; `realApi.recordExport()` logs the job (exports row → EXPORT audit via the
+  0008 trigger, appears in Export Center). Demo mode just downloads (no record).
+
+Decisions taken: no HOURS field in the portal, so K omits it (schedule marker + PS
+only); service_type is assumed to already hold the Field Control "Tipo de OS" value.
+Cancelled cards are currently included — revisit if the field shouldn't receive them.

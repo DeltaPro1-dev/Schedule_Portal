@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api.js'
+import { getMutedKinds } from '../lib/prefs.js'
 
 // In-app notification bell: unread badge + dropdown panel, mark one / all read.
 // Tolerant of a missing backend (real mode before migration 0009) — shows a
@@ -21,7 +22,10 @@ export default function NotificationBell() {
   const wrapRef = useRef(null)
 
   async function load() {
-    try { setItems(await api.getNotifications()) } catch { setItems([]) }
+    try {
+      const muted = getMutedKinds()  // user prefs (Settings → In-app notifications)
+      setItems((await api.getNotifications()).filter((n) => !muted.has(n.kind)))
+    } catch { setItems([]) }
   }
   useEffect(() => { load() }, [])
 

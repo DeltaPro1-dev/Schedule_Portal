@@ -509,3 +509,34 @@ crews, "ZZ Night Shift" created with region, member added from the roster picker
 ("1 member"). Zero page errors. Migration reviewed, not executed.
 
 **16-screen scoreboard: 15/16 — only Settings left.**
+
+---
+
+## G5.2 — Settings screen (2026-07-20) — 16/16 screens complete
+**Approved by:** Eder (owner), picked "Settings" as the next step.
+Last of the 16 priority screens. Honest surfaces only — no fake toggles.
+
+- `Settings.jsx` (in TopNav + SECTIONS; App passes `membership` down):
+  - **My session** — email, role, region, access level, linked worker (D6),
+    demo/live mode. Real data from the signed-in membership.
+  - **Organization** — name/slug from the `organizations` table (read-only;
+    no org-update policy exists server-side, and the panel says so).
+  - **In-app notification preferences** — WORKING per-kind mute switches
+    (`role="switch"`, accessible) stored in localStorage (`src/lib/prefs.js`,
+    same per-browser MVP stance as saved views). The NotificationBell filters
+    muted kinds on load. E-mail/push/Teams stay labeled as future phases.
+  - **Label catalog** — the 15 contract labels rendered from `api.getLabels()`
+    (read-only; catalog editing is backlog).
+  - **Data & governance** — documents the policies that actually ship in the
+    migrations (audit floor 730d, notification pruning, soft-delete matrix,
+    attachment/export rules) with an explicit "documents, does not toggle" note.
+- API additions: `getOrganization()` + `getLabels()` (mock + real).
+
+Verified: build + lint green; headless (Playwright) — all 5 sections render,
+15 labels listed, muting "Integration errors" flips the switch (aria-checked
+true→false), the bell then hides that notification (badge 3→2 unread) while
+others remain. Zero page errors.
+
+**All 16 priority screens are now built.** Remaining product work is deploy-gated
+(migrations 0008–0011, export worker, Vercel) or contract-gated (D8 integrations;
+Workload view needs estimated/actual hours on the card).

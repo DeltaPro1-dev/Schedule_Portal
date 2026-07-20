@@ -132,6 +132,18 @@ const realApi = {
     if (error) throw error
   },
 
+  // ── Settings data (read-only surfaces) ──────────────────────────────────────
+  async getOrganization() {
+    const { data, error } = await supabase.from('organizations').select('*').eq('id', await myOrg()).single()
+    if (error) throw error
+    return data
+  },
+  async getLabels() {
+    const { data, error } = await supabase.from('labels').select('*').order('name')
+    if (error) throw error
+    return data || []
+  },
+
   // ── Customers (clients table — RLS from 0002, no migration needed) ─────────
   async getClients() {
     const { data, error } = await supabase.from('clients').select('*').is('deleted_at', null).order('name')

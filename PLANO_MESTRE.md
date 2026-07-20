@@ -270,9 +270,9 @@ Mapa das **16 telas prioritárias** do prompt:
 | 13 | Customers | `Customers.jsx` | ✅ (G5.1 — CRUD real na tabela `clients`) |
 | 14 | Locations | `Customers.jsx` (aba) | ✅ (G5.1 — visão derivada; entidade própria = futuro) |
 | 15 | Integration Monitor | `Integration.jsx` | ✅ (UI) / produtor ⬜ |
-| 16 | Settings | — | ⬜ |
+| 16 | Settings | `Settings.jsx` | ✅ (G5.2 — sessão, org, prefs de notificação, labels, governança) |
 
-**15/16 telas prontas — falta só Settings.** Card Detail full-page: o produto usa
+**16/16 telas prontas ✅ (G5.2).** Card Detail full-page: o produto usa
 modal/drawer — full page é opcional (fase futura).
 
 ## Design system

@@ -11,6 +11,7 @@ const NAV = [
   { key: 'exports', label: 'Exports' },
   { key: 'audit', label: 'Audit' },
   { key: 'integration', label: 'Integration' },
+  { key: 'settings', label: 'Settings' },
 ]
 
 export default function TopNav({ view, onNavigate, onLogout, demo }) {

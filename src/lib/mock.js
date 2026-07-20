@@ -282,6 +282,13 @@ export const mockApi = {
   },
   async getMembers() { await wait(); return MEMBERS.map(clone) },
 
+  // ── settings data ──────────────────────────────────────────────────────────
+  async getOrganization() {
+    await wait(30)
+    return { id: 'org-demo', name: 'Delta Pro Clean', slug: 'delta-pro-clean', created_at: '2026-07-17T00:00:00Z' }
+  },
+  async getLabels() { await wait(30); return LABELS.map(clone) },
+
   // ── customers (clients) ────────────────────────────────────────────────────
   async getClients() { await wait(); return getClientsStore().map(clone) },
   async addClient({ name, address, fin_contact, notes }) {

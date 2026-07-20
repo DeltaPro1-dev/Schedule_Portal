@@ -214,6 +214,10 @@ St George/Out Of State"). Domain extension — new entity added to the contract.
   cities; real mode starts empty).
 - New **Cities** screen (nav): add city + region, edit/delete, search.
 - `data-model.md` updated with the `cities` entity.
+- `seed_cities.sql`: 139 real Delta cities → region (from the owner's list; North 80,
+  South 37, St George 13, Out Of State 9). Intentional spelling variants kept (St
+  George/St. George/Saint George, SLC, Milkreek, …) so messy source strings still
+  match. Idempotent (ON CONFLICT DO NOTHING). Run after 0009.
 
 Purpose: feeds the upcoming agenda import — a client row's city routes the card to the
 North/South/St George staging column. Not audited yet (the 0008 audit trigger list,

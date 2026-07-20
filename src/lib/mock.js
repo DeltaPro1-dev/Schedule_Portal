@@ -494,6 +494,24 @@ export const mockApi = {
     }
     throw new Error('not_found')
   },
+  async duplicateCard(cardId) {
+    await wait()
+    for (const id in boardCache) {
+      const c = boardCache[id].cards.find((x) => x.id === cardId)
+      if (c) {
+        const pos = boardCache[id].cards.filter((x) => x.list_id === c.list_id).length
+        const copy = {
+          ...clone(c), id: nid('card'), position: pos, done: false, version: 1,
+          labelKeys: [...(c.labelKeys || [])],
+          checklist: (c.checklist || []).map((it) => ({ id: nid('ck'), text: it.text, done: false, position: it.position })),
+          comments: [], attachments: [],
+        }
+        boardCache[id].cards.push(copy)
+        return resolveCard(copy)
+      }
+    }
+    throw new Error('not_found')
+  },
   async moveCard(cardId, toListId, position, version) {
     await wait()
     for (const id in boardCache) {

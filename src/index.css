@@ -78,22 +78,43 @@ input:focus, select:focus { border-color: var(--navy); background: #fff; }
 }
 
 /* ============================================================
-   Responsive — the app is desktop-first with inline styles, so these
-   media queries use !important to override inline values on small screens.
+   Responsive — desktop-first with inline styles, so these media queries use
+   !important to override inline values. Cover phones (narrow width, portrait)
+   AND phone landscape (wide-ish width but short height).
    ============================================================ */
 @media (max-width: 860px) {
-  .login-brand { display: none !important; }
+  .login-brand { display: none !important; }        /* landscape phone (844) too */
 }
-@media (max-width: 760px) {
+
+/* Phones + small tablets + phone LANDSCAPE (844px). The top nav has many items,
+   so below 960px the header stacks and the nav becomes a single scrollable row
+   instead of overflowing the page horizontally. */
+@media (max-width: 960px) {
+  .topnav { flex-wrap: wrap !important; row-gap: 8px; padding-left: 16px !important; padding-right: 16px !important; }
+  .topnav > nav { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; -webkit-overflow-scrolling: touch; }
+  .topnav > nav button { flex: none; }
   .resp-header { flex-wrap: wrap !important; row-gap: 10px; }
-  .topnav { flex-wrap: wrap !important; row-gap: 10px; padding-left: 16px !important; padding-right: 16px !important; }
-  .topnav nav { flex-wrap: wrap; justify-content: flex-start; }
+  .resp-grow { flex: 1 1 100% !important; }
   .section-scroll { padding-left: 16px !important; padding-right: 16px !important; }
   .board-head { padding-left: 16px !important; padding-right: 16px !important; }
   .board-main { padding-left: 14px !important; padding-right: 14px !important; }
-  .resp-grow { flex: 1 1 100% !important; }
+  /* Prevent iOS Safari from auto-zooming when focusing a small-font input. */
+  input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  select, textarea { font-size: 16px !important; }
 }
+
+/* Narrow phones — collapse the card modal to one column and slim the overlay. */
 @media (max-width: 520px) {
   .card-modal-grid { grid-template-columns: 1fr !important; }
   .card-modal-right { border-top: 1px solid var(--line); }
+  .modal-overlay { padding-left: 8px !important; padding-right: 8px !important; }
+}
+
+/* Short viewports = phone LANDSCAPE. Reclaim vertical space so content is usable
+   and the modal can scroll instead of being clipped. */
+@media (max-height: 520px) {
+  .topnav { padding-top: 9px !important; padding-bottom: 9px !important; }
+  .section-scroll { padding-top: 14px !important; padding-bottom: 24px !important; }
+  .board-head { padding-top: 9px !important; }
+  .modal-overlay { padding-top: 12px !important; padding-bottom: 12px !important; align-items: flex-start !important; }
 }

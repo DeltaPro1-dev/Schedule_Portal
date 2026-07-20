@@ -227,6 +227,26 @@ const realApi = {
     return mapCard(data)
   },
 
+  // Duplicate a card into the same list (same job → a second worker). Copies the
+  // briefing fields + labels + checklist; resets done. Comments/attachments are
+  // not copied (activity/evidence are per-card).
+  async duplicateCard(cardId) {
+    const { data: src, error: e1 } = await supabase.from('cards').select('*').eq('id', cardId).single()
+    if (e1) throw e1
+    const { count } = await supabase.from('cards').select('id', { count: 'exact', head: true }).eq('list_id', src.list_id)
+    const copy = { ...src, position: count ?? 0, done: false, version: 1 }
+    delete copy.id; delete copy.created_at; delete copy.updated_at; delete copy.deleted_at
+    const { data: card, error } = await supabase.from('cards').insert(copy).select('*, client:clients(*)').single()
+    if (error) throw error
+    // copy labels
+    const { data: cl } = await supabase.from('card_labels').select('label_id').eq('card_id', cardId)
+    if (cl?.length) await supabase.from('card_labels').insert(cl.map((r) => ({ card_id: card.id, label_id: r.label_id })))
+    // copy checklist items (same job steps), unchecked
+    const { data: ci } = await supabase.from('checklist_items').select('text, position').eq('card_id', cardId)
+    if (ci?.length) await supabase.from('checklist_items').insert(ci.map((r) => ({ card_id: card.id, text: r.text, done: false, position: r.position })))
+    return mapCard(card)
+  },
+
   // Patch free-text card fields (inline editing). RLS/region guards decide if the
   // caller may edit; status changes still go through card_transition (the FSM).
   async updateCard(cardId, patch) {

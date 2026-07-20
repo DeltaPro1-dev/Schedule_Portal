@@ -8,6 +8,7 @@ export default function CardModal({ card, listName, lists, canEdit, onChanged, o
   const [item, setItem] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  const [dupMsg, setDupMsg] = useState('')
   const dialogRef = useRef(null)
   const titleId = `card-${card.id}-title`
 
@@ -40,8 +41,20 @@ export default function CardModal({ card, listName, lists, canEdit, onChanged, o
     try { await fn(); await onChanged() } catch (e) { setErr(String(e.message || e)) } finally { setBusy(false) }
   }
 
+  // Duplicate the whole card (same job → a second worker). Copies the briefing,
+  // labels and checklist into a new card in the same list; assign the copy with
+  // the "Move to" selector or drag-and-drop.
+  async function duplicate() {
+    setBusy(true); setErr(''); setDupMsg('')
+    try {
+      await api.duplicateCard(card.id)
+      await onChanged()
+      setDupMsg('Copy created in this list — use “Move to” or drag it to the second worker.')
+    } catch (e) { setErr(String(e.message || e)) } finally { setBusy(false) }
+  }
+
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(28,27,46,0.4)', zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 20px', overflowY: 'auto' }}>
+    <div onClick={onClose} className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(28,27,46,0.4)', zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 20px', overflowY: 'auto' }}>
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}
         onClick={(e) => e.stopPropagation()} style={{ width: 820, maxWidth: '100%', background: 'var(--surface)', borderRadius: 16, boxShadow: '0 24px 70px rgba(28,27,46,0.28)', overflow: 'hidden', outline: 'none' }}>
         {/* navy header */}
@@ -64,6 +77,17 @@ export default function CardModal({ card, listName, lists, canEdit, onChanged, o
                 <strong style={{ fontWeight: 700 }}>{head}</strong>{body}
               </h2>
             </div>
+
+            {/* duplicate (same job → a second worker) */}
+            {canEdit && (
+              <div style={{ marginBottom: 16 }}>
+                <button type="button" onClick={duplicate} disabled={busy} className="h-surface2"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 9, padding: '8px 13px', fontFamily: 'var(--sans)', fontSize: 12.5, fontWeight: 600, color: 'var(--ink-2)', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
+                  <span aria-hidden="true" style={{ fontSize: 14 }}>⧉</span> Duplicate card
+                </button>
+                {dupMsg && <div style={{ fontSize: 12, color: 'var(--green-ink)', marginTop: 8 }}>{dupMsg}</div>}
+              </div>
+            )}
 
             {/* move (keyboard-accessible alternative to drag-and-drop) */}
             {canEdit && Array.isArray(lists) && lists.filter((l) => l.id !== card.list_id).length > 0 && (

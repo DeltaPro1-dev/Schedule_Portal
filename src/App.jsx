@@ -122,7 +122,7 @@ export default function App() {
 
 function Frame({ children }) {
   return (
-    <div style={{ height: '100vh', width: '100vw', fontFamily: 'var(--sans)', background: 'var(--bg)', color: 'var(--ink)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100dvh', width: '100%', fontFamily: 'var(--sans)', background: 'var(--bg)', color: 'var(--ink)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       {children}
     </div>
   )

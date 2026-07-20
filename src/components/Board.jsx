@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api.js'
 import { cardHeadBody, initials, avatarStyle, REGION_LABEL } from '../lib/present.js'
 import { STATUS_META } from '../lib/stateMachine.js'
+import { buildFieldControlCsv, csvFilename, downloadCsv, exportableRows } from '../lib/fieldControlCsv.js'
 
 export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay, cardVersion, membership, demo }) {
   const [detail, setDetail] = useState(null)
@@ -54,6 +55,12 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
     const t = listText.trim(); setListText(''); setAddingList(false)
     if (t) { await api.addList({ board_id: boardId, name: t }); await load() }
   }
+  function exportCsv() {
+    downloadCsv(csvFilename(board), buildFieldControlCsv({ board, lists, cards }))
+    // best-effort: record the export (logs EXPORT audit + shows in Export Center)
+    const p = api.recordExport?.({ report_type: `Field Control agenda — ${board.title}`, format: 'csv', row_count: exportableRows({ lists, cards }).length })
+    if (p?.catch) p.catch(() => {})
+  }
 
   const daySummary = `${board.workerCount ?? cols.length} workers · ${board.jobs ?? cards.length} jobs · ${board.completed ?? 0} completed`
 
@@ -93,6 +100,7 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
                 <span style={{ fontSize: 11, color: 'var(--muted)' }}>{REGION_LABEL[membership.region] || membership.region}</span>
               </div>
             )}
+            <button onClick={exportCsv} className="h-navysoft" style={backBtn} title="Export this day's agenda as a Field Control CSV">⬇ CSV</button>
             {canEdit && (
               <button onClick={() => setAddingList(true)} className="h-navy" style={primaryBtn}><span style={{ fontSize: 16, lineHeight: 1 }}>+</span> List</button>
             )}

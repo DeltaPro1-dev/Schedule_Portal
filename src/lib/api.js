@@ -344,6 +344,20 @@ const realApi = {
     if (error) throw error
     return data.signedUrl
   },
+
+  // Record a completed export (the file is generated client-side). The row insert
+  // also writes an EXPORT audit event via the DB trigger and surfaces the job in
+  // the Export Center. RLS requires organization_id = my_org() and requested_by = self.
+  async recordExport({ report_type, format, row_count }) {
+    const org = await myOrg()
+    const { data: auth } = await supabase.auth.getUser()
+    const { error } = await supabase.from('exports').insert({
+      organization_id: org, requested_by: auth?.user?.id ?? null,
+      report_type, format, status: 'done', row_count, params_json: {},
+      finished_at: new Date().toISOString(),
+    })
+    if (error) throw error
+  },
 }
 
 // In real mode, realApi implements the CRUD/board endpoints; the permissions

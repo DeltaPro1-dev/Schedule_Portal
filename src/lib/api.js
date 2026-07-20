@@ -19,6 +19,10 @@ function titleFromEmail(email) {
 // DB role enum → the display keys the Members screen understands.
 const ROLE_DISPLAY = { admin: 'admin', coordinator: 'coordinator', supervisor: 'supervisor', operator: 'operator', finance: 'finance', viewer: 'read' }
 const regionText = (r) => (r === 'all' ? 'All' : REGION_LABEL[r] || r)
+// Stable slug used as labels.key (unique per org).
+const labelKey = (name) =>
+  String(name || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'label'
 
 function mapCard(row) {
   return {
@@ -362,6 +366,42 @@ const realApi = {
       finished_at: new Date().toISOString(),
     })
     if (error) throw error
+  },
+
+  // ── Labels (Etiquetas) ──────────────────────────────────────────────────────
+  async getLabels() {
+    const { data, error } = await supabase.from('labels').select('*').order('kind').order('name')
+    if (error) throw error
+    return data || []
+  },
+  async addLabel({ name, color, kind }) {
+    const org = await myOrg()
+    const { data, error } = await supabase
+      .from('labels').insert({ organization_id: org, name, color, kind, key: labelKey(name) })
+      .select().single()
+    if (error) {
+      if (error.code === '23505') throw new Error(`A label like "${name}" already exists.`)
+      throw error
+    }
+    return data
+  },
+  async updateLabel(id, patch) {
+    const { error } = await supabase.from('labels').update(patch).eq('id', id)
+    if (error) throw error
+  },
+  async removeLabel(id) {
+    const { error } = await supabase.from('labels').delete().eq('id', id)
+    if (error) throw error
+  },
+  // Attach/detach a label on a card (card_labels join).
+  async toggleCardLabel(cardId, label, on) {
+    if (on) {
+      const { error } = await supabase.from('card_labels').insert({ card_id: cardId, label_id: label.id })
+      if (error && error.code !== '23505') throw error
+    } else {
+      const { error } = await supabase.from('card_labels').delete().eq('card_id', cardId).eq('label_id', label.id)
+      if (error) throw error
+    }
   },
 }
 

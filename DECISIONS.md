@@ -262,3 +262,21 @@ Exact format (extracted from the template):
 Decisions taken: no HOURS field in the portal, so K omits it (schedule marker + PS
 only); service_type is assumed to already hold the Field Control "Tipo de OS" value.
 Cancelled cards are currently included — revisit if the field shouldn't receive them.
+
+---
+
+## G1.9 — Labels management + card assignment (2026-07-19)
+**Approved by:** Eder (owner), in chat ("aba para criar etiquetas" + assign on card).
+(Sibling branch to G1.7/G1.8; all branch off main → expect DECISIONS merge conflicts,
+keep every block.)
+
+- New **Labels** screen (nav item): CRUD on `schedule_portal.labels`. Create
+  (name + kind region/type/schedule + color via swatches or native picker; `key`
+  auto-slugged from the name, unique per org), edit name/color/kind inline, delete
+  (admin per RLS). `realApi.getLabels/addLabel/updateLabel/removeLabel` + mock.
+- **Card assignment**: the CardModal Labels section is now editable (editors+). "Edit"
+  reveals all labels as toggle chips (on = filled, off = outlined); toggling calls
+  `api.toggleCardLabel(cardId, label, on)` → `card_labels` insert/delete → onChanged
+  refresh. Mock toggles `card.labelKeys`.
+- No schema change (labels/card_labels + RLS already exist from 0001/0002). Deleting
+  a label cascades from `card_labels` (FK on delete cascade), removing it from cards.

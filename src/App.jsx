@@ -8,11 +8,12 @@ import Board from './components/Board.jsx'
 import CardModal from './components/CardModal.jsx'
 import Roster from './components/Roster.jsx'
 import Members from './components/Members.jsx'
+import Labels from './components/Labels.jsx'
 import Exports from './components/Exports.jsx'
 import Integration from './components/Integration.jsx'
 import Audit from './components/Audit.jsx'
 
-const SECTIONS = { roster: Roster, members: Members, exports: Exports, integration: Integration, audit: Audit }
+const SECTIONS = { roster: Roster, members: Members, labels: Labels, exports: Exports, integration: Integration, audit: Audit }
 
 export default function App() {
   const [entered, setEntered] = useState(false)

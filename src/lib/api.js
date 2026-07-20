@@ -344,6 +344,31 @@ const realApi = {
     if (error) throw error
     return data.signedUrl
   },
+
+  // ── Cities → region lookup (feeds the agenda import routing) ────────────────
+  async getCities() {
+    const { data, error } = await supabase.from('cities').select('*').order('name')
+    if (error) throw error
+    return data || []
+  },
+  async addCity({ name, region }) {
+    const org = await myOrg()
+    const { data, error } = await supabase
+      .from('cities').insert({ organization_id: org, name, region }).select().single()
+    if (error) {
+      if (error.code === '23505') throw new Error(`"${name}" is already listed.`)
+      throw error
+    }
+    return data
+  },
+  async updateCity(id, patch) {
+    const { error } = await supabase.from('cities').update(patch).eq('id', id)
+    if (error) throw error
+  },
+  async removeCity(id) {
+    const { error } = await supabase.from('cities').delete().eq('id', id)
+    if (error) throw error
+  },
 }
 
 // In real mode, realApi implements the CRUD/board endpoints; the permissions

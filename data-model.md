@@ -32,6 +32,12 @@ Organization 1─* AuditEvent | Export | IntegrationEvent
 ### clients
 `id, organization_id, name, address?, fin_contact?, notes?, created_at, deleted_at?`
 
+### cities  (city → region lookup; G1.10)
+`id, organization_id, name, region (enum: north|south|st_george|another), created_at`
+- Unique per org on `lower(name)`. `another` is presented as "Out Of State".
+- Feeds the agenda import: a client-portal row's city routes the card to the
+  North/South/St George staging column.
+
 ### boards  (one per day)
 `id, organization_id, date (date, unique per org), title, month (char(7) e.g. '2026-07'), cover_hue?, status (open|closed), starred, version, created_at`
 - Boards whose `month` < current month are `status=closed` and grouped under the month in the UI.

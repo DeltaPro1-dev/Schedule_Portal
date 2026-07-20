@@ -199,3 +199,23 @@ as fake behavior):**
 Only member today is admin/region=all (sees & does everything), so 0007 changes
 nothing observable for the current user until region-scoped members are invited —
 by design, low-risk to apply.
+
+---
+
+## G1.10 — Cities → region lookup + management tab (2026-07-19)
+**Approved by:** Eder (owner), in chat ("aba para colocar as cidades … North/South/
+St George/Out Of State"). Domain extension — new entity added to the contract.
+(Sibling branch off main; all feature branches append here → keep every block on merge.)
+
+- `0009_cities.sql`: new `schedule_portal.cities` (id, organization_id, name, region,
+  created_at), unique on (org, lower(name)), org-scoped RLS (read=member, write=editor,
+  delete=admin). "Out Of State" = the existing region enum value `another`.
+- `realApi.getCities/addCity/updateCity/removeCity` + mock (mock seeds a few demo
+  cities; real mode starts empty).
+- New **Cities** screen (nav): add city + region, edit/delete, search.
+- `data-model.md` updated with the `cities` entity.
+
+Purpose: feeds the upcoming agenda import — a client row's city routes the card to the
+North/South/St George staging column. Not audited yet (the 0008 audit trigger list,
+on its own branch, doesn't include `cities`; add it there if audit coverage is wanted).
+(0008 = audit triggers branch; this migration is 0009 to avoid a number clash.)

@@ -318,3 +318,38 @@ overflow**. Zero page errors.
 
 **Remaining G3 item:** inline editing in the Table + saved views (`SavedView`) +
 global search. After that, G3 gate is fully clear.
+
+---
+
+## G3.4 — Table inline editing + saved views (2026-07-20) — G3 gate clear
+**Approved by:** Eder (owner), "continue com a edição inline e saved views".
+Last **G3** item. Front-end + one additive API method; **no schema change**.
+
+- **`api.updateCard(cardId, patch)`** (mock + real): patches free-text card fields.
+  Real mode updates `cards` directly (RLS/region guards decide if the caller may
+  edit) and bumps `updated_at`; returns the mapped card. Status changes still go
+  through `card_transition` (the FSM) — not editable inline by design; client is a
+  relation (also modal-only).
+- **Inline editing in the Table** (`TableView.jsx`): Building, Service and Scheduled
+  cells are editable in place — click (or keyboard-focus) → input → Enter/blur saves
+  via `updateCard`, Escape cancels. Editable cells `stopPropagation` so they never
+  open the card modal; the other cells (Worker/Status/Client) and row-Enter still
+  open it. Done is an inline accessible toggle (`button[role=checkbox]`) →
+  `toggleDone`. Read-only when `canEdit` is false (App passes `canEdit` from the
+  membership, same rule as the modal).
+- **Saved views** (`src/lib/savedViews.js`, localStorage): save the current
+  {query, status, sort} as a named view; chips apply / delete them. **MVP scope:
+  per-browser, no schema change.** Shared/cross-device views (the `SavedView` table
+  in data-model.md) remain a future item needing a migration + contract decision
+  (Regra de Ouro) — documented, not faked.
+- Global search across boards is **not** included here (this is the per-board table
+  filter); a cross-board global search stays on the G3 backlog as a nice-to-have.
+
+Verified: build + lint green (only pre-existing mock.js warnings); headless
+(Playwright) — 72 editable cells, inline edit persists ("ZZZ-INLINE-TEST" shows
+after Enter), Done toggle flips `aria-checked`, a saved view chip is created and
+re-applying it restores the search term. Zero page errors.
+
+**G3 (operational views) gate: CLEAR** — Table, Dashboard, Calendar,
+responsiveness + accessibility, inline editing + saved views all delivered. Open
+backlog (non-blocking): cross-board global search; shared SavedView table.

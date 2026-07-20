@@ -321,6 +321,14 @@ export const mockApi = {
     d.cards.push(card)
     return resolveCard(card)
   },
+  async updateCard(cardId, patch) {
+    await wait()
+    for (const id in boardCache) {
+      const c = boardCache[id].cards.find((x) => x.id === cardId)
+      if (c) { Object.assign(c, patch); c.version++; return resolveCard(c) }
+    }
+    throw new Error('not_found')
+  },
   async moveCard(cardId, toListId, position, version) {
     await wait()
     for (const id in boardCache) {

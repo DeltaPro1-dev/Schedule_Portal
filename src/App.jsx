@@ -83,6 +83,7 @@ export default function App() {
       {view === 'table' && (
         <TableView
           boardId={boardId} boards={boards} cardVersion={cardVersion}
+          canEdit={demoMode || ['admin', 'editor'].includes(membership?.access)}
           onBack={() => setView('gallery')}
           onSelectDay={(id) => setBoardId(id)}
           onOpenCard={(id) => setOpenCardId(id)}

@@ -156,6 +156,19 @@ const realApi = {
     return mapCard(data)
   },
 
+  // Patch free-text card fields (inline editing). RLS/region guards decide if the
+  // caller may edit; status changes still go through card_transition (the FSM).
+  async updateCard(cardId, patch) {
+    const { data, error } = await supabase
+      .from('cards')
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq('id', cardId)
+      .select('*, client:clients(*), card_labels(label:labels(*)), checklist_items(*), comments(*), attachments(*)')
+      .single()
+    if (error) throw error
+    return mapCard(data)
+  },
+
   async moveCard(cardId, toListId, position, version) {
     const { data, error } = await supabase.rpc('card_move', {
       p_card_id: cardId, p_to_list_id: toListId, p_position: position, p_version: version,

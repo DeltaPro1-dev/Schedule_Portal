@@ -220,7 +220,7 @@ Previstos como `CustomField`/`CustomFieldValue` — **fora do MVP**.
 | View | Status |
 |---|---|
 | Board (Kanban, drag-and-drop, realtime) | ✅ (G1.2 realtime) |
-| Table (spreadsheet, filtros, sort, CSV export) | ✅ (G3.1) |
+| Table (spreadsheet, filtros, sort, CSV, edição inline, saved views) | ✅ (G3.1/G3.4) |
 | Calendar (mês/semana sobre os boards-dia) | ✅ (G3.2) |
 | Timeline | 🔒 fase futura |
 | Workload (carga por worker/equipe, horas) | ⬜ (G5) |
@@ -259,7 +259,7 @@ Mapa das **16 telas prioritárias** do prompt:
 | 3 | Boards | `Gallery.jsx` | ✅ |
 | 4 | Kanban Board | `Board.jsx` | ✅ (realtime, DnD) |
 | 5 | Card Detail | `CardModal.jsx` | ✅ (checklist, anexos, labels) |
-| 6 | Table View | `TableView.jsx` | ✅ (G3.1 — filtros, sort, CSV) |
+| 6 | Table View | `TableView.jsx` | ✅ (G3.1/G3.4 — filtros, sort, CSV, edição inline, saved views) |
 | 7 | Calendar | `Calendar.jsx` | ✅ (G3.2 — mês/semana) |
 | 8 | Audit Log | `Audit.jsx` | ✅ |
 | 9 | Export Center | `Exports.jsx` | 🟡 UI ✅ / worker ⬜ |
@@ -409,8 +409,9 @@ integrações e mobile.
 - ✅ **Calendar** (mês/semana sobre os boards-dia) — G3.2.
 - ✅ **Responsividade + acessibilidade** (WCAG/teclado/ARIA; alternativa de teclado ao
   DnD via "Move to" no card) — G3.3.
-- ⬜ Edição inline na Table + saved views (`SavedView`); busca global.
-- **Gate:** operação diária completa em desktop/tablet/mobile.
+- ✅ **Edição inline na Table + saved views** (localStorage) — G3.4.
+- ⬜ Backlog não-bloqueante: busca global cross-board; tabela `SavedView` compartilhada.
+- **Gate G3: ✅ LIBERADO** — operação diária completa em desktop/tablet/mobile.
 
 ### G4 — Governança avançada
 - Audit: diff previous/new, correlation/request/session IDs, retenção configurável.

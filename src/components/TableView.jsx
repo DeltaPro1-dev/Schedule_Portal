@@ -3,6 +3,10 @@ import { api } from '../lib/api.js'
 import { STATUS_META, STATUSES } from '../lib/stateMachine.js'
 import { cardTitle } from '../lib/title.js'
 import { toCsv, downloadText } from '../lib/csv.js'
+import { listViews, saveView, removeView } from '../lib/savedViews.js'
+
+// Editable inline: the free-text card fields (building, service_type, scheduled_time).
+// Status stays in the card modal (FSM-constrained); client is a relation (also modal).
 
 // Spreadsheet-style view of one board's cards (§9.2). Sortable columns, text +
 // status filter, row → card modal, client-side CSV export of the filtered rows.
@@ -18,11 +22,17 @@ const COLUMNS = [
   { key: 'done', label: 'Done' },
 ]
 
-export default function TableView({ boardId, boards, onBack, onOpenCard, onSelectDay, onSwitchView, cardVersion }) {
+export default function TableView({ boardId, boards, canEdit, onBack, onOpenCard, onSelectDay, onSwitchView, cardVersion }) {
   const [detail, setDetail] = useState(null)
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('all')
   const [sort, setSort] = useState({ key: 'worker', dir: 1 })
+  const [views, setViews] = useState(() => listViews())
+  const [naming, setNaming] = useState(false)
+  const [viewName, setViewName] = useState('')
+  const [edit, setEdit] = useState(null)   // { id, key }
+  const [draft, setDraft] = useState('')
+  const [saveErr, setSaveErr] = useState('')
 
   const load = useCallback(async () => setDetail(await api.getBoardDetail(boardId)), [boardId])
   useEffect(() => { setDetail(null); load() }, [load])
@@ -49,6 +59,7 @@ export default function TableView({ boardId, boards, onBack, onOpenCard, onSelec
       service_type: c.service_type || '',
       scheduled_time: c.scheduled_time || '',
       done: c.done ? 'Yes' : 'No',
+      _done: c.done,
       _title: cardTitle(c),
     }))
   }, [detail])
@@ -69,6 +80,34 @@ export default function TableView({ boardId, boards, onBack, onOpenCard, onSelec
     const title = detail?.board?.title || 'board'
     const safe = title.replace(/[^\w]+/g, '-').replace(/^-|-$/g, '')
     downloadText(`schedule-${safe}.csv`, toCsv(filtered, COLUMNS))
+  }
+
+  // ── saved views (localStorage) ──────────────────────────────────────────────
+  function applyView(v) {
+    setQuery(v.query || ''); setStatus(v.status || 'all')
+    setSort(v.sort || { key: 'worker', dir: 1 })
+  }
+  function saveCurrentView() {
+    const name = viewName.trim(); if (!name) return
+    setViews(saveView(name, { query, status, sort }))
+    setViewName(''); setNaming(false)
+  }
+  function deleteView(id) { setViews(removeView(id)) }
+
+  // ── inline editing ──────────────────────────────────────────────────────────
+  function beginEdit(id, key, value) { setSaveErr(''); setEdit({ id, key }); setDraft(value || '') }
+  function cancelEdit() { setEdit(null); setDraft('') }
+  async function commitEdit(id, key, original) {
+    const value = draft.trim()
+    setEdit(null)
+    if (value === (original || '')) return
+    try { await api.updateCard(id, { [key]: value || null }); await load() }
+    catch (e) { setSaveErr(String(e.message || e)) }
+  }
+  async function toggleDone(row) {
+    setSaveErr('')
+    try { await api.toggleDone(row.id, row._done); await load() }
+    catch (e) { setSaveErr(String(e.message || e)) }
   }
 
   if (!detail) return <div style={{ padding: 30, color: 'var(--faint)' }}>Loading…</div>
@@ -119,7 +158,30 @@ export default function TableView({ boardId, boards, onBack, onOpenCard, onSelec
       </header>
 
       {/* table */}
-      <main style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '18px 30px 40px' }}>
+      <main className="board-main" style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: '18px 30px 40px' }}>
+        {/* saved views */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+          <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--faint)' }}>Saved views</span>
+          {views.length === 0 && !naming && <span style={{ fontSize: 12.5, color: 'var(--faint)' }}>none yet</span>}
+          {views.map((v) => (
+            <span key={v.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 20, padding: '4px 6px 4px 12px' }}>
+              <button type="button" onClick={() => applyView(v)} style={{ background: 'none', border: 'none', fontFamily: 'var(--sans)', fontSize: 12.5, fontWeight: 500, color: 'var(--navy)', cursor: 'pointer', padding: 0 }}>{v.name}</button>
+              <button type="button" onClick={() => deleteView(v.id)} aria-label={`Delete view ${v.name}`} className="h-surface2" style={{ width: 18, height: 18, borderRadius: '50%', border: 'none', background: 'var(--surface-2)', color: 'var(--faint)', cursor: 'pointer', fontSize: 11, lineHeight: 1 }}>✕</button>
+            </span>
+          ))}
+          {naming ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <input autoFocus value={viewName} onChange={(e) => setViewName(e.target.value)} aria-label="View name"
+                onKeyDown={(e) => { if (e.key === 'Enter') saveCurrentView(); if (e.key === 'Escape') { setNaming(false); setViewName('') } }}
+                placeholder="View name…" style={{ border: '1px solid var(--navy)', background: '#fff', borderRadius: 8, padding: '5px 10px', fontFamily: 'var(--sans)', fontSize: 12.5, outline: 'none', width: 150 }} />
+              <button type="button" onClick={saveCurrentView} style={{ background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 11px', fontFamily: 'var(--sans)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>Save</button>
+              <button type="button" onClick={() => { setNaming(false); setViewName('') }} style={{ background: 'none', border: '1px solid var(--line)', borderRadius: 8, padding: '6px 9px', fontSize: 12.5, color: 'var(--muted)', cursor: 'pointer' }}>✕</button>
+            </span>
+          ) : (
+            <button type="button" onClick={() => setNaming(true)} className="h-surface2" style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 20, padding: '5px 12px', fontFamily: 'var(--sans)', fontSize: 12.5, fontWeight: 500, color: 'var(--ink-2)', cursor: 'pointer' }}>＋ Save current view</button>
+          )}
+        </div>
+        {saveErr && <div style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 12 }}>{saveErr}</div>}
         {filtered.length === 0 ? (
           <div style={{ color: 'var(--faint)', fontSize: 13.5, padding: '40px 0', textAlign: 'center' }}>
             {rows.length === 0 ? 'No jobs on this board yet.' : 'No jobs match your filters.'}
@@ -146,6 +208,10 @@ export default function TableView({ boardId, boards, onBack, onOpenCard, onSelec
               <tbody>
                 {filtered.map((r) => {
                   const meta = STATUS_META[r.status] || { label: r.status, color: 'var(--muted)' }
+                  const cellProps = {
+                    edit, draft, setDraft, canEdit, rowId: r.id,
+                    onBegin: beginEdit, onCommit: commitEdit, onCancel: cancelEdit,
+                  }
                   return (
                     <tr key={r.id} className="h-surface2" onClick={() => onOpenCard(r.id)}
                       tabIndex={0} aria-label={`Open card: ${r.worker} — ${r.client || r.service_type || 'service'}`}
@@ -156,10 +222,17 @@ export default function TableView({ boardId, boards, onBack, onOpenCard, onSelec
                         <span style={{ fontSize: 10.5, fontWeight: 600, color: '#fff', background: meta.color, borderRadius: 20, padding: '2px 8px' }}>{meta.label}</span>
                       </td>
                       <td style={td}>{r.client || '—'}</td>
-                      <td style={td}>{r.building || '—'}</td>
-                      <td style={td}>{r.service_type || '—'}</td>
-                      <td style={{ ...td, fontFamily: 'var(--mono)', color: 'var(--navy)' }}>{r.scheduled_time || '—'}</td>
-                      <td style={{ ...td, color: r.done === 'Yes' ? 'var(--green-ink)' : 'var(--faint)', fontWeight: 500 }}>{r.done}</td>
+                      <EditCell {...cellProps} colKey="building" value={r.building} />
+                      <EditCell {...cellProps} colKey="service_type" value={r.service_type} />
+                      <EditCell {...cellProps} colKey="scheduled_time" value={r.scheduled_time} mono />
+                      <td style={td}>
+                        <button type="button" role="checkbox" aria-checked={r._done} aria-label="Mark service completed"
+                          disabled={!canEdit} onClick={(e) => { e.stopPropagation(); toggleDone(r) }} onKeyDown={(e) => e.stopPropagation()}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'none', border: 'none', cursor: canEdit ? 'pointer' : 'default', fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 500, color: r._done ? 'var(--green-ink)' : 'var(--faint)', padding: 0 }}>
+                          <span aria-hidden="true" style={{ width: 15, height: 15, borderRadius: 4, border: `1.5px solid ${r._done ? 'var(--green)' : 'var(--line)'}`, background: r._done ? 'var(--green)' : '#fff', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>{r._done ? '✓' : ''}</span>
+                          {r.done}
+                        </button>
+                      </td>
                     </tr>
                   )
                 })}
@@ -188,6 +261,39 @@ export function ViewToggle({ view, onSwitchView }) {
       {opt('board', 'Board')}
       {opt('table', 'Table')}
     </div>
+  )
+}
+
+// A table cell that edits a free-text card field in place. Editing stops event
+// propagation so it never opens the card modal; non-editable mode is plain text.
+function EditCell({ colKey, value, mono, edit, draft, setDraft, canEdit, rowId, onBegin, onCommit, onCancel }) {
+  const editing = edit && edit.id === rowId && edit.key === colKey
+  const base = { ...td, ...(mono ? { fontFamily: 'var(--mono)', color: 'var(--navy)' } : {}) }
+  if (editing) {
+    return (
+      <td style={base} onClick={(e) => e.stopPropagation()}>
+        <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
+            e.stopPropagation()
+            if (e.key === 'Enter') onCommit(rowId, colKey, value)
+            else if (e.key === 'Escape') onCancel()
+          }}
+          onBlur={() => onCommit(rowId, colKey, value)} aria-label={`Edit ${colKey.replace('_', ' ')}`}
+          style={{ width: 130, border: '1px solid var(--navy)', background: '#fff', borderRadius: 7, padding: '5px 8px', fontFamily: mono ? 'var(--mono)' : 'var(--sans)', fontSize: 12.5, outline: 'none' }} />
+      </td>
+    )
+  }
+  if (!canEdit) return <td style={base}>{value || '—'}</td>
+  return (
+    <td style={{ ...base, padding: 0 }}>
+      <button type="button" title="Click to edit"
+        onClick={(e) => { e.stopPropagation(); onBegin(rowId, colKey, value) }}
+        onKeyDown={(e) => e.stopPropagation()}
+        style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'text', padding: '12px 16px', fontFamily: mono ? 'var(--mono)' : 'var(--sans)', fontSize: 13, color: value ? (mono ? 'var(--navy)' : 'var(--ink-2)') : 'var(--faint)', whiteSpace: 'nowrap' }}>
+        {value || '—'}
+      </button>
+    </td>
   )
 }
 

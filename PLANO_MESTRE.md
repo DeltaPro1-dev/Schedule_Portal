@@ -364,8 +364,9 @@ como tabelas próprias é incremental e não quebra o schema atual. 🔒/⬜
 ✅ `audit_events` imutável, RPC-only (política de insert direto removida em G1.1 —
 não forjável). Campos: actor, verb (LOGIN/CREATE/UPDATE/MOVE/COMPLETE/EXPORT/
 DELETE/REPROCESS), entity_type/id, scope, detail(jsonb), ip, created_at.
-🟡 Diff previous/new value e correlation/request/session IDs: parcialmente cobertos
-por `detail` — enriquecer é item de G4.
+✅ (G4.1) UI de auditoria com diff before→after, filtros, busca e export CSV; colunas
+`correlation_id/request_id/session_id` + funções de retenção (`prune_audit` com piso
+de 730 dias, `prune_notifications`) prontas p/ deploy (`0009_notifications_audit.sql`).
 
 ## Diagrama ER
 Textual em [data-model.md](data-model.md). ⬜ Gerar diagrama visual (dbdiagram/mermaid)
@@ -415,11 +416,13 @@ integrações e mobile.
 - ⬜ Backlog não-bloqueante: busca global cross-board; tabela `SavedView` compartilhada.
 - **Gate G3: ✅ LIBERADO** — operação diária completa em desktop/tablet/mobile.
 
-### G4 — Governança avançada
-- Audit: diff previous/new, correlation/request/session IDs, retenção configurável.
-- Notificações in-app + e-mail (`assignment.new`, `service.completed`,
-  `export.ready`, `integration.dlq`).
-- Data retention / soft-delete policy / privacy controls; threat model formal.
+### G4 — Governança avançada (em andamento)
+- ✅ Audit: diff previous/new + filtros + busca + correlation id + export CSV; colunas
+  correlation/request/session + funções de retenção prontas p/ deploy (G4.1).
+- 🟡 Notificações **in-app** ✅ (bell + panel + mark-read; producer `export.ready`
+  pronto p/ deploy) — G4.1. E-mail/push/Teams: futuro. `assignment.new`/
+  `service.completed`/`integration.dlq` dependem de D6 (documentado).
+- ⬜ Data retention aplicada / soft-delete policy / privacy controls; threat model formal.
 
 ### G5 — Operations (calendar/workload/teams/customers/locations)
 - Calendar (dia/semana/mês, conflito, capacidade).

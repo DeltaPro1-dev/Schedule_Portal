@@ -1,3 +1,5 @@
+import NotificationBell from './NotificationBell.jsx'
+
 const NAV = [
   { key: 'gallery', label: 'Boards' },
   { key: 'dashboard', label: 'Dashboard' },
@@ -34,6 +36,7 @@ export default function TopNav({ view, onNavigate, onLogout, demo }) {
             </button>
           )
         })}
+        <NotificationBell />
         <button onClick={onLogout} className="h-surface2"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'none', border: '1px solid var(--line)', borderRadius: 9, padding: '8px 14px', fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 500, color: 'var(--muted)', cursor: 'pointer', marginLeft: 4 }}>
           Sign out

@@ -188,6 +188,20 @@ function getExportJobs() {
   return exportJobs
 }
 
+// notifications — mutable so mark-as-read sticks within a demo session
+let notifs = null
+function getNotifs() {
+  if (!notifs) notifs = [
+    { id: 'n1', kind: 'assignment', title: 'New assignment', body: 'KIA Findlay · Single Clean CML assigned to your list', read: false, created_at: '2026-07-17T09:42:00Z' },
+    { id: 'n2', kind: 'status', title: 'Service completed', body: 'Okland Construction · St. George Hospital marked completed', read: false, created_at: '2026-07-17T09:20:00Z' },
+    { id: 'n3', kind: 'integration', title: 'Integration error', body: 'New client · Aspire Club House fell into the DLQ (missing tax ID)', read: false, created_at: '2026-07-17T09:12:00Z' },
+    { id: 'n4', kind: 'export', title: 'Export ready', body: 'Weekly billing — W28 (XLSX) finished · 1,284 rows', read: true, created_at: '2026-07-16T07:41:00Z' },
+    { id: 'n5', kind: 'comment', title: 'New comment', body: 'Marina Rocha commented on Gray Star card: "Confirmed with client."', read: true, created_at: '2026-07-16T18:03:00Z' },
+    { id: 'n6', kind: 'mention', title: 'You were mentioned', body: 'Rui Braga mentioned you on the South route card', read: true, created_at: '2026-07-15T14:10:00Z' },
+  ]
+  return notifs
+}
+
 const clone = (x) => structuredClone(x)
 const wait = (ms = 90) => new Promise((res) => setTimeout(res, ms))
 function detail(id) {
@@ -295,17 +309,41 @@ export const mockApi = {
     const verbs = ['LOGIN', 'CREATE', 'UPDATE', 'MOVE', 'COMPLETE', 'EXPORT', 'DELETE']
     const users = MEMBERS.slice(0, 6)
     const r = rng(seedOf('audit'))
+    const STATES = ['unscheduled', 'scheduled', 'assigned', 'in_progress', 'completed']
     const rows = []
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 14; i++) {
       const u = pick(r, users)
+      const verb = pick(r, verbs)
+      // structured before→after diff for the verbs that carry one
+      let diff = null, entity = 'card', detail
+      if (verb === 'MOVE') { diff = { field: 'list', from: pick(r, COMPANIES), to: pick(r, COMPANIES) }; detail = 'moved card between workers' }
+      else if (verb === 'UPDATE' || verb === 'COMPLETE') { const a = pick(r, STATES); diff = { field: 'status', from: a, to: verb === 'COMPLETE' ? 'completed' : pick(r, STATES) }; detail = 'status change' }
+      else if (verb === 'CREATE') { entity = pick(r, ['card', 'board']); detail = `created ${entity}` }
+      else if (verb === 'EXPORT') { entity = 'export'; detail = pick(r, ['daily schedule (CSV)', 'full backup (JSON)']) }
+      else if (verb === 'DELETE') { detail = 'archived card' }
+      else { entity = 'session'; detail = 'signed in' }
       rows.push({
         id: 'a' + i, ts: `2026-07-17 09:${String(59 - i * 3).padStart(2, '0')}:0${i % 9}`,
-        user: u.name, initials: initials(u.name), verb: pick(r, verbs),
-        detail: pick(r, ['card on Gray Star', 'board JUL/17', 'export daily schedule', 'member invite', 'St George Crew card']),
+        user: u.name, initials: initials(u.name), verb, entity, detail, diff,
         scope: pick(r, ['North', 'South', 'St George', 'All']), ip: `10.0.${Math.floor(r() * 9)}.${Math.floor(r() * 250)}`,
+        correlation: `cor-${(seedOf('c' + i) % 100000).toString(16)}`,
       })
     }
     return rows
+  },
+
+  // ── notifications (in-app) ─────────────────────────────────────────────────
+  async getNotifications() {
+    await wait(40)
+    return getNotifs().map(clone)
+  },
+  async markNotificationRead(id) {
+    await wait(20)
+    const n = getNotifs().find((x) => x.id === id); if (n) n.read = true
+  },
+  async markAllNotificationsRead() {
+    await wait(20)
+    getNotifs().forEach((n) => { n.read = true })
   },
 
   // ── mutations (act on the board cache) ─────────────────────────────────────

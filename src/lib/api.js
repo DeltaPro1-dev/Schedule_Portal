@@ -261,20 +261,52 @@ const realApi = {
       const email = emailByUser[e.actor_user_id]
       const user = isSystem ? 'System' : email ? titleFromEmail(email) : 'User'
       const d = e.detail || {}
+      // structured before→after diff, when the event carries one
+      const diff =
+        d.from && d.to ? { field: 'status', from: d.from, to: d.to }
+        : d.toListId ? { field: 'list', from: d.fromListId || '—', to: d.toListId }
+        : null
       const detail =
-        d.from && d.to ? `${e.entity_type || 'item'} ${d.from} → ${d.to}`
-        : d.toListId ? `${e.entity_type || 'card'} moved`
+        diff?.field === 'status' ? 'status change'
+        : diff?.field === 'list' ? 'moved card between workers'
         : `${(e.verb || '').toLowerCase()} ${e.entity_type || ''}`.trim() || (e.entity_type || 'action')
       return {
         id: e.id,
         ts: new Date(e.created_at).toLocaleString(),
         user, initials: initials(user),
         verb: e.verb,
-        detail,
+        entity: e.entity_type || null,
+        detail, diff,
+        correlation: e.correlation_id || e.request_id || null,
         scope: e.scope || '—',
         ip: e.ip || '—',
       }
     })
+  },
+
+  // ── notifications (in-app) ──────────────────────────────────────────────────
+  // Reads the caller's own notifications (RLS: user_id = auth.uid()). The table +
+  // producers ship in migration 0009 (export.ready trigger today; more via triggers
+  // once deployed). Empty until 0009 is applied — the UI shows a valid empty state.
+  async getNotifications() {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50)
+    if (error) throw error
+    return (data || []).map((n) => ({
+      id: n.id, kind: n.kind, title: n.title, body: n.body, read: n.read,
+      created_at: n.created_at,
+    }))
+  },
+  async markNotificationRead(id) {
+    const { error } = await supabase.from('notifications').update({ read: true }).eq('id', id)
+    if (error) throw error
+  },
+  async markAllNotificationsRead() {
+    const { error } = await supabase.from('notifications').update({ read: true }).eq('read', false)
+    if (error) throw error
   },
 
   // Record a completed client-side export (audit trail). Uses the exports_insert

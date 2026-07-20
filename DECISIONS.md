@@ -395,3 +395,46 @@ Verified: build + lint green; headless (Playwright) — CSV downloads
 `full-backup-2026-07.json`, XLSX/PDF disabled, "Recent exports" gains a "You" row.
 Zero page errors. Migration + Edge Function reviewed against the schema (enums
 `export_format`/`export_status`, columns, existing RLS) but not executed.
+
+---
+
+## G4.1 — In-app notifications + audit governance (2026-07-20)
+**Approved by:** Eder (owner), "continue com G4 notificações e governança de audit".
+Notifications (in-app) + audit prev→after diff / correlation / retention. UI is
+demo-complete & tested; DB pieces ship ready-to-deploy (no Supabase access here).
+
+**Notifications (in-app) — working:**
+- `NotificationBell.jsx` in `TopNav`: unread badge, dropdown panel, mark one / mark
+  all read, kind icons (assignment/status/comment/mention/export/integration),
+  relative time, outside-click/Escape close, accessible (`aria-label` w/ unread
+  count, `aria-expanded`, `role="dialog"`). Tolerant of a missing backend → empty
+  state (never errors).
+- `api.getNotifications / markNotificationRead / markAllNotificationsRead`: mock is
+  full (6 seeded, mark-read sticks); real reads the `notifications` table (RLS:
+  own rows), best-effort in the UI.
+
+**Audit governance — working:**
+- `Audit.jsx`: verb filter + text search + **before→after diff chips** (from → to)
+  + correlation id column + **CSV export of the filtered log** (client-side, §10/§13).
+  `getAudit` (mock + real) now emits a structured `diff {field,from,to}`, `entity`
+  and `correlation`; real derives the diff from the existing audit `detail`
+  (`{from,to}` / `{fromListId,toListId}`) — no producer change needed.
+
+**Ready to deploy (NOT applied) — `0009_notifications_audit.sql`:**
+- `notifications` table + RLS (user reads/updates own; **no client insert** — same
+  non-forgeable stance as audit).
+- Producer trigger **`notify_export_ready`**: an `exports` row reaching `done`
+  notifies the requester (fires for client-side logged exports and the worker) —
+  a real, self-contained producer that pairs with G2.1.
+- Audit columns `correlation_id / request_id / session_id` (additive).
+- Retention helpers `prune_notifications(days=90)` and `prune_audit(days≥730)` with a
+  2-year audit floor guardrail (contract), for pg_cron.
+
+**Deferred (documented, not faked):** assignment.new needs the membership↔worker
+link (D6); service.completed / integration.dlq target a role+region audience — both
+added as triggers once D6 lands. Email/push/Teams channels remain future.
+
+Verified: build + lint green; headless (Playwright) — bell shows "3 unread" → panel
+lists 6 → "Mark all read" clears the badge; Audit shows diff arrows, verb filter
+narrows to "3 of 14 events", CSV downloads `audit-log.csv`. Zero page errors.
+Migration reviewed against the schema, not executed.

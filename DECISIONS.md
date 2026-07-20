@@ -5,6 +5,37 @@ domain model is recorded here with a version bump (Regra de Ouro, see README.md)
 
 ---
 
+## G5.3 — Wire up remaining buttons + search boxes (2026-07-20)
+**Approved by:** Eder (owner), "revisar os botões e caixa de pesquisas e colocar
+para funcionar tudo". Audited every button/search across the app; wired the dead ones.
+
+- **Members**: "Invite member" now opens an inline form (email + role + region) →
+  `api.inviteMember` (real: inserts a `memberships` row, status `invited`, access
+  derived from role, via the admin-only RLS; mock: appends). Added a **search box**
+  (name/email/role/region). Gated on `canEdit`.
+- **Customers**: added a **search box** (name/address/finance) — essential for the
+  441-client list; empty-state when no match.
+- **Board pool**: "+ Add vendor" now inline-adds a `company` worker
+  (`api.addWorker` kind=company) and refreshes; mock `getBoardDetail` recomputes the
+  pool from the live roster so it shows immediately (mirrors real mode).
+- **Integration Monitor**: "Reprocess" now calls `api.reprocessIntegration(id)` →
+  RPC `reprocess_integration` (migration **0012**, ready to deploy): re-queues a
+  DLQ/retrying event (admin/coordinator only) + writes a REPROCESS audit event.
+  Row id now flows through `getIntegration`. Inert until Field Control feeds the
+  queue (D8), but the button works.
+
+Audited-and-already-working (no change needed): Board search / add card / add
+worker / list; Gallery create board + archive; Roster search/add/edit/remove;
+Table filters/sort/CSV/inline-edit/saved-views; Audit filter/search/CSV; Dashboard;
+Calendar nav; CardModal actions; Login; Exports CSV/JSON; NotificationBell;
+Settings toggles.
+
+Verified: build + lint green; headless (Playwright) — invite adds a member +
+search filters (7→1); customer search empty-state; add-vendor reflects; reprocess
+re-queues (3→2 buttons). Zero page errors.
+
+---
+
 ## G0 — Contract frozen (2026-07-17, upload)
 Initial shared contract: NestJS + PostgreSQL + Redis/BullMQ + S3 + WebSocket,
 self-hosted. Artifacts: `glossary.md`, `data-model.md`, `permissions-matrix.md`,

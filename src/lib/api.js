@@ -319,6 +319,18 @@ const realApi = {
     }))
   },
 
+  // Invite a member (admin-only via memberships_admin_write RLS). Access level is
+  // derived from the role; it can be tuned later in the DB / a future admin UI.
+  async inviteMember({ email, role, region }) {
+    const access = role === 'admin' ? 'admin'
+      : ['coordinator', 'supervisor', 'operator'].includes(role) ? 'editor'
+      : 'none'
+    const { error } = await supabase.from('memberships').insert({
+      organization_id: await myOrg(), invited_email: email, role, region, access, status: 'invited',
+    })
+    if (error) throw error
+  },
+
   // Audit: immutable action log, newest first. Resolve actor names from the
   // memberships we can see (best-effort — non-admins only resolve their own).
   async getAudit() {
@@ -431,6 +443,7 @@ const realApi = {
       .from('integration_events').select('*').order('created_at', { ascending: false }).limit(50)
     if (error) throw error
     const rows = (data || []).map((e) => ({
+      id: e.id,
       entity: `${e.entity_type || 'event'}${e.entity_id ? ' · ' + String(e.entity_id).slice(0, 8) : ''}`,
       key: e.idempotency_key,
       attempts: `attempt ${e.attempts}`,
@@ -450,6 +463,14 @@ const realApi = {
       ],
       rows,
     }
+  },
+
+  // Re-queue a failed/retrying integration event (DLQ → queued). Server-side via
+  // an RPC (migration 0012); the queue is otherwise service-role-only. Inert until
+  // Field Control feeds the queue (decision D8), but the button is wired.
+  async reprocessIntegration(id) {
+    const { error } = await supabase.rpc('reprocess_integration', { p_id: id })
+    if (error) throw error
   },
 
   // ── Attachments (Supabase Storage bucket `schedule-attachments`) ────────────

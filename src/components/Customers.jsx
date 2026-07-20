@@ -13,6 +13,7 @@ const GRID = '1.3fr 1.6fr 130px 1fr 90px'
 export default function Customers({ onBack, canEdit }) {
   const [tab, setTab] = useState('customers')
   const [rows, setRows] = useState(null)
+  const [search, setSearch] = useState('')
   const [err, setErr] = useState('')
   const [adding, setAdding] = useState(false)
   const [draft, setDraft] = useState({ name: '', address: '', fin_contact: '' })
@@ -40,6 +41,12 @@ export default function Customers({ onBack, canEdit }) {
     await run(() => api.updateClient(id, { [key]: value.trim() || null }))
   }
 
+  const filteredRows = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return rows || []
+    return (rows || []).filter((c) => `${c.name} ${c.address || ''} ${c.fin_contact || ''}`.toLowerCase().includes(q))
+  }, [rows, search])
+
   const locations = useMemo(() => {
     const by = {}
     for (const c of rows || []) {
@@ -53,7 +60,14 @@ export default function Customers({ onBack, canEdit }) {
     <>
       <SectionHeader onBack={onBack} title="Customers" subtitle="Clients served · locations derived from their addresses"
         right={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            {tab === 'customers' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 12px', width: 200 }}>
+                <span aria-hidden="true" style={{ color: 'var(--faint)' }}>⌕</span>
+                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search customer…" aria-label="Search customer"
+                  style={{ border: 'none', background: 'none', outline: 'none', fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--ink)', width: '100%' }} />
+              </div>
+            )}
             <div role="group" aria-label="Customers or locations" style={{ display: 'flex', gap: 2, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: 3 }}>
               {[['customers', 'Customers'], ['locations', 'Locations']].map(([k, l]) => (
                 <button key={k} type="button" aria-pressed={tab === k} onClick={() => setTab(k)}
@@ -69,7 +83,7 @@ export default function Customers({ onBack, canEdit }) {
         {err && <div style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 12 }}>{err}</div>}
         {!rows ? <div style={{ color: 'var(--faint)' }}>Loading…</div> : tab === 'customers' ? (
           <div style={{ maxWidth: 1100 }}>
-            <div style={eyebrow}>Customers ({rows.length})</div>
+            <div style={eyebrow}>Customers ({filteredRows.length}{filteredRows.length !== rows.length ? ` of ${rows.length}` : ''})</div>
             <div style={panel}>
               <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 16, padding: '13px 20px', borderBottom: '1px solid var(--line)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--faint)' }}>
                 <span>Customer</span><span>Address</span><span>Finance</span><span>Notes</span><span />
@@ -87,7 +101,8 @@ export default function Customers({ onBack, canEdit }) {
                 </div>
               )}
               {rows.length === 0 && !adding && <div style={{ padding: '30px 20px', textAlign: 'center', fontSize: 12.5, color: 'var(--faint)' }}>No customers yet{canEdit ? ' — add the first one.' : '.'}</div>}
-              {rows.map((c) => (
+              {rows.length > 0 && filteredRows.length === 0 && <div style={{ padding: '24px 20px', textAlign: 'center', fontSize: 12.5, color: 'var(--faint)' }}>No customers match “{search}”.</div>}
+              {filteredRows.map((c) => (
                 <div key={c.id} style={{ display: 'grid', gridTemplateColumns: GRID, gap: 16, padding: '13px 20px', borderBottom: '1px solid var(--line-2)', alignItems: 'center' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                     <span aria-hidden="true" style={{ ...avatarStyle(c.name), width: 26, height: 26, fontSize: 10 }}>{initials(c.name)}</span>

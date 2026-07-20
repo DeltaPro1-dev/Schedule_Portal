@@ -221,6 +221,20 @@ function getTeamsStore() {
   return teamsStore
 }
 
+// integration events — mutable so "Reprocess" sticks within a demo session
+let integrationRows = null
+function getIntegrationRows() {
+  if (!integrationRows) integrationRows = [
+    { id: 'ie1', entity: 'Work order · OS-4821', key: 'idmp-4821-a1', attempts: 'attempt 1', when: '09:42:07', direction: 'Delta → Field Control', status: 'synced', err: '' },
+    { id: 'ie2', entity: 'Team check-in · North', key: 'idmp-north-ck', attempts: 'attempt 1', when: '09:40:11', direction: 'Field Control → Delta', status: 'synced', err: '' },
+    { id: 'ie3', entity: 'Completion · KIA Findlay', key: 'idmp-kia-fin', attempts: 'attempt 3', when: '09:38:02', direction: 'Delta → Field Control', status: 'retrying', err: 'Field Control endpoint timeout (504)' },
+    { id: 'ie4', entity: 'New client · Aspire Club House', key: 'idmp-aspire-01', attempts: 'attempt 5', when: '09:12:44', direction: 'Delta → Field Control', status: 'dlq', err: 'Validation rejected: missing tax ID' },
+    { id: 'ie5', entity: 'Route update · South', key: 'idmp-south-rt', attempts: 'attempt 1', when: '09:10:00', direction: 'Field Control → Delta', status: 'queued', err: '' },
+    { id: 'ie6', entity: 'Work order · OS-4815', key: 'idmp-4815-b2', attempts: 'attempt 2', when: '08:55:19', direction: 'Delta → Field Control', status: 'dlq', err: 'Version conflict (409) — reconciliation pending' },
+  ]
+  return integrationRows
+}
+
 // notifications — mutable so mark-as-read sticks within a demo session
 let notifs = null
 function getNotifs() {
@@ -260,7 +274,9 @@ export const mockApi = {
       board: { ...clone(d.board), jobs, completed },
       lists: d.lists.map(clone),
       cards: d.cards.map(resolveCard),
-      vendors: [...d.vendors],
+      // recompute from the live roster companies (mirrors real mode) so a newly
+      // added vendor shows immediately, instead of the frozen genBoard list
+      vendors: getRosterList().filter((w) => w.kind === 'company' && w.active !== false && !w.deleted_at).map((w) => w.name).slice(0, 20),
     }
   },
   async getRoster() { await wait(); return getRosterList().map(clone) },
@@ -281,6 +297,13 @@ export const mockApi = {
     roster = getRosterList().filter((x) => x.id !== id)
   },
   async getMembers() { await wait(); return MEMBERS.map(clone) },
+  async inviteMember({ email, role, region }) {
+    await wait()
+    const RLBL = { north: 'North', south: 'South', st_george: 'St George', another: 'Another State', all: 'All' }
+    const m = { id: nid('m'), name: email, email, role: role === 'viewer' ? 'read' : role, region: RLBL[region] || region, status: 'invited' }
+    MEMBERS.push(m)
+    return clone(m)
+  },
 
   // ── settings data ──────────────────────────────────────────────────────────
   async getOrganization() {
@@ -351,22 +374,23 @@ export const mockApi = {
   },
   async getIntegration() {
     await wait()
+    const rows = getIntegrationRows()
+    const n = (s) => rows.filter((r) => r.status === s).length
+    const synced = n('synced')
     return {
       stats: [
-        { v: '1', label: 'Queued', color: 'oklch(0.52 0.13 90)' },
-        { v: '1', label: 'Retrying', color: '#2563eb' },
-        { v: '2', label: 'Dead-letter (DLQ)', color: '#dc2626' },
-        { v: '2/6', label: 'Synced today', color: 'var(--green-ink)' },
+        { v: String(n('queued')), label: 'Queued', color: 'oklch(0.52 0.13 90)' },
+        { v: String(n('retrying')), label: 'Retrying', color: '#2563eb' },
+        { v: String(n('dlq')), label: 'Dead-letter (DLQ)', color: '#dc2626' },
+        { v: `${synced}/${rows.length}`, label: 'Synced today', color: 'var(--green-ink)' },
       ],
-      rows: [
-        { entity: 'Work order · OS-4821', key: 'idmp-4821-a1', attempts: 'attempt 1', when: '09:42:07', direction: 'Delta → Field Control', status: 'synced', err: '' },
-        { entity: 'Team check-in · North', key: 'idmp-north-ck', attempts: 'attempt 1', when: '09:40:11', direction: 'Field Control → Delta', status: 'synced', err: '' },
-        { entity: 'Completion · KIA Findlay', key: 'idmp-kia-fin', attempts: 'attempt 3', when: '09:38:02', direction: 'Delta → Field Control', status: 'retrying', err: 'Field Control endpoint timeout (504)' },
-        { entity: 'New client · Aspire Club House', key: 'idmp-aspire-01', attempts: 'attempt 5', when: '09:12:44', direction: 'Delta → Field Control', status: 'dlq', err: 'Validation rejected: missing tax ID' },
-        { entity: 'Route update · South', key: 'idmp-south-rt', attempts: 'attempt 1', when: '09:10:00', direction: 'Field Control → Delta', status: 'queued', err: '' },
-        { entity: 'Work order · OS-4815', key: 'idmp-4815-b2', attempts: 'attempt 2', when: '08:55:19', direction: 'Delta → Field Control', status: 'dlq', err: 'Version conflict (409) — reconciliation pending' },
-      ],
+      rows: rows.map(clone),
     }
+  },
+  async reprocessIntegration(id) {
+    await wait()
+    const r = getIntegrationRows().find((x) => x.id === id)
+    if (r) { r.status = 'queued'; r.err = ''; r.attempts = 'attempt ' + ((parseInt(r.attempts.replace(/\D/g, '')) || 0) + 1) }
   },
   async getExports() {
     await wait()

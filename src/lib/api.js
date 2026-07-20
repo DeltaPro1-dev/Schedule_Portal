@@ -277,6 +277,24 @@ const realApi = {
     })
   },
 
+  // Record a completed client-side export (audit trail). Uses the exports_insert
+  // RLS policy (member inserts their own row for their org). Best-effort — the
+  // file download already happened, so a logging failure must not surface as a
+  // failed export.
+  async logExport({ report_type, format, row_count, params_json }) {
+    const { data: auth } = await supabase.auth.getUser()
+    const { data, error } = await supabase
+      .from('exports')
+      .insert({
+        organization_id: await myOrg(), requested_by: auth?.user?.id ?? null,
+        report_type, format, row_count: row_count ?? null, params_json: params_json || {},
+        status: 'done', finished_at: new Date().toISOString(),
+      })
+      .select().single()
+    if (error) throw error
+    return data
+  },
+
   // Exports: static format cards + the org's recent export jobs (table may be
   // empty until the export worker exists).
   async getExports() {

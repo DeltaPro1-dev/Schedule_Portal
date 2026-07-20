@@ -175,6 +175,19 @@ function genBoard(board) {
   return { board: { ...board }, lists, cards, vendors: [...new Set(vendors)] }
 }
 
+// export jobs — mutable so a client-side export shows up in "Recent exports"
+let exportJobs = null
+function getExportJobs() {
+  if (!exportJobs) exportJobs = [
+    { name: 'Daily schedule — JUL/16/26', when: 'Jul 16, 08:12', rows: '200 rows', fmt: 'CSV', by: 'Marina Rocha', status: 'completed' },
+    { name: 'Weekly billing — W28', when: 'Jul 16, 07:40', rows: '1,284 rows', fmt: 'XLSX', by: 'Marina Rocha', status: 'completed' },
+    { name: 'Operational report — July', when: 'Jul 16, 07:38', rows: '42 pages', fmt: 'PDF', by: 'Rui Braga', status: 'processing' },
+    { name: 'Full backup — all boards', when: 'Jul 16, 06:00', rows: '18,902 rows', fmt: 'JSON', by: 'System (scheduled)', status: 'queued' },
+    { name: 'Daily schedule — JUL/15/26', when: 'Jul 15, 18:20', rows: '162 rows', fmt: 'CSV', by: 'Aisha Burgess', status: 'completed' },
+  ]
+  return exportJobs
+}
+
 const clone = (x) => structuredClone(x)
 const wait = (ms = 90) => new Promise((res) => setTimeout(res, ms))
 function detail(id) {
@@ -264,14 +277,18 @@ export const mockApi = {
         { ext: 'PDF', name: 'Operational report', hint: 'executive summary', color: '#dc2626' },
         { ext: 'JSON', name: 'Full backup', hint: 'all boards', color: 'var(--navy)' },
       ],
-      jobs: [
-        { name: 'Daily schedule — JUL/16/26', when: 'Jul 16, 08:12', rows: '200 rows', fmt: 'CSV', by: 'Marina Rocha', status: 'completed' },
-        { name: 'Weekly billing — W28', when: 'Jul 16, 07:40', rows: '1,284 rows', fmt: 'XLSX', by: 'Marina Rocha', status: 'completed' },
-        { name: 'Operational report — July', when: 'Jul 16, 07:38', rows: '42 pages', fmt: 'PDF', by: 'Rui Braga', status: 'processing' },
-        { name: 'Full backup — all boards', when: 'Jul 16, 06:00', rows: '18,902 rows', fmt: 'JSON', by: 'System (scheduled)', status: 'queued' },
-        { name: 'Daily schedule — JUL/15/26', when: 'Jul 15, 18:20', rows: '162 rows', fmt: 'CSV', by: 'Aisha Burgess', status: 'completed' },
-      ],
+      jobs: [...getExportJobs()],
     }
+  },
+  async logExport({ report_type, format, row_count }) {
+    await wait(40)
+    getExportJobs().unshift({
+      name: report_type || 'Export',
+      when: new Date().toLocaleString(),
+      rows: row_count != null ? `${row_count} rows` : '—',
+      fmt: String(format || '').toUpperCase(),
+      by: 'You', status: 'completed',
+    })
   },
   async getAudit() {
     await wait()

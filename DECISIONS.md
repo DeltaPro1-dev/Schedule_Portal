@@ -353,3 +353,45 @@ re-applying it restores the search term. Zero page errors.
 **G3 (operational views) gate: CLEAR** — Table, Dashboard, Calendar,
 responsiveness + accessibility, inline editing + saved views all delivered. Open
 backlog (non-blocking): cross-board global search; shared SavedView table.
+
+---
+
+## G2.1 — Export worker + deploy prep (2026-07-20)
+**Approved by:** Eder (owner), "continue com o export worker + deploy (G2)".
+Two-layer export strategy so exports work **today** while the async worker is
+prepared for deployment. The build environment has no Supabase/Vercel account
+access, so server/infra pieces are shipped **ready-to-deploy and are explicitly
+NOT yet deployed** (honest boundary; steps in DEPLOY.md).
+
+**Working now (client-side, tested):**
+- `src/lib/exporters.js`: builds real **CSV** (daily schedule, newest board) and
+  **JSON** (full backup, current month capped at 12 boards) from live data and
+  downloads them. `src/lib/csv.js` reused.
+- `Exports.jsx`: CSV/JSON format cards are actionable → generate + download +
+  success/row-count feedback; **XLSX/PDF are disabled** with "via worker (deploy
+  pending)". "Recent exports" refreshes after each run.
+- `api.logExport(...)`: records a completed export. Real mode inserts an `exports`
+  row via the **existing `exports_insert` RLS policy** (no migration needed);
+  best-effort (a logging failure never fails the download). Mock keeps a mutable
+  jobs list so the audit/history updates live in demo.
+
+**Ready to deploy (NOT deployed — no account access):**
+- `supabase/migrations/0008_exports.sql`: private `schedule-exports` bucket + member
+  read policy (own-org folder) + `request_export(report_type, format, params)` RPC
+  (enqueue, status `queued`).
+- `supabase/functions/export-worker/index.ts`: Deno Edge Function that drains queued
+  `exports` rows → builds CSV/JSON → uploads to `schedule-exports/<org>/<id>.<ext>` →
+  marks `done`. XLSX/PDF marked `failed` until a formatter lib is added.
+- `DEPLOY.md`: Vercel front-end steps (env vars, SPA config) + worker deploy
+  (migration, `functions deploy`, schedule) + UI follow-up.
+
+**Deferred (documented):** XLSX/PDF generation (needs a worker-side library);
+switching XLSX/PDF/large exports in the UI to `request_export` + signed-URL download
+once the worker is live; actually running `vercel` / `supabase functions deploy`
+(needs the Delta accounts).
+
+Verified: build + lint green; headless (Playwright) — CSV downloads
+`daily-schedule-…​.csv` (header + 24 rows, commas quoted), JSON downloads
+`full-backup-2026-07.json`, XLSX/PDF disabled, "Recent exports" gains a "You" row.
+Zero page errors. Migration + Edge Function reviewed against the schema (enums
+`export_format`/`export_status`, columns, existing RLS) but not executed.

@@ -262,7 +262,7 @@ Mapa das **16 telas prioritárias** do prompt:
 | 6 | Table View | `TableView.jsx` | ✅ (G3.1/G3.4 — filtros, sort, CSV, edição inline, saved views) |
 | 7 | Calendar | `Calendar.jsx` | ✅ (G3.2 — mês/semana) |
 | 8 | Audit Log | `Audit.jsx` | ✅ |
-| 9 | Export Center | `Exports.jsx` | 🟡 UI ✅ / worker ⬜ |
+| 9 | Export Center | `Exports.jsx` | ✅ CSV/JSON client-side (G2.1) · worker XLSX/PDF pronto p/ deploy |
 | 10 | Users | `Members.jsx` | ✅ |
 | 11 | Roles & Permissions | `Members.jsx` (+ matriz) | ✅ (matriz estática) |
 | 12 | Teams | — | ⬜ (modelo previsto) |
@@ -315,7 +315,7 @@ sem overflow horizontal a 375px.
 | Auth | Supabase Auth (email/senha) + `provision_me()` | ✅ |
 | Realtime | Supabase Realtime (postgres_changes) | ✅ (G1.2) |
 | Storage | Supabase Storage, bucket `schedule-attachments` (privado) | ✅ (G1.5) |
-| Filas / async | tabelas-fila + `pg_cron`/Edge Functions | 🟡 modelo ✅ / worker ⬜ |
+| Filas / async | tabelas-fila + `pg_cron`/Edge Functions | 🟡 export-worker escrito (G2.1), deploy pendente |
 | PWA | `vite-plugin-pwa` presente | 🟡 configurar (G8) |
 
 **Pivot G0→G1 (aprovado):** trocamos NestJS + Redis/BullMQ + S3 + WebSocket
@@ -393,10 +393,12 @@ integrações e mobile.
 
 ## Roadmap para concluir (fases propostas)
 
-### G2 — Fundação de produção & Governança (próximo)
-- ✅ Host definido (Vercel, D7) + `vercel.json`; falta ligar o projeto Vercel ao repo
-  e configurar as env vars do Supabase nas settings.
-- Export **worker** real (CSV/XLSX assíncrono via fila + Storage) — hoje só UI.
+### G2 — Fundação de produção & Governança (em andamento)
+- ✅ Host definido (Vercel, D7) + `vercel.json` + **DEPLOY.md**; falta ligar o projeto
+  Vercel ao repo e configurar as env vars (passo manual, precisa da conta Vercel).
+- 🟡 Exports (G2.1): **CSV/JSON client-side funcionando e logado** hoje; worker
+  assíncrono (XLSX/PDF/grandes) **pronto p/ deploy** (`0008_exports.sql` +
+  Edge Function `export-worker`), ainda não implantado (precisa de acesso Supabase).
 - Consolidar **design system** documentado (tokens + catálogo de componentes).
 - Error boundaries / loading boundaries / permission guards como componentes.
 - Observabilidade mínima: error tracking + health checks + queue monitor.

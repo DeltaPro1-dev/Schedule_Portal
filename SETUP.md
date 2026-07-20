@@ -23,6 +23,9 @@ supabase/migrations/0002_rls.sql           grants, helpers, provision_me(), RLS
 supabase/migrations/0003_storage.sql       bucket schedule-attachments + policies
 supabase/migrations/0004_transitions.sql   card_transition() + card_move() RPCs
 supabase/migrations/0005_review_fixes.sql  audit hardening + done-flag fix
+supabase/migrations/0006_realtime.sql      realtime publication + replica identity
+supabase/migrations/0007_rbac.sql          finer RBAC: role gates + region scoping
+supabase/migrations/0008_exports.sql       async export worker: bucket + request_export()
 supabase/seed_workers.sql                  starter roster (employees + companies) — run once
 ```
 
@@ -64,8 +67,14 @@ membership and the board loads with real data.
   (seed them in step 1 or manage them in the app's **Employees** screen).
 - Reference-only screens fall back to mock where a Supabase endpoint isn't wired yet.
 
+## Deployment
+See **[DEPLOY.md](DEPLOY.md)** for hosting the front-end on Vercel and deploying the
+async export worker (Edge Function `export-worker`).
+
 ## Status
-- ✅ Built & verified: auth, provisioning, board read, create (board/list/card, RLS),
-  transitions, drag-drop, roster auto-generation. All 9 screens.
-- ⏳ Next: Realtime subscriptions, attachment upload UI, wiring the admin screens
-  (Exports/Audit/Integration) to real endpoints.
+- ✅ Built & verified: auth, provisioning, board read/create (RLS), transitions,
+  drag-drop, roster auto-generation, realtime, attachments, finer RBAC. Screens:
+  Login, Boards, Kanban, Card, Table (inline edit + saved views), Dashboard,
+  Calendar, Employees, Members, Exports (CSV/JSON client-side), Integration, Audit.
+- ⏳ Next: deploy the export worker (XLSX/PDF + large/scheduled async exports);
+  Field Control / NetSuite integrations (need credentials).

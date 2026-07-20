@@ -132,6 +132,65 @@ const realApi = {
     if (error) throw error
   },
 
+  // ── Customers (clients table — RLS from 0002, no migration needed) ─────────
+  async getClients() {
+    const { data, error } = await supabase.from('clients').select('*').is('deleted_at', null).order('name')
+    if (error) throw error
+    return data || []
+  },
+  async addClient({ name, address, fin_contact, notes }) {
+    const { data, error } = await supabase
+      .from('clients')
+      .insert({ organization_id: await myOrg(), name, address: address || null, fin_contact: fin_contact || null, notes: notes || null })
+      .select().single()
+    if (error) throw error
+    return data
+  },
+  async updateClient(id, patch) {
+    const { error } = await supabase.from('clients').update(patch).eq('id', id)
+    if (error) throw error
+  },
+  async removeClient(id) {
+    const { error } = await supabase.from('clients').update({ deleted_at: new Date().toISOString() }).eq('id', id)
+    if (error) throw error
+  },
+
+  // ── Teams (migration 0011; callers tolerate a missing table → empty state) ──
+  async getTeams() {
+    const { data, error } = await supabase
+      .from('teams')
+      .select('*, team_members(id, worker:workers(id, name, region))')
+      .is('deleted_at', null)
+      .order('name')
+    if (error) throw error
+    return (data || []).map((t) => ({
+      ...t,
+      members: (t.team_members || []).map((tm) => ({ id: tm.id, worker: tm.worker })).filter((m) => m.worker),
+    }))
+  },
+  async addTeam({ name, region }) {
+    const { data, error } = await supabase
+      .from('teams')
+      .insert({ organization_id: await myOrg(), name, region: region || null })
+      .select().single()
+    if (error) throw error
+    return { ...data, members: [] }
+  },
+  async removeTeam(id) {
+    const { error } = await supabase.from('teams').update({ deleted_at: new Date().toISOString() }).eq('id', id)
+    if (error) throw error
+  },
+  async addTeamMember(teamId, workerId) {
+    const { error } = await supabase
+      .from('team_members')
+      .insert({ organization_id: await myOrg(), team_id: teamId, worker_id: workerId })
+    if (error) throw error
+  },
+  async removeTeamMember(memberId) {
+    const { error } = await supabase.from('team_members').delete().eq('id', memberId)
+    if (error) throw error
+  },
+
   async addList({ board_id, name }) {
     const org = await myOrg()
     const { count } = await supabase.from('lists').select('id', { count: 'exact', head: true }).eq('board_id', board_id)

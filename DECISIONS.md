@@ -477,3 +477,35 @@ worker chip; all prior flows unaffected (board/table/modal). Migration reviewed
 against 0007's policies/RPCs line-by-line (same bodies + guards), not executed.
 Current sole member is admin/region=all → zero observable change until operator
 memberships are linked, by design.
+
+---
+
+## G5.1 — Customers, Locations & Teams screens (2026-07-20)
+**Approved by:** Eder (owner), "g5". Delivers priority screens 12/13/14; only
+Settings remains from the 16-screen list.
+
+- **Customers** (`Customers.jsx`): full CRUD on the existing `clients` table — its
+  RLS shipped in 0002, so **real mode needs no migration**. Add form (name required),
+  inline editing of address / finance contact / notes, archive (soft delete, same
+  pattern as workers). Read-only when `canEdit` is false; App now passes `canEdit`
+  to all section screens.
+- **Locations**: sub-view inside Customers (tab) — an **honest derived view**
+  grouping customers by address with counts. A dedicated CustomerLocation entity
+  (multiple sites per customer, geo data) remains future work needing a contract
+  decision; stated on-screen and here, not faked.
+- **Teams** (`Teams.jsx` + migration **`0011_teams.sql`**, ready to deploy — NOT
+  applied): `teams` + `team_members` per the contract's data model (§17), RLS in
+  the standard 0002 org-scoped pattern; removing a member is editor-level (link
+  row), team delete is admin (UI archives via soft delete). Screen: create team
+  (name + optional region), member chips with add-picker from the roster (employees)
+  and remove, archive. In real mode before 0011 it shows an honest banner + empty
+  state instead of breaking. Mock seeds 3 crews.
+- `data-model.md` gains the teams tables (G5 annotation); SETUP.md lists 0011.
+- TopNav gains Teams + Customers (nav now wraps to stay usable at any width).
+
+Verified: build + lint green; headless (Playwright) — customer added (7→8), inline
+finance edit persists, Locations tab groups the new address; Teams renders 3 seeded
+crews, "ZZ Night Shift" created with region, member added from the roster picker
+("1 member"). Zero page errors. Migration reviewed, not executed.
+
+**16-screen scoreboard: 15/16 — only Settings left.**

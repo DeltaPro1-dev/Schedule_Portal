@@ -10,12 +10,14 @@ import TableView from './components/TableView.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import Calendar from './components/Calendar.jsx'
 import Roster from './components/Roster.jsx'
+import Teams from './components/Teams.jsx'
+import Customers from './components/Customers.jsx'
 import Members from './components/Members.jsx'
 import Exports from './components/Exports.jsx'
 import Integration from './components/Integration.jsx'
 import Audit from './components/Audit.jsx'
 
-const SECTIONS = { dashboard: Dashboard, calendar: Calendar, roster: Roster, members: Members, exports: Exports, integration: Integration, audit: Audit }
+const SECTIONS = { dashboard: Dashboard, calendar: Calendar, roster: Roster, teams: Teams, customers: Customers, members: Members, exports: Exports, integration: Integration, audit: Audit }
 
 export default function App() {
   const [entered, setEntered] = useState(false)
@@ -96,7 +98,13 @@ export default function App() {
           <Gallery onOpenBoard={(id) => { setBoardId(id); setView('board') }} onCreateBoard={createBoard} />
         </>
       )}
-      {Section && <Section onBack={() => setView('gallery')} onOpenBoard={(id) => { setBoardId(id); setView('board') }} />}
+      {Section && (
+        <Section
+          onBack={() => setView('gallery')}
+          onOpenBoard={(id) => { setBoardId(id); setView('board') }}
+          canEdit={demoMode || ['admin', 'editor'].includes(membership?.access)}
+        />
+      )}
 
       {modalData && (
         <CardModal

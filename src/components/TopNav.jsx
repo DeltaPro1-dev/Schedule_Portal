@@ -5,6 +5,8 @@ const NAV = [
   { key: 'dashboard', label: 'Dashboard' },
   { key: 'calendar', label: 'Calendar' },
   { key: 'roster', label: 'Employees' },
+  { key: 'teams', label: 'Teams' },
+  { key: 'customers', label: 'Customers' },
   { key: 'members', label: 'Members' },
   { key: 'exports', label: 'Exports' },
   { key: 'audit', label: 'Audit' },
@@ -20,7 +22,7 @@ export default function TopNav({ view, onNavigate, onLogout, demo }) {
       <img src="/logo-horizontal.png" alt="Delta Pro Clean" style={{ height: 34, width: 'auto', objectFit: 'contain' }} />
       {demo && <span style={{ marginLeft: 6, background: 'var(--green-soft)', color: 'var(--green-ink)', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 }}>demo · mock data</span>}
       <div style={{ flex: 1 }} />
-      <nav aria-label="Primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <nav aria-label="Primary" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {NAV.map((t) => {
           const active = view === t.key || (t.key === 'gallery' && view === 'board')
           return (

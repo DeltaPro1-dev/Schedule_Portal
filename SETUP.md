@@ -28,6 +28,7 @@ supabase/migrations/0007_rbac.sql          finer RBAC: role gates + region scopi
 supabase/migrations/0008_exports.sql       async export worker: bucket + request_export()
 supabase/migrations/0009_notifications_audit.sql  notifications + audit governance
 supabase/migrations/0010_worker_link.sql   D6: memberships.worker_id (operator scope) + producers
+supabase/migrations/0011_teams.sql         G5: teams + team_members (Teams screen)
 supabase/seed_workers.sql                  starter roster (employees + companies) — run once
 ```
 

@@ -188,6 +188,39 @@ function getExportJobs() {
   return exportJobs
 }
 
+// clients — mutable CRUD store seeded from the demo palette
+let clientsStore = null
+function getClientsStore() {
+  if (!clientsStore) {
+    const r = rng(seedOf('clients'))
+    clientsStore = CLIENTS.map((name, i) => ({
+      id: 'cl' + i, name,
+      address: pick(r, ADDRESSES),
+      fin_contact: pick(r, FINS),
+      notes: r() < 0.3 ? 'Monthly contract' : null,
+    }))
+  }
+  return clientsStore
+}
+
+// teams — mutable store seeded from the roster
+let teamsStore = null
+function getTeamsStore() {
+  if (!teamsStore) {
+    const emps = getRosterList().filter((w) => w.kind === 'employee')
+    const mk = (id, name, region, idxs) => ({
+      id, name, region, notes: null,
+      members: idxs.map((i, j) => ({ id: `${id}-m${j}`, worker: { id: emps[i].id, name: emps[i].name, region: emps[i].region } })),
+    })
+    teamsStore = [
+      mk('t1', 'St George Crew', 'st_george', [0, 3, 7]),
+      mk('t2', 'North Route', 'north', [1, 4, 9, 12]),
+      mk('t3', 'South Floor Care', 'south', [2, 5]),
+    ]
+  }
+  return teamsStore
+}
+
 // notifications — mutable so mark-as-read sticks within a demo session
 let notifs = null
 function getNotifs() {
@@ -248,6 +281,52 @@ export const mockApi = {
     roster = getRosterList().filter((x) => x.id !== id)
   },
   async getMembers() { await wait(); return MEMBERS.map(clone) },
+
+  // ── customers (clients) ────────────────────────────────────────────────────
+  async getClients() { await wait(); return getClientsStore().map(clone) },
+  async addClient({ name, address, fin_contact, notes }) {
+    await wait()
+    const c = { id: nid('cl'), name, address: address || null, fin_contact: fin_contact || null, notes: notes || null }
+    getClientsStore().unshift(c)
+    return clone(c)
+  },
+  async updateClient(id, patch) {
+    await wait()
+    const c = getClientsStore().find((x) => x.id === id)
+    if (c) Object.assign(c, patch)
+  },
+  async removeClient(id) {
+    await wait()
+    clientsStore = getClientsStore().filter((x) => x.id !== id)
+  },
+
+  // ── teams ──────────────────────────────────────────────────────────────────
+  async getTeams() { await wait(); return getTeamsStore().map(clone) },
+  async addTeam({ name, region }) {
+    await wait()
+    const t = { id: nid('t'), name, region: region || null, notes: null, members: [] }
+    getTeamsStore().unshift(t)
+    return clone(t)
+  },
+  async removeTeam(id) {
+    await wait()
+    teamsStore = getTeamsStore().filter((x) => x.id !== id)
+  },
+  async addTeamMember(teamId, workerId) {
+    await wait()
+    const t = getTeamsStore().find((x) => x.id === teamId)
+    const w = getRosterList().find((x) => x.id === workerId)
+    if (t && w && !t.members.some((m) => m.worker.id === workerId)) {
+      t.members.push({ id: nid('tm'), worker: { id: w.id, name: w.name, region: w.region } })
+    }
+  },
+  async removeTeamMember(memberId) {
+    await wait()
+    for (const t of getTeamsStore()) {
+      const i = t.members.findIndex((m) => m.id === memberId)
+      if (i >= 0) { t.members.splice(i, 1); return }
+    }
+  },
   async getPermMatrix() {
     await wait()
     const g = (label, kind) => ({ label, kind })

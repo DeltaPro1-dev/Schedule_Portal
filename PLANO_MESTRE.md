@@ -266,15 +266,14 @@ Mapa das **16 telas prioritárias** do prompt:
 | 9 | Export Center | `Exports.jsx` | ✅ CSV/JSON client-side (G2.1) · worker XLSX/PDF pronto p/ deploy |
 | 10 | Users | `Members.jsx` | ✅ |
 | 11 | Roles & Permissions | `Members.jsx` (+ matriz) | ✅ (matriz estática) |
-| 12 | Teams | — | ⬜ (modelo previsto) |
-| 13 | Customers | — | 🟡 `clients` no schema / UI ⬜ |
-| 14 | Locations | — | 🟡 campo no card / entidade ⬜ |
+| 12 | Teams | `Teams.jsx` | ✅ (G5.1 — CRUD; migração 0011) |
+| 13 | Customers | `Customers.jsx` | ✅ (G5.1 — CRUD real na tabela `clients`) |
+| 14 | Locations | `Customers.jsx` (aba) | ✅ (G5.1 — visão derivada; entidade própria = futuro) |
 | 15 | Integration Monitor | `Integration.jsx` | ✅ (UI) / produtor ⬜ |
 | 16 | Settings | — | ⬜ |
 
-**11/16 telas prontas; 3 parciais; 2 a fazer** (Teams, Settings + Customers/
-Locations parciais). Card Detail full-page: o produto usa modal/drawer — full page é
-opcional (fase futura).
+**15/16 telas prontas — falta só Settings.** Card Detail full-page: o produto usa
+modal/drawer — full page é opcional (fase futura).
 
 ## Design system
 ✅ Tokens de design aplicados via Tailwind v4 + paleta oficial da marca (Manual ID
@@ -425,10 +424,12 @@ integrações e mobile.
   `integration.dlq` (0010, destravados pelo D6). E-mail/push/Teams: futuro.
 - ⬜ Data retention aplicada / soft-delete policy / privacy controls; threat model formal.
 
-### G5 — Operations (calendar/workload/teams/customers/locations)
-- Calendar (dia/semana/mês, conflito, capacidade).
-- Workload (carga por worker/equipe, horas prev×disp).
-- Materializar Teams, Customers e Locations como telas + entidades.
+### G5 — Operations (em andamento)
+- ✅ Calendar (G3.2, entregue adiantado).
+- ✅ Teams (tela + migração `0011_teams.sql`), Customers (CRUD real em `clients`),
+  Locations (visão derivada por endereço) — G5.1.
+- ⬜ Workload (carga por worker/equipe) — depende de horas prev×real no card.
+- ⬜ Entidade CustomerLocation própria (multi-site + geo) — decisão de contrato futura.
 
 ### G6 — Field Control (integração) 🔒→⬜
 - Mappings, sync (customers/locations/employees/orders/tasks/status/check-in/out/

@@ -49,6 +49,12 @@ Organization 1─* AuditEvent | Export | IntegrationEvent
  raw_title?, done (bool), version, created_at, updated_at, deleted_at?`
 - Index: (board_id, list_id, position), (organization_id, status).
 
+### teams / team_members  (G5, migration 0011)
+`teams: id, organization_id, name, region?, notes?, created_at, deleted_at?`
+`team_members: id, organization_id, team_id, worker_id, created_at` — unique (team_id, worker_id)
+- RLS: standard org-scoped pattern (select=member, write=editor); removing a member
+  is editor-level (link row), deleting a team is admin (archive via soft delete).
+
 ### labels / card_labels
 `labels: id, organization_id, key, name, color, kind (region|type|schedule)`
 Seeds (15): model_home, office, residential, st_george, floor_care, south, scheduled_time, north, another_state, janitorial, windows, quality_inspection, commercial, hpw, emergency.

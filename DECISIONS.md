@@ -239,3 +239,36 @@ comparable timestamp).
 Verified: `npm run build` green; headless (Playwright) smoke — login → Dashboard
 renders & aggregates, board → Table renders 24 jobs with sort + CSV, Board↔Table
 toggle both ways, zero page errors.
+
+---
+
+## D7 — Front-end host = Vercel (2026-07-20)
+**Approved by:** Eder (owner), in chat. Pending decision D7 from `PLANO_MESTRE.md`
+resolved. Vercel chosen for the Vite/React SPA (simplest deploy, per-PR previews).
+- `vercel.json` added: framework `vite`, build `npm run build`, output `dist`, SPA
+  rewrite to `/index.html` (excluding `/assets/*` and files with an extension).
+- Supabase env vars (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) are set in the
+  Vercel project settings, not committed (see `.env.example`). No `.env` → demo mode.
+Unblocks the deploy step of roadmap G2.
+
+---
+
+## G3.2 — Calendar view (2026-07-20)
+**Approved by:** Eder (owner), chose "Calendar view" as the next G3 item.
+Second execution item of roadmap **G3**. Front-end only; no schema/API change.
+
+- `src/components/Calendar.jsx` (§9.3): month + week grid over the day-boards
+  (Board = one operating day). Each populated cell opens that board; cells show
+  workers count, open/closed, starred. Month/week toggle + prev/next navigation.
+  Uses `api.getBoards` only (no per-day detail fetch — cheap in real mode); works
+  in mock and real mode. Added to `TopNav` + `App` SECTIONS; `App` now passes
+  `onOpenBoard` to section screens.
+
+**Honest scope:** cards carry `scheduled_time` as free text (not a comparable
+timestamp), so a true per-event/per-hour calendar isn't meaningful yet — the view
+is a board-per-day navigator, not an hour grid. Team/service filters on the calendar
+are deferred (board list doesn't carry that without loading each day's detail).
+
+Verified: build green; headless smoke — Calendar renders month (July) with open/
+closed cells, week toggle shows the week range, prev/next navigates, clicking an
+open day opens that board. Zero page errors.

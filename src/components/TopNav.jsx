@@ -1,6 +1,7 @@
 const NAV = [
   { key: 'gallery', label: 'Boards' },
   { key: 'dashboard', label: 'Dashboard' },
+  { key: 'calendar', label: 'Calendar' },
   { key: 'roster', label: 'Employees' },
   { key: 'members', label: 'Members' },
   { key: 'exports', label: 'Exports' },

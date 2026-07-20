@@ -221,7 +221,7 @@ Previstos como `CustomField`/`CustomFieldValue` — **fora do MVP**.
 |---|---|
 | Board (Kanban, drag-and-drop, realtime) | ✅ (G1.2 realtime) |
 | Table (spreadsheet, filtros, sort, CSV export) | ✅ (G3.1) |
-| Calendar (dia/semana/mês) | ⬜ (G5) |
+| Calendar (mês/semana sobre os boards-dia) | ✅ (G3.2) |
 | Timeline | 🔒 fase futura |
 | Workload (carga por worker/equipe, horas) | ⬜ (G5) |
 | Map | 🔒 fase futura |
@@ -260,7 +260,7 @@ Mapa das **16 telas prioritárias** do prompt:
 | 4 | Kanban Board | `Board.jsx` | ✅ (realtime, DnD) |
 | 5 | Card Detail | `CardModal.jsx` | ✅ (checklist, anexos, labels) |
 | 6 | Table View | `TableView.jsx` | ✅ (G3.1 — filtros, sort, CSV) |
-| 7 | Calendar | — | ⬜ |
+| 7 | Calendar | `Calendar.jsx` | ✅ (G3.2 — mês/semana) |
 | 8 | Audit Log | `Audit.jsx` | ✅ |
 | 9 | Export Center | `Exports.jsx` | 🟡 UI ✅ / worker ⬜ |
 | 10 | Users | `Members.jsx` | ✅ |
@@ -271,7 +271,7 @@ Mapa das **16 telas prioritárias** do prompt:
 | 15 | Integration Monitor | `Integration.jsx` | ✅ (UI) / produtor ⬜ |
 | 16 | Settings | — | ⬜ |
 
-**10/16 telas prontas; 3 parciais; 3 a fazer** (Calendar, Teams, Settings + Customers/
+**11/16 telas prontas; 3 parciais; 2 a fazer** (Teams, Settings + Customers/
 Locations parciais). Card Detail full-page: o produto usa modal/drawer — full page é
 opcional (fase futura).
 
@@ -328,7 +328,8 @@ integration (fila). 🟡 Módulos "reports" e "notifications" ⬜.
 ✅ Schema `schedule_portal` **dentro do projeto compartilhado** `sryywirmhohrdsssujwf`
 (hospeda também Check List App em prod/199 usuários, Expense Portal, sheets-sync).
 Isolamento total por schema — nunca toca `public.*`. Decisão de custo/consistência,
-G1. Deploy do front-end: ⬜ definir (Vercel/Netlify/Supabase hosting) — item de G2.
+G1. Deploy do front-end: ✅ **Vercel** (D7, `vercel.json`) — env vars nas settings do
+projeto, não commitadas.
 
 ## Observabilidade
 🟡 Audit log ✅. Application logs / error tracking (Sentry-like) / uptime / alertas /
@@ -389,7 +390,8 @@ integrações e mobile.
 ## Roadmap para concluir (fases propostas)
 
 ### G2 — Fundação de produção & Governança (próximo)
-- Deploy do front-end (definir host) + variáveis/secrets.
+- ✅ Host definido (Vercel, D7) + `vercel.json`; falta ligar o projeto Vercel ao repo
+  e configurar as env vars do Supabase nas settings.
 - Export **worker** real (CSV/XLSX assíncrono via fila + Storage) — hoje só UI.
 - Consolidar **design system** documentado (tokens + catálogo de componentes).
 - Error boundaries / loading boundaries / permission guards como componentes.
@@ -400,6 +402,7 @@ integrações e mobile.
 ### G3 — Views operacionais (em andamento)
 - ✅ **Table View** (spreadsheet, filtros, sort, CSV export) — G3.1.
 - ✅ **Dashboard** (status, região, top clientes, integração) — G3.1.
+- ✅ **Calendar** (mês/semana sobre os boards-dia) — G3.2.
 - ⬜ Edição inline na Table + saved views (`SavedView`); busca global.
 - ⬜ Auditoria de responsividade + acessibilidade (WCAG/teclado/ARIA no DnD).
 - **Gate:** operação diária completa em desktop/tablet/mobile.
@@ -446,7 +449,7 @@ Registro completo em [DECISIONS.md](DECISIONS.md). Resumo das decisões estrutur
 | D4 | Supabase Auth como identidade (sem tabela `users`) | Tabela `users` própria | Supabase Auth + memberships | ✅ Aprovado (G1) |
 | D5 | RBAC via RLS + RPCs | Guards só no app | Server-side (RLS+RPC) | ✅ Aprovado (G1.6) |
 | D6 | `memberships.worker_id` p/ escopo "assigned" do operador | Tratar operador como region (superset) | Adicionar o link | ⏳ **Pendente** |
-| D7 | Host do front-end (Vercel/Netlify/Supabase) | — | A definir em G2 | ⏳ **Pendente** |
+| D7 | Host do front-end = **Vercel** | Netlify / Supabase Hosting | Vercel (deploy simples + previews) | ✅ Aprovado (2026-07-20) |
 | D8 | Momento de abrir integrações (G6/G7) | Agora vs. após G5 | Após G5 + credenciais | ⏳ **Pendente** |
 
 ---
@@ -493,7 +496,8 @@ via G0–G1.6.
 - **D6** — adicionar `memberships.worker_id` para escopo "assigned" do operador.
   *Bloqueia:* fidelidade total do RBAC (G3/G5). *Impacto:* migração pequena + ajuste
   de RLS.
-- **D7** — host do front-end. *Bloqueia:* G2 (deploy).
+- ~~**D7** — host do front-end.~~ ✅ **Resolvido: Vercel** (2026-07-20) — `vercel.json`
+  adicionado; deploy da G2 destravado.
 - **D8** — quando abrir Field Control/NetSuite. *Bloqueia:* G6/G7 (+ credenciais).
 
 ### 3. Riscos críticos

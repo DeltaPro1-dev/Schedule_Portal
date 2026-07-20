@@ -192,6 +192,16 @@ function resolveCard(c) {
   return { ...clone(c), labels: (c.labelKeys || []).map((k) => labelByKey[k]).filter(Boolean), attachments: c.attachments || [] }
 }
 
+// ── cities → region (demo seed; real mode starts empty) ──────────────────────
+let citiesList = [
+  { id: 'city-stg', name: 'St. George', region: 'st_george' },
+  { id: 'city-wsh', name: 'Washington', region: 'st_george' },
+  { id: 'city-hur', name: 'Hurricane', region: 'st_george' },
+  { id: 'city-ced', name: 'Cedar City', region: 'st_george' },
+  { id: 'city-slc', name: 'Salt Lake City', region: 'north' },
+  { id: 'city-lv', name: 'Las Vegas', region: 'another' },
+]
+
 export const mockApi = {
   async getBoards() {
     await wait()
@@ -436,4 +446,21 @@ export const mockApi = {
       }
     }
   },
+
+  // ── Cities → region lookup ──────────────────────────────────────────────────
+  async getCities() { await wait(); return citiesList.map(clone).sort((a, b) => a.name.localeCompare(b.name)) },
+  async addCity({ name, region }) {
+    await wait()
+    if (citiesList.some((c) => c.name.toLowerCase() === String(name).toLowerCase())) throw new Error(`"${name}" is already listed.`)
+    const c = { id: nid('city'), name, region }
+    citiesList.unshift(c)
+    return clone(c)
+  },
+  async updateCity(id, patch) {
+    await wait()
+    const c = citiesList.find((x) => x.id === id)
+    if (c) Object.assign(c, patch)
+    return c ? clone(c) : null
+  },
+  async removeCity(id) { await wait(); citiesList = citiesList.filter((x) => x.id !== id) },
 }

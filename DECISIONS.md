@@ -280,3 +280,27 @@ keep every block.)
   refresh. Mock toggles `card.labelKeys`.
 - No schema change (labels/card_labels + RLS already exist from 0001/0002). Deleting
   a label cascades from `card_labels` (FK on delete cascade), removing it from cards.
+
+---
+
+## G1.10 — Cities → region lookup + management tab (2026-07-19)
+**Approved by:** Eder (owner), in chat ("aba para colocar as cidades … North/South/
+St George/Out Of State"). Domain extension — new entity added to the contract.
+(Sibling branch off main; all feature branches append here → keep every block on merge.)
+
+- `0009_cities.sql`: new `schedule_portal.cities` (id, organization_id, name, region,
+  created_at), unique on (org, lower(name)), org-scoped RLS (read=member, write=editor,
+  delete=admin). "Out Of State" = the existing region enum value `another`.
+- `realApi.getCities/addCity/updateCity/removeCity` + mock (mock seeds a few demo
+  cities; real mode starts empty).
+- New **Cities** screen (nav): add city + region, edit/delete, search.
+- `data-model.md` updated with the `cities` entity.
+- `seed_cities.sql`: 139 real Delta cities → region (from the owner's list; North 80,
+  South 37, St George 13, Out Of State 9). Intentional spelling variants kept (St
+  George/St. George/Saint George, SLC, Milkreek, …) so messy source strings still
+  match. Idempotent (ON CONFLICT DO NOTHING). Run after 0009.
+
+Purpose: feeds the upcoming agenda import — a client row's city routes the card to the
+North/South/St George staging column. Not audited yet (the 0008 audit trigger list,
+on its own branch, doesn't include `cities`; add it there if audit coverage is wanted).
+(0008 = audit triggers branch; this migration is 0009 to avoid a number clash.)

@@ -12,9 +12,18 @@ const STATUS = {
 const STATUS_FALLBACK = { label: 'Unknown', color: 'var(--muted)', bg: 'var(--surface-2)', dot: 'var(--faint)' }
 const GRID = '1.4fr 170px 130px 1.1fr 120px'
 
-export default function Integration({ onBack }) {
+export default function Integration({ onBack, canEdit }) {
   const [data, setData] = useState(null)
-  useEffect(() => { api.getIntegration().then(setData) }, [])
+  const [busy, setBusy] = useState(null)
+  const [err, setErr] = useState('')
+  function load() { api.getIntegration().then(setData) }
+  useEffect(() => { load() }, [])
+
+  async function reprocess(id) {
+    setBusy(id); setErr('')
+    try { await api.reprocessIntegration(id); load() }
+    catch (e) { setErr(String(e.message || e)) } finally { setBusy(null) }
+  }
 
   return (
     <>
@@ -23,6 +32,7 @@ export default function Integration({ onBack }) {
       <div style={sectionScroll}>
         {!data ? <Loading /> : (
           <div style={{ maxWidth: 1120 }}>
+            {err && <div style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 14 }}>{err}</div>}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 30 }}>
               {data.stats.map((s) => (
                 <div key={s.label} style={{ ...panel, padding: '18px 20px' }}>
@@ -44,7 +54,12 @@ export default function Integration({ onBack }) {
                     <span style={{ fontFamily: 'var(--mono)', fontSize: 11.5, color: 'var(--ink-2)' }}>{e.direction}</span>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: st.color, background: st.bg, borderRadius: 20, padding: '4px 10px', width: 'fit-content' }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: st.dot }} />{st.label}</span>
                     <span style={{ fontSize: 12, color: e.err ? '#b91c1c' : 'var(--faint)', lineHeight: 1.35 }}>{e.err || '—'}</span>
-                    <span>{(e.status === 'retrying' || e.status === 'dlq') && <button className="h-navy" style={{ background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: 8, padding: '7px 13px', fontFamily: 'var(--sans)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Reprocess</button>}</span>
+                    <span>{(e.status === 'retrying' || e.status === 'dlq') && canEdit && (
+                      <button onClick={() => reprocess(e.id)} disabled={busy === e.id} className="h-navy"
+                        style={{ background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: 8, padding: '7px 13px', fontFamily: 'var(--sans)', fontSize: 12, fontWeight: 600, cursor: busy === e.id ? 'default' : 'pointer', opacity: busy === e.id ? 0.6 : 1 }}>
+                        {busy === e.id ? 'Reprocessing…' : 'Reprocess'}
+                      </button>
+                    )}</span>
                   </div>
                 )
               })}

@@ -29,6 +29,7 @@ supabase/migrations/0008_exports.sql       async export worker: bucket + request
 supabase/migrations/0009_notifications_audit.sql  notifications + audit governance
 supabase/migrations/0010_worker_link.sql   D6: memberships.worker_id (operator scope) + producers
 supabase/migrations/0011_teams.sql         G5: teams + team_members (Teams screen)
+supabase/migrations/0012_reprocess.sql      reprocess_integration() RPC (Integration Monitor button)
 supabase/seed_workers.sql                  starter roster (employees + companies) — run once
 ```
 

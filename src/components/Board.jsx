@@ -55,6 +55,10 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
     const t = listText.trim(); setListText(''); setAddingList(false)
     if (t) { await api.addList({ board_id: boardId, name: t }); await load() }
   }
+  async function addVendor(name) {
+    const t = (name || '').trim()
+    if (t) { await api.addWorker({ name: t, kind: 'company' }); await load() }
+  }
 
   const daySummary = `${board.workerCount ?? cols.length} workers · ${board.jobs ?? cards.length} jobs · ${board.completed ?? 0} completed`
 
@@ -122,7 +126,7 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
       <main className="board-main" style={{ flex: 1, minHeight: 0, overflowX: 'auto', overflowY: 'hidden', padding: '18px 30px' }}>
         <div style={{ display: 'flex', gap: 14, height: '100%', alignItems: 'flex-start', minHeight: '100%' }}>
           {/* POOL — resource/vendor list (DELTA OFFICE / WAREHOUSE) */}
-          {pool && <VendorPool name={pool.name} vendors={vendors} canEdit={canEdit} />}
+          {pool && <VendorPool name={pool.name} vendors={vendors} canEdit={canEdit} onAddVendor={addVendor} />}
           {/* WORKER COLUMNS */}
           {cols.map((col) => (
             <Column key={col.id} list={col} cards={cardsOf(col.id)} canEdit={canEdit}
@@ -153,7 +157,13 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
   )
 }
 
-function VendorPool({ name, vendors, canEdit }) {
+function VendorPool({ name, vendors, canEdit, onAddVendor }) {
+  const [adding, setAdding] = useState(false)
+  const [text, setText] = useState('')
+  function submit() {
+    const t = text.trim(); setText(''); setAdding(false)
+    if (t) onAddVendor(t)
+  }
   return (
     <section style={{ flex: 'none', width: 250, maxHeight: '100%', display: 'flex', flexDirection: 'column', background: 'var(--navy)', borderRadius: 13, padding: '14px 9px 8px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 7px 12px' }}>
@@ -162,9 +172,21 @@ function VendorPool({ name, vendors, canEdit }) {
       </div>
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, padding: '2px 5px 6px' }}>
         {vendors.map((v, i) => (
-          <div key={i} className="h-poolcard" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '9px 11px', fontSize: 12.5, color: '#fff', cursor: 'pointer' }}>{v}</div>
+          <div key={i} className="h-poolcard" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '9px 11px', fontSize: 12.5, color: '#fff' }}>{v}</div>
         ))}
-        {canEdit && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', padding: '7px 4px', cursor: 'pointer' }}>+ Add vendor</div>}
+        {adding ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7, padding: '2px 2px 4px' }}>
+            <input autoFocus value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setAdding(false) }}
+              placeholder="Company name…" aria-label="Vendor name"
+              style={{ width: '100%', border: '1px solid var(--navy)', background: '#fff', borderRadius: 9, padding: '9px 11px', fontFamily: 'var(--sans)', fontSize: 12.5, outline: 'none' }} />
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={submit} style={{ background: '#fff', color: 'var(--navy)', border: 'none', borderRadius: 8, padding: '6px 12px', fontFamily: 'var(--sans)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>Add</button>
+              <button onClick={() => setAdding(false)} className="on-navy" style={{ background: 'rgba(255,255,255,0.14)', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 12.5, color: '#fff', cursor: 'pointer' }}>✕</button>
+            </div>
+          </div>
+        ) : canEdit && (
+          <button type="button" onClick={() => setAdding(true)} className="on-navy" style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', fontFamily: 'var(--sans)', fontSize: 12, color: 'rgba(255,255,255,0.6)', padding: '7px 4px', cursor: 'pointer', borderRadius: 8 }}>+ Add vendor</button>
+        )}
       </div>
     </section>
   )

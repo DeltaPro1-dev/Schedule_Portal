@@ -56,18 +56,18 @@ export default function Calendar({ onBack, onOpenBoard }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ display: 'flex', gap: 2, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: 3 }}>
               {['month', 'week'].map((m) => (
-                <button key={m} onClick={() => setMode(m)}
+                <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}
                   style={{ border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'var(--sans)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textTransform: 'capitalize', background: mode === m ? 'var(--surface)' : 'transparent', color: mode === m ? 'var(--navy)' : 'var(--muted)', boxShadow: mode === m ? '0 1px 2px rgba(0,0,0,0.06)' : 'none' }}>{m}</button>
               ))}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button onClick={() => shift(-1)} className="h-surface2" style={navBtn}>‹</button>
-              <span style={{ fontFamily: 'var(--disp)', fontSize: 15, fontWeight: 600, minWidth: 150, textAlign: 'center' }}>{title}</span>
-              <button onClick={() => shift(1)} className="h-surface2" style={navBtn}>›</button>
+              <button onClick={() => shift(-1)} className="h-surface2" style={navBtn} aria-label={`Previous ${mode}`}>‹</button>
+              <span aria-live="polite" style={{ fontFamily: 'var(--disp)', fontSize: 15, fontWeight: 600, minWidth: 150, textAlign: 'center' }}>{title}</span>
+              <button onClick={() => shift(1)} className="h-surface2" style={navBtn} aria-label={`Next ${mode}`}>›</button>
             </div>
           </div>
         } />
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '22px 34px 50px' }}>
+      <div className="section-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '22px 34px 50px' }}>
         {mode === 'month'
           ? <MonthGrid y={cursor.y} m={cursor.m} byDate={byDate} onOpenBoard={onOpenBoard} />
           : <WeekGrid anchor={cursor.anchor} byDate={byDate} onOpenBoard={onOpenBoard} />}
@@ -127,8 +127,9 @@ function DayCell({ day, board, onOpenBoard, tall }) {
     )
   }
   const closed = board.status === 'closed'
+  const label = `Open board ${board.title || ''} — ${board.workerCount != null ? board.workerCount + ' workers, ' : ''}${closed ? 'closed' : 'open'}`
   return (
-    <button onClick={() => onOpenBoard(board.id)} className="h-card"
+    <button onClick={() => onOpenBoard(board.id)} className="h-card" aria-label={label}
       style={{ minHeight, width: '100%', textAlign: 'left', borderRadius: 12, border: `1px solid ${closed ? 'var(--line-2)' : 'var(--navy-soft)'}`, background: closed ? 'var(--surface-2)' : 'var(--surface)', padding: '8px 10px', cursor: 'pointer', fontFamily: 'var(--sans)', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ fontFamily: 'var(--disp)', fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>{day}</span>

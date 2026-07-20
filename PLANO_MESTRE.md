@@ -295,8 +295,12 @@ permission guards / error boundaries / loading boundaries como componentes
 reutilizáveis é item de robustez (G2).
 
 ## Responsividade / acessibilidade
-🟡 Layout responsivo parcial (desktop-first). Auditoria de acessibilidade (WCAG,
-teclado, contraste, ARIA no board DnD) ⬜ — item de G3.
+✅ (G3.3) Breakpoints ≤860/760/520px: brand panel do login some, headers quebram e
+reduzem padding, card modal vira 1 coluna; board mantém scroll horizontal. A11y:
+`:focus-visible`, `prefers-reduced-motion`, card modal como `dialog` (Escape + foco
+gerido), checkboxes/tiles operáveis por teclado, alternativa de teclado ao DnD
+("Move to" no card), `aria-sort`/`aria-current`/`aria-pressed`/labels. Verificado
+sem overflow horizontal a 375px.
 
 ---
 
@@ -403,8 +407,9 @@ integrações e mobile.
 - ✅ **Table View** (spreadsheet, filtros, sort, CSV export) — G3.1.
 - ✅ **Dashboard** (status, região, top clientes, integração) — G3.1.
 - ✅ **Calendar** (mês/semana sobre os boards-dia) — G3.2.
+- ✅ **Responsividade + acessibilidade** (WCAG/teclado/ARIA; alternativa de teclado ao
+  DnD via "Move to" no card) — G3.3.
 - ⬜ Edição inline na Table + saved views (`SavedView`); busca global.
-- ⬜ Auditoria de responsividade + acessibilidade (WCAG/teclado/ARIA no DnD).
 - **Gate:** operação diária completa em desktop/tablet/mobile.
 
 ### G4 — Governança avançada

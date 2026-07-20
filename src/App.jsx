@@ -49,7 +49,7 @@ export default function App() {
     api.getBoardDetail(boardId).then((d) => {
       const card = d.cards.find((c) => c.id === openCardId)
       const list = card && d.lists.find((l) => l.id === card.list_id)
-      setModalData(card ? { card, listName: list?.name || '' } : null)
+      setModalData(card ? { card, listName: list?.name || '', lists: d.lists } : null)
     })
   }, [openCardId, boardId, cardVersion])
 
@@ -99,7 +99,7 @@ export default function App() {
 
       {modalData && (
         <CardModal
-          card={modalData.card} listName={modalData.listName}
+          card={modalData.card} listName={modalData.listName} lists={modalData.lists}
           canEdit={demoMode || ['admin', 'editor'].includes(membership?.access)}
           onChanged={() => setCardVersion((v) => v + 1)}
           onClose={() => setOpenCardId(null)}

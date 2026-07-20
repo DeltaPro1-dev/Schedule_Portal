@@ -37,7 +37,7 @@ export default function Dashboard({ onBack }) {
   return (
     <>
       <SectionHeader onBack={onBack} title="Dashboard" subtitle={data ? `${data.monthLabel} · ${data.boardsInScope} boards in scope` : 'Operational overview'} />
-      <div style={sectionScroll}>
+      <div className="section-scroll" style={sectionScroll}>
         {err ? <div style={{ color: '#dc2626' }}>{err}</div>
           : !data ? <div style={{ color: 'var(--faint)' }}>Loading…</div>
           : <Body data={data} />}

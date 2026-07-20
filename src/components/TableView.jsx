@@ -77,22 +77,22 @@ export default function TableView({ boardId, boards, onBack, onOpenCard, onSelec
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       {/* header */}
-      <header style={{ flex: 'none', background: 'var(--surface)', borderBottom: '1px solid var(--line)', padding: '13px 30px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <header className="board-head" style={{ flex: 'none', background: 'var(--surface)', borderBottom: '1px solid var(--line)', padding: '13px 30px 0' }}>
+        <div className="resp-header" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <button onClick={onBack} className="h-navysoft" style={backBtn}>‹ Boards</button>
           <div style={{ minWidth: 0 }}>
             <h1 style={{ fontFamily: 'var(--disp)', fontWeight: 600, fontSize: 20, margin: 0, letterSpacing: '-0.01em', whiteSpace: 'nowrap', color: 'var(--ink)' }}>{board.title}</h1>
             <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 3 }}>{filtered.length} of {rows.length} jobs</div>
           </div>
           <div style={{ flex: 1 }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className="resp-grow" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <ViewToggle view="table" onSwitchView={onSwitchView} />
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 12px', width: 220 }}>
-              <span style={{ color: 'var(--faint)' }}>⌕</span>
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search…"
+              <span aria-hidden="true" style={{ color: 'var(--faint)' }}>⌕</span>
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search…" aria-label="Search jobs"
                 style={{ border: 'none', background: 'none', outline: 'none', fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--ink)', width: '100%' }} />
             </div>
-            <select value={status} onChange={(e) => setStatus(e.target.value)}
+            <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Filter by status"
               style={{ border: '1px solid var(--line)', background: 'var(--surface-2)', borderRadius: 10, padding: '8px 11px', fontFamily: 'var(--sans)', fontSize: 12.5, color: 'var(--ink-2)', cursor: 'pointer', outline: 'none' }}>
               <option value="all">All statuses</option>
               {STATUSES.map((s) => <option key={s} value={s}>{STATUS_META[s]?.label || s}</option>)}
@@ -132,9 +132,12 @@ export default function TableView({ boardId, boards, onBack, onOpenCard, onSelec
                   {COLUMNS.map((c) => {
                     const active = sort.key === c.key
                     return (
-                      <th key={c.key} onClick={() => toggleSort(c.key)}
-                        style={{ textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid var(--line)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: active ? 'var(--navy)' : 'var(--faint)', cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none' }}>
-                        {c.label}{active ? (sort.dir === 1 ? ' ▲' : ' ▼') : ''}
+                      <th key={c.key} scope="col" aria-sort={active ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none'}
+                        style={{ textAlign: 'left', borderBottom: '1px solid var(--line)', padding: 0 }}>
+                        <button type="button" onClick={() => toggleSort(c.key)}
+                          style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '12px 16px', fontFamily: 'var(--sans)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, color: active ? 'var(--navy)' : 'var(--faint)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                          {c.label}{active ? (sort.dir === 1 ? ' ▲' : ' ▼') : ''}
+                        </button>
                       </th>
                     )
                   })}
@@ -145,6 +148,8 @@ export default function TableView({ boardId, boards, onBack, onOpenCard, onSelec
                   const meta = STATUS_META[r.status] || { label: r.status, color: 'var(--muted)' }
                   return (
                     <tr key={r.id} className="h-surface2" onClick={() => onOpenCard(r.id)}
+                      tabIndex={0} aria-label={`Open card: ${r.worker} — ${r.client || r.service_type || 'service'}`}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onOpenCard(r.id) } }}
                       style={{ cursor: 'pointer', borderBottom: '1px solid var(--line-2)' }}>
                       <td style={{ ...td, fontWeight: 500, color: 'var(--ink)' }}>{r.worker}</td>
                       <td style={td}>
@@ -172,14 +177,14 @@ export function ViewToggle({ view, onSwitchView }) {
   const opt = (key, label) => {
     const active = view === key
     return (
-      <button key={key} onClick={() => !active && onSwitchView(key)}
+      <button key={key} type="button" aria-pressed={active} aria-label={`${label} view`} onClick={() => !active && onSwitchView(key)}
         style={{ border: 'none', borderRadius: 8, padding: '6px 12px', fontFamily: 'var(--sans)', fontSize: 12.5, fontWeight: 600, cursor: active ? 'default' : 'pointer', background: active ? 'var(--surface)' : 'transparent', color: active ? 'var(--navy)' : 'var(--muted)', boxShadow: active ? '0 1px 2px rgba(0,0,0,0.06)' : 'none' }}>
         {label}
       </button>
     )
   }
   return (
-    <div style={{ display: 'flex', gap: 2, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: 3 }}>
+    <div role="group" aria-label="Switch view" style={{ display: 'flex', gap: 2, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: 3 }}>
       {opt('board', 'Board')}
       {opt('table', 'Table')}
     </div>

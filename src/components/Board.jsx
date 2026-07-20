@@ -61,8 +61,8 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       {/* header */}
-      <header style={{ flex: 'none', background: 'var(--surface)', borderBottom: '1px solid var(--line)', padding: '13px 30px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <header className="board-head" style={{ flex: 'none', background: 'var(--surface)', borderBottom: '1px solid var(--line)', padding: '13px 30px 0' }}>
+        <div className="resp-header" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <button onClick={onBack} className="h-navysoft" style={backBtn}>‹ Boards</button>
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -75,14 +75,14 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {onSwitchView && <ViewToggle view="board" onSwitchView={onSwitchView} />}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 12px', width: 250 }}>
-              <span style={{ color: 'var(--faint)' }}>⌕</span>
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search worker or client…"
+              <span aria-hidden="true" style={{ color: 'var(--faint)' }}>⌕</span>
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search worker or client…" aria-label="Search worker or client"
                 style={{ border: 'none', background: 'none', outline: 'none', fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--ink)', width: '100%' }} />
             </div>
             {demo ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: '5px 6px 5px 11px' }}>
-                <span style={{ fontSize: 11, color: 'var(--muted)' }}>Profile</span>
-                <select value={acting} onChange={(e) => setActing(e.target.value)}
+                <span id="profile-label" style={{ fontSize: 11, color: 'var(--muted)' }}>Profile</span>
+                <select value={acting} onChange={(e) => setActing(e.target.value)} aria-labelledby="profile-label"
                   style={{ border: 'none', background: 'none', outline: 'none', fontFamily: 'var(--sans)', fontSize: 12.5, fontWeight: 600, color: 'var(--navy)', cursor: 'pointer' }}>
                   <option value="admin">Admin</option>
                   <option value="editor">Editor</option>
@@ -119,7 +119,7 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
       </header>
 
       {/* columns */}
-      <main style={{ flex: 1, minHeight: 0, overflowX: 'auto', overflowY: 'hidden', padding: '18px 30px' }}>
+      <main className="board-main" style={{ flex: 1, minHeight: 0, overflowX: 'auto', overflowY: 'hidden', padding: '18px 30px' }}>
         <div style={{ display: 'flex', gap: 14, height: '100%', alignItems: 'flex-start', minHeight: '100%' }}>
           {/* POOL — resource/vendor list (DELTA OFFICE / WAREHOUSE) */}
           {pool && <VendorPool name={pool.name} vendors={vendors} canEdit={canEdit} />}
@@ -143,7 +143,7 @@ export default function Board({ boardId, boards, onBack, onOpenCard, onSelectDay
                 </div>
               </div>
             ) : canEdit && (
-              <div onClick={() => setAddingList(true)} className="h-dash" style={{ border: '1.5px dashed var(--line)', borderRadius: 13, padding: '13px 15px', fontSize: 13, color: 'var(--muted)', cursor: 'pointer', background: 'var(--surface-2)' }}>+ Add worker</div>
+              <button type="button" onClick={() => setAddingList(true)} className="h-dash" style={{ width: '100%', textAlign: 'left', border: '1.5px dashed var(--line)', borderRadius: 13, padding: '13px 15px', fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--muted)', cursor: 'pointer', background: 'var(--surface-2)' }}>+ Add worker</button>
             )}
           </div>
           <div style={{ flex: 'none', width: 16 }} />
@@ -196,7 +196,7 @@ function Column({ navy, list, cards, canEdit, onDropCard, onOpenCard, adding, ca
             </div>
           </div>
         ) : canEdit && (
-          <div onClick={onStartAdd} className={navy ? '' : 'h-line2'} style={{ fontSize: 12.5, color: navy ? 'rgba(255,255,255,0.6)' : 'var(--faint)', padding: navy ? '7px 4px' : '8px 6px', cursor: 'pointer', borderRadius: 8 }}>+ Add card</div>
+          <button type="button" onClick={onStartAdd} className={navy ? 'on-navy' : 'h-line2'} style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', fontFamily: 'var(--sans)', fontSize: 12.5, color: navy ? 'rgba(255,255,255,0.6)' : 'var(--faint)', padding: navy ? '7px 4px' : '8px 6px', cursor: 'pointer', borderRadius: 8 }}>+ Add card</button>
         )}
       </div>
     </section>
@@ -206,16 +206,20 @@ function Column({ navy, list, cards, canEdit, onDropCard, onOpenCard, adding, ca
 function CardTile({ card, navy, listName, onOpen, onToggle, canEdit }) {
   const { head, body } = cardHeadBody(card)
   const meta = STATUS_META[card.status] || { label: card.status || 'unknown', color: 'var(--muted)' }
+  const openKey = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(card.id) } }
+  const aria = `Open card: ${head}${body}`.trim()
   if (navy) {
     return (
       <article draggable={canEdit} onDragStart={(e) => e.dataTransfer.setData('text/card-id', card.id)} onClick={() => onOpen(card.id)}
-        className="h-poolcard" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '9px 11px', fontSize: 12.5, color: '#fff', cursor: 'pointer' }}>
+        role="button" tabIndex={0} onKeyDown={openKey} aria-label={aria}
+        className="h-poolcard on-navy" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '9px 11px', fontSize: 12.5, color: '#fff', cursor: 'pointer' }}>
         {head}{body ? <span style={{ opacity: 0.75 }}>{body}</span> : null}
       </article>
     )
   }
   return (
     <article draggable={canEdit} onDragStart={(e) => e.dataTransfer.setData('text/card-id', card.id)} onClick={() => onOpen(card.id)}
+      role="button" tabIndex={0} onKeyDown={openKey} aria-label={aria}
       className="h-card" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, padding: '11px 12px', cursor: 'pointer' }}>
       {card.labels?.length > 0 && (
         <div style={{ display: 'flex', gap: 4, marginBottom: 9 }}>
@@ -226,12 +230,13 @@ function CardTile({ card, navy, listName, onOpen, onToggle, canEdit }) {
         <strong style={{ color: 'var(--ink)', fontWeight: 600 }}>{head}</strong>{body}
       </h3>
       <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 11 }}>
-        <span onClick={(e) => { e.stopPropagation(); canEdit && onToggle(card) }}
-          style={{ width: 17, height: 17, borderRadius: 5, border: `1.5px solid ${card.done ? 'var(--green)' : 'var(--line)'}`, background: card.done ? 'var(--green)' : '#fff', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, cursor: canEdit ? 'pointer' : 'default', flex: 'none' }}>{card.done ? '✓' : ''}</span>
+        <button type="button" role="checkbox" aria-checked={card.done} aria-label="Mark service completed" disabled={!canEdit}
+          onClick={(e) => { e.stopPropagation(); onToggle(card) }} onKeyDown={(e) => e.stopPropagation()}
+          style={{ width: 17, height: 17, borderRadius: 5, border: `1.5px solid ${card.done ? 'var(--green)' : 'var(--line)'}`, background: card.done ? 'var(--green)' : '#fff', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, cursor: canEdit ? 'pointer' : 'default', flex: 'none', padding: 0 }}>{card.done ? '✓' : ''}</button>
         {card.scheduled_time && <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--navy)' }}>{card.scheduled_time}</span>}
         <span style={{ flex: 1 }} />
         <span style={{ fontSize: 10, fontWeight: 600, color: '#fff', background: meta.color, borderRadius: 20, padding: '2px 7px' }}>{meta.label}</span>
-        <span style={{ ...avatarStyle(listName), width: 22, height: 22, fontSize: 9.5 }}>{initials(listName)}</span>
+        <span aria-hidden="true" style={{ ...avatarStyle(listName), width: 22, height: 22, fontSize: 9.5 }}>{initials(listName)}</span>
       </div>
     </article>
   )

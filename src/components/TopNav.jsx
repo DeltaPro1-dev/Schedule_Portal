@@ -11,18 +11,18 @@ const NAV = [
 
 export default function TopNav({ view, onNavigate, onLogout, demo }) {
   return (
-    <header style={{
+    <header className="topnav" style={{
       flex: 'none', display: 'flex', alignItems: 'center', gap: 14,
       padding: '16px 34px', background: 'var(--surface)', borderBottom: '1px solid var(--line)',
     }}>
       <img src="/logo-horizontal.png" alt="Delta Pro Clean" style={{ height: 34, width: 'auto', objectFit: 'contain' }} />
       {demo && <span style={{ marginLeft: 6, background: 'var(--green-soft)', color: 'var(--green-ink)', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 }}>demo · mock data</span>}
       <div style={{ flex: 1 }} />
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <nav aria-label="Primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         {NAV.map((t) => {
           const active = view === t.key || (t.key === 'gallery' && view === 'board')
           return (
-            <button key={t.key} onClick={() => onNavigate(t.key)} className="h-surface2"
+            <button key={t.key} onClick={() => onNavigate(t.key)} className="h-surface2" aria-current={active ? 'page' : undefined}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 7, borderRadius: 9,
                 padding: '8px 14px', fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 500,

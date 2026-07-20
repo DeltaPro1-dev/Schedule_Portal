@@ -272,3 +272,49 @@ are deferred (board list doesn't carry that without loading each day's detail).
 Verified: build green; headless smoke — Calendar renders month (July) with open/
 closed cells, week toggle shows the week range, prev/next navigates, clicking an
 open day opens that board. Zero page errors.
+
+---
+
+## G3.3 — Responsiveness + accessibility pass (2026-07-20)
+**Approved by:** Eder (owner), "continue com responsividade e acessibilidade".
+Closes the **G3 gate** item (WCAG/keyboard/ARIA + mobile/tablet). Front-end only;
+no schema/API change.
+
+**Accessibility (`src/index.css` + components):**
+- Global: `:focus-visible` ring for keyboard users (white variant `.on-navy` on dark
+  surfaces), `.sr-only` utility, `prefers-reduced-motion` disables transitions/lift.
+- **CardModal → dialog**: `role="dialog"`, `aria-modal`, `aria-labelledby` the title;
+  **Escape closes**; focus moves into the dialog on open and is **restored to the
+  trigger** on close; close button `aria-label`. Done + checklist checkboxes are now
+  real `<button role="checkbox" aria-checked>` (keyboard operable) instead of
+  `<span onClick>`. Comment/checklist inputs get `aria-label`.
+- **Keyboard drag-and-drop alternative**: CardModal gains a labelled **"Move to"**
+  `<select>` of the board's lists (App now passes `lists` to the modal) →
+  `api.moveCard`. Cards can be re-assigned without a mouse, closing the DnD a11y gap
+  noted in `PLANO_MESTRE.md` §C.
+- **Board**: card tiles are `role="button"` + `tabIndex=0` + Enter/Space to open,
+  with descriptive `aria-label`; done checkbox → accessible button; add-card /
+  add-worker are `<button>`s; search + profile inputs labelled; decorative
+  glyphs/avatars `aria-hidden`.
+- **TableView**: sortable headers are `<th scope="col" aria-sort>` wrapping a
+  `<button>`; rows are keyboard-openable (Enter); search/status inputs labelled;
+  ViewToggle uses `aria-pressed` in a labelled `role="group"`.
+- **Calendar**: nav arrows `aria-label` (Previous/Next), month label `aria-live`,
+  mode toggle `aria-pressed`, day-cell buttons carry a descriptive `aria-label`.
+- **TopNav**: `<nav aria-label>` + `aria-current="page"` on the active item.
+
+**Responsiveness (`src/index.css` breakpoints + classNames):**
+- ≤860px: Login brand panel hidden (`.login-brand`), form takes the screen.
+- ≤760px: TopNav / section / board / table headers wrap and reduce horizontal
+  padding; control clusters grow to full width (`.resp-header`, `.resp-grow`,
+  `.topnav`, `.board-head`, `.board-main`, `.section-scroll`).
+- ≤520px: CardModal collapses from two columns to one (`.card-modal-grid`).
+- The board keeps horizontal scroll (columns) — the intended mobile pattern.
+
+Verified: build + lint green; headless (Playwright) — keyboard-focus a card tile →
+Enter opens the dialog (`aria-modal=true`), Escape closes it, the "Move to" control
+is present; at 375px the brand panel is hidden and there is **no horizontal page
+overflow**. Zero page errors.
+
+**Remaining G3 item:** inline editing in the Table + saved views (`SavedView`) +
+global search. After that, G3 gate is fully clear.

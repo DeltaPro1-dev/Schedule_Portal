@@ -5,6 +5,39 @@ domain model is recorded here with a version bump (Regra de Ouro, see README.md)
 
 ---
 
+## G5.4 — Mobile responsiveness (portrait + landscape) + duplicate card (2026-07-20)
+**Approved by:** Eder (owner) — mobile portrait/landscape review; and (mid-turn)
+"duplicate a card" (2+ workers on the same job).
+
+**Responsiveness (`src/index.css`, `App.jsx`):**
+- **Phone landscape bug fixed** — the top nav (11+ items) overflowed horizontally at
+  844px because the mobile breakpoints stopped at 760px. Raised the header/nav rules
+  to ≤960px; the nav is now a single horizontally-scrollable row (no page overflow)
+  and the header stacks. Login brand panel hidden ≤860 (covers landscape).
+- **`100dvh`** instead of `100vh` on the app frame (+ `width:100%`) so mobile browser
+  chrome no longer clips the bottom.
+- **iOS zoom fix** — form controls forced to 16px ≤960px so Safari doesn't auto-zoom
+  on focus.
+- **Short-viewport (landscape) block** `@media (max-height:520px)` — trims top-nav /
+  section / board-head vertical padding and slims the card-modal overlay (top-aligned,
+  scrolls) so content is usable on a ~390px-tall screen.
+- Card modal → one column ≤520px; overlay padding slimmed on narrow phones
+  (`.modal-overlay`).
+
+**Duplicate card (§8.3):**
+- `api.duplicateCard(cardId)` (mock + real): copies the card into the **same list**
+  (briefing fields + labels + checklist steps; `done` reset; comments/attachments not
+  copied). CardModal gains a **“Duplicate card”** button (editors+); the copy is then
+  assigned to the second worker via the existing “Move to” selector or drag-and-drop.
+  No schema change.
+
+Verified: build + lint green; headless (Playwright) — zero horizontal overflow at
+portrait 360 (login/gallery/board) and landscape 844 (gallery/customers); duplicate
+raises the day's job count 24→25 with the confirmation message. (Automated multi-
+viewport sweeps were flaky/slow in this env; verified the high-risk cases directly.)
+
+---
+
 ## G5.3 — Wire up remaining buttons + search boxes (2026-07-20)
 **Approved by:** Eder (owner), "revisar os botões e caixa de pesquisas e colocar
 para funcionar tudo". Audited every button/search across the app; wired the dead ones.

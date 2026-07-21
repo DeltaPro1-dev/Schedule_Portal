@@ -10,7 +10,7 @@ const STATUS = {
   queued: { label: 'Queued', color: 'oklch(0.5 0.12 90)', bg: 'oklch(0.96 0.05 90)', dot: 'oklch(0.6 0.13 90)' },
 }
 const STATUS_FALLBACK = { label: 'Unknown', color: 'var(--muted)', bg: 'var(--surface-2)', dot: 'var(--faint)' }
-const GRID = '1.4fr 170px 130px 1.1fr 120px'
+const GRID = 'minmax(190px,1.4fr) 170px 130px minmax(150px,1.1fr) 120px'
 
 export default function Integration({ onBack, canEdit }) {
   const [data, setData] = useState(null)

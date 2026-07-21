@@ -24,7 +24,7 @@ const CELL = {
   view: { c: 'var(--muted)', b: 'var(--surface-2)' },
   none: { c: 'var(--faint)', b: 'transparent' },
 }
-const TEAM_GRID = '1.4fr 150px 130px 150px'
+const TEAM_GRID = 'minmax(190px,1.4fr) 150px 130px 150px'
 
 export default function Members({ onBack, canEdit }) {
   const [members, setMembers] = useState(null)
@@ -124,12 +124,12 @@ export default function Members({ onBack, canEdit }) {
 
             <div style={eyebrow}>Permissions matrix · role × module</div>
             <div style={panel}>
-              <div style={{ display: 'grid', gridTemplateColumns: '200px repeat(5,1fr)', gap: 10, padding: '13px 22px', borderBottom: '1px solid var(--line)', alignItems: 'center' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '160px repeat(5, minmax(64px,1fr))', gap: 10, padding: '13px 22px', borderBottom: '1px solid var(--line)', alignItems: 'center' }}>
                 <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--faint)' }}>Module</span>
                 {matrix.cols.map((c) => <span key={c} style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-2)', textAlign: 'center' }}>{c}</span>)}
               </div>
               {matrix.rows.map((row) => (
-                <div key={row.module} style={{ display: 'grid', gridTemplateColumns: '200px repeat(5,1fr)', gap: 10, padding: '12px 22px', borderBottom: '1px solid var(--line-2)', alignItems: 'center' }}>
+                <div key={row.module} style={{ display: 'grid', gridTemplateColumns: '160px repeat(5, minmax(64px,1fr))', gap: 10, padding: '12px 22px', borderBottom: '1px solid var(--line-2)', alignItems: 'center' }}>
                   <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>{row.module}</span>
                   {row.cells.map((cell, i) => {
                     const s = CELL[cell.kind]

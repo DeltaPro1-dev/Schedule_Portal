@@ -7,7 +7,7 @@ const REGION_OPTS = [['north', 'North'], ['south', 'South'], ['st_george', 'St G
 const KIND_OPTS = [['employee', 'Employee'], ['contractor', 'Contractor'], ['company', 'Company']]
 const ACCESS_OPTS = [['none', 'No access'], ['editor', 'Editor'], ['admin', 'Admin']]
 const ACCESS_DOT = { none: 'var(--faint)', editor: 'var(--navy)', admin: 'var(--green)' }
-const GRID = '1fr 150px 150px 170px 44px'
+const GRID = 'minmax(180px,1fr) 150px 150px 170px 44px'
 const sel = { border: '1px solid var(--line)', background: 'var(--surface-2)', borderRadius: 8, padding: '7px 9px', fontFamily: 'var(--sans)', fontSize: 12.5, color: 'var(--ink-2)', outline: 'none', cursor: 'pointer', width: '100%' }
 
 export default function Roster({ onBack }) {

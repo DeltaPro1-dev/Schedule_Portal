@@ -11,7 +11,7 @@ const JOB_STATUS = {
 }
 const JOB_FALLBACK = { label: 'Unknown', color: 'var(--muted)', bg: 'var(--surface-2)', dot: 'var(--faint)' }
 const FMT_COLOR = { CSV: 'var(--green-ink)', XLSX: 'var(--green-ink)', PDF: '#dc2626', JSON: 'var(--navy)' }
-const GRID = '1fr 120px 150px 130px 90px'
+const GRID = 'minmax(200px,1fr) 120px 150px 130px 90px'
 
 // Instant client-side exports; XLSX/PDF wait on the async export worker.
 const RUNNERS = { CSV: exportDailyScheduleCsv, JSON: exportFullBackupJson }

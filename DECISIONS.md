@@ -28,6 +28,18 @@ reachable via horizontal scroll) instead of clipped. Lesson logged: the earlier
 "brandHidden: true" check was a false positive (locator-not-found treated as hidden);
 future responsive checks assert on real geometry.
 
+**Follow-up (same pass, after Eder's phone screenshots):** the `overflowX:auto`
+panels alone left the flexible (`fr`) columns collapsing to ~0 on phones, so names/
+content overlapped ("sobrepondo tudo"). Fixed by flooring the flex columns with
+`minmax(<px>, fr)` in every table's grid definition (Roster, Members + the RBAC
+matrix, Audit, Exports, Integration, Customers) — desktop unchanged (fr still
+expands), mobile keeps readable columns and the panel scrolls as a unit. **Calendar**
+month/week grids changed to `repeat(7, minmax(0,1fr))` (7 columns now fit instead of
+overflowing/clipping the last one); cells show a compact open/closed dot and hide the
+verbose text ≤640px; the month header controls wrap and the label min-width shrank so
+the toolbar no longer overflows. Verified @360px portrait and @740px landscape: month
++ week + all six tables report 0 elements beyond the viewport.
+
 ---
 
 ## G5.4 — Mobile responsiveness (portrait + landscape) + duplicate card (2026-07-20)

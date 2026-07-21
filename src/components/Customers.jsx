@@ -8,7 +8,7 @@ import SectionHeader, { sectionScroll, eyebrow, panel, navyBtn } from './Section
 // Locations = an honest derived view (grouped client addresses): the
 // CustomerLocation entity is still future work (needs a contract decision).
 
-const GRID = '1.3fr 1.6fr 130px 1fr 90px'
+const GRID = 'minmax(150px,1.3fr) minmax(170px,1.6fr) 130px minmax(120px,1fr) 90px'
 
 export default function Customers({ onBack, canEdit }) {
   const [tab, setTab] = useState('customers')

@@ -103,6 +103,16 @@ input:focus, select:focus { border-color: var(--navy); background: #fff; }
   select, textarea { font-size: 16px !important; }
 }
 
+/* Calendar month grid on phones: 7 columns get tiny, so drop the verbose cell
+   text and show a compact open/closed dot; shrink cell height. */
+.daycell-dot { display: none; }
+@media (max-width: 640px) {
+  .daycell-detail { display: none !important; }
+  .daycell-dot { display: inline-block !important; }
+  .daycell { min-height: 46px !important; padding: 6px 5px !important; gap: 3px !important; }
+  .daycell-empty { min-height: 46px !important; }
+}
+
 /* Narrow phones — collapse the card modal to one column and slim the overlay. */
 @media (max-width: 520px) {
   .card-modal-grid { grid-template-columns: 1fr !important; }

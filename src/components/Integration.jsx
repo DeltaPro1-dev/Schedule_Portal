@@ -10,7 +10,7 @@ const STATUS = {
   queued: { label: 'Queued', color: 'oklch(0.5 0.12 90)', bg: 'oklch(0.96 0.05 90)', dot: 'oklch(0.6 0.13 90)' },
 }
 const STATUS_FALLBACK = { label: 'Unknown', color: 'var(--muted)', bg: 'var(--surface-2)', dot: 'var(--faint)' }
-const GRID = '1.4fr 170px 130px 1.1fr 120px'
+const GRID = 'minmax(190px,1.4fr) 170px 130px minmax(150px,1.1fr) 120px'
 
 export default function Integration({ onBack, canEdit }) {
   const [data, setData] = useState(null)
@@ -29,7 +29,7 @@ export default function Integration({ onBack, canEdit }) {
     <>
       <SectionHeader onBack={onBack} title="Integration Monitor · Field Control" subtitle="Queue with retries, DLQ and idempotency · manual reprocessing"
         right={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--green-ink)', background: 'var(--green-soft)', borderRadius: 20, padding: '6px 13px', fontWeight: 500 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)' }} />Integration service active</span>} />
-      <div style={sectionScroll}>
+      <div className="section-scroll" style={sectionScroll}>
         {!data ? <Loading /> : (
           <div style={{ maxWidth: 1120 }}>
             {err && <div style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 14 }}>{err}</div>}

@@ -35,7 +35,7 @@ export default function Login({ onEnter }) {
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
       {/* brand panel */}
-      <div style={{
+      <div className="login-brand" style={{
         flex: 'none', width: '44%', maxWidth: 620,
         background: 'linear-gradient(150deg,var(--navy),var(--navy-2))', color: '#fff',
         display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '52px 56px',

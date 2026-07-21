@@ -53,7 +53,7 @@ export default function Calendar({ onBack, onOpenBoard }) {
     <>
       <SectionHeader onBack={onBack} title="Calendar" subtitle="Boards by day"
         right={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <div style={{ display: 'flex', gap: 2, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 10, padding: 3 }}>
               {['month', 'week'].map((m) => (
                 <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}
@@ -62,7 +62,7 @@ export default function Calendar({ onBack, onOpenBoard }) {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button onClick={() => shift(-1)} className="h-surface2" style={navBtn} aria-label={`Previous ${mode}`}>‹</button>
-              <span aria-live="polite" style={{ fontFamily: 'var(--disp)', fontSize: 15, fontWeight: 600, minWidth: 150, textAlign: 'center' }}>{title}</span>
+              <span aria-live="polite" style={{ fontFamily: 'var(--disp)', fontSize: 15, fontWeight: 600, minWidth: 96, textAlign: 'center', whiteSpace: 'nowrap' }}>{title}</span>
               <button onClick={() => shift(1)} className="h-surface2" style={navBtn} aria-label={`Next ${mode}`}>›</button>
             </div>
           </div>
@@ -87,10 +87,10 @@ function MonthGrid({ y, m, byDate, onOpenBoard }) {
 
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, marginBottom: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 8, marginBottom: 8 }}>
         {WD.map((w) => <div key={w} style={{ ...eyebrow, marginBottom: 0, textAlign: 'center' }}>{w}</div>)}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 8 }}>
         {cells.map((d, i) => {
           if (!d) return <div key={i} style={{ minHeight: 96, borderRadius: 12, background: 'var(--surface-2)', opacity: 0.4 }} />
           const date = iso(new Date(y, m, d))
@@ -106,7 +106,7 @@ function WeekGrid({ anchor, byDate, onOpenBoard }) {
   a.setDate(a.getDate() - a.getDay()) // back to Sunday
   const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(a); d.setDate(a.getDate() + i); return d })
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 10 }}>
       {days.map((d, i) => (
         <div key={i}>
           <div style={{ ...eyebrow, marginBottom: 6, textAlign: 'center' }}>{WD[d.getDay()]} {d.getDate()}</div>
@@ -121,7 +121,7 @@ function DayCell({ day, board, onOpenBoard, tall }) {
   const minHeight = tall ? 150 : 96
   if (!board) {
     return (
-      <div style={{ minHeight, borderRadius: 12, border: '1px solid var(--line-2)', background: 'var(--surface)', padding: '8px 10px', color: 'var(--faint)' }}>
+      <div className="daycell daycell-empty" style={{ minHeight, borderRadius: 12, border: '1px solid var(--line-2)', background: 'var(--surface)', padding: '8px 10px', color: 'var(--faint)', overflow: 'hidden' }}>
         <div style={{ fontFamily: 'var(--disp)', fontSize: 15, fontWeight: 600 }}>{day}</div>
       </div>
     )
@@ -129,15 +129,17 @@ function DayCell({ day, board, onOpenBoard, tall }) {
   const closed = board.status === 'closed'
   const label = `Open board ${board.title || ''} — ${board.workerCount != null ? board.workerCount + ' workers, ' : ''}${closed ? 'closed' : 'open'}`
   return (
-    <button onClick={() => onOpenBoard(board.id)} className="h-card" aria-label={label}
-      style={{ minHeight, width: '100%', textAlign: 'left', borderRadius: 12, border: `1px solid ${closed ? 'var(--line-2)' : 'var(--navy-soft)'}`, background: closed ? 'var(--surface-2)' : 'var(--surface)', padding: '8px 10px', cursor: 'pointer', fontFamily: 'var(--sans)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <button onClick={() => onOpenBoard(board.id)} className="h-card daycell" aria-label={label}
+      style={{ minHeight, width: '100%', textAlign: 'left', borderRadius: 12, border: `1px solid ${closed ? 'var(--line-2)' : 'var(--navy-soft)'}`, background: closed ? 'var(--surface-2)' : 'var(--surface)', padding: '8px 10px', cursor: 'pointer', fontFamily: 'var(--sans)', display: 'flex', flexDirection: 'column', gap: 6, overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ fontFamily: 'var(--disp)', fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>{day}</span>
+        {/* compact open/closed dot — shown only on narrow screens where text is hidden */}
+        <span className="daycell-dot" aria-hidden="true" style={{ width: 7, height: 7, borderRadius: '50%', background: closed ? 'var(--faint)' : 'var(--green)' }} />
         {board.starred && <span style={{ color: 'oklch(0.72 0.15 85)', fontSize: 12 }}>★</span>}
         <span style={{ flex: 1 }} />
-        <span style={{ fontSize: 9.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: closed ? 'var(--faint)' : 'var(--green-ink)', background: closed ? 'var(--surface)' : 'var(--green-soft)', borderRadius: 20, padding: '1px 7px' }}>{closed ? 'Closed' : 'Open'}</span>
+        <span className="daycell-detail" style={{ fontSize: 9.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: closed ? 'var(--faint)' : 'var(--green-ink)', background: closed ? 'var(--surface)' : 'var(--green-soft)', borderRadius: 20, padding: '1px 7px' }}>{closed ? 'Closed' : 'Open'}</span>
       </div>
-      <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.35 }}>
+      <div className="daycell-detail" style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.35 }}>
         {board.workerCount != null ? `${board.workerCount} workers` : ''}
         {board.jobs != null ? ` · ${board.jobs} jobs` : ''}
       </div>

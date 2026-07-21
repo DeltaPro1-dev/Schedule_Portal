@@ -9,7 +9,7 @@ const VERB = {
   COMPLETE: 'var(--green-ink)', EXPORT: 'oklch(0.5 0.1 200)', DELETE: '#dc2626', REPROCESS: 'var(--navy)',
 }
 const VERBS = ['LOGIN', 'CREATE', 'UPDATE', 'MOVE', 'COMPLETE', 'EXPORT', 'DELETE', 'REPROCESS']
-const GRID = '160px 180px 1fr 120px 150px'
+const GRID = '150px 170px minmax(200px,1fr) 110px 140px'
 
 export default function Audit({ onBack }) {
   const [rows, setRows] = useState(null)

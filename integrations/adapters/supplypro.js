@@ -14,8 +14,10 @@ async function fillFirst(page, selectors, value) {
   return null
 }
 
-export async function login(page, env) {
-  await page.goto(env.SUPPLYPRO_URL, { waitUntil: 'domcontentloaded' })
+// The order-management portal login (www.supplypro.com is just the marketing site).
+const PORTAL_LOGIN = 'https://supplysystem.supplypro.com/'
+
+async function tryFillCreds(page, env) {
   const u = await fillFirst(
     page,
     [env.SUPPLYPRO_SEL_USER, '#UserName', '#username', 'input[name="UserName"]', 'input[name="username"]', 'input[type="email"]', 'input[type="text"]'].filter(Boolean),
@@ -26,7 +28,24 @@ export async function login(page, env) {
     [env.SUPPLYPRO_SEL_PASS, '#Password', '#password', 'input[name="Password"]', 'input[type="password"]'].filter(Boolean),
     env.SUPPLYPRO_PASS,
   )
-  if (!u || !p) throw new Error('SupplyPro login fields not found — set SUPPLYPRO_SEL_USER/PASS in .env after inspecting debug/ HTML')
+  return !!(u && p)
+}
+
+export async function login(page, env) {
+  await page.goto(env.SUPPLYPRO_URL || PORTAL_LOGIN, { waitUntil: 'domcontentloaded' })
+  let filled = await tryFillCreds(page, env)
+  if (!filled) {
+    // likely the marketing site — follow its "LOG IN" link to the real portal
+    const link = await page.$('a:has-text("LOG IN"), a:has-text("Log In"), a:has-text("Login"), a:has-text("Sign In")')
+    if (link) {
+      await link.click().catch(() => {})
+      await page.waitForLoadState('networkidle').catch(() => {})
+    } else {
+      await page.goto(PORTAL_LOGIN, { waitUntil: 'domcontentloaded' }).catch(() => {})
+    }
+    filled = await tryFillCreds(page, env)
+  }
+  if (!filled) throw new Error('SupplyPro login fields not found — check debug/ HTML and set SUPPLYPRO_SEL_USER/PASS in .env')
 
   const submit =
     (env.SUPPLYPRO_SEL_SUBMIT && (await page.$(env.SUPPLYPRO_SEL_SUBMIT))) ||
@@ -53,22 +72,44 @@ function toISO(mdy) {
 }
 
 export async function scrape(page, { dump }) {
-  // Land on the orders / To Do view if not already there.
-  if (!(await isLoggedIn(page))) {
-    // some tenants land on a dashboard; try the Orders nav
-    const orders = await page.$('a:has-text("Orders"), a:has-text("To Do")')
-    if (orders) await orders.click().catch(() => {})
+  // The SCHEDULE lives in the "To Do Calendar" (CalendarDay.asp). The "To Do Orders"
+  // list is billing data for a later portal module — not the schedule.
+  const link = await page.$('a:has-text("To Do Calendar")')
+  if (link) {
+    await link.click().catch(() => {})
     await page.waitForLoadState('networkidle').catch(() => {})
   }
-  await dump('orders') // screenshot + HTML for calibration
+  await dump('todo-calendar') // screenshot + HTML for calibration
 
-  const bodyText = await page.evaluate(() => document.body.innerText)
-  const dateM = bodyText.match(/To Do Orders For\s+(\d{1,2}\/\d{1,2}\/\d{2,4})/i)
-  const scheduled_date = dateM ? toISO(dateM[1]) : null
+  // The calendar day view lists orders as <li> under the "To Do" heading:
+  //   <li><a href="...OrderDetail.asp?...order_id=NNN...">Activity [codes][flags]</a>
+  //        - <span>Block X, Lot Y, address</span></li>
+  const data = await page.evaluate(() => {
+    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
+    const dm = document.body.innerText.match(/Orders For\s+(\d{1,2}\/\d{1,2}\/\d{2,4})/i)
+    // find the <ul> that follows the "To Do" heading
+    let ul = null
+    for (const b of document.querySelectorAll('b')) {
+      if (norm(b.textContent).toLowerCase() === 'to do') {
+        let el = b.nextElementSibling
+        while (el && el.tagName !== 'UL') el = el.nextElementSibling
+        ul = el
+        break
+      }
+    }
+    const items = ul
+      ? [...ul.querySelectorAll('li')].map((li) => ({ line: norm(li.innerText), href: li.querySelector('a')?.href || null }))
+      : []
+    return { dateText: dm ? dm[1] : null, items }
+  })
 
-  const lines = bodyText.split('\n').map((s) => s.trim()).filter(Boolean)
-  // order lines look like "<Activity> [codes][flags] - Block X, Lot Y, <address>"
-  const orderLines = lines.filter((l) => /\bLot\b/i.test(l) && (l.includes('[') || /\bBlock\b/i.test(l)))
-
-  return orderLines.map((line) => ({ ...parseSupplyProOrder(line), scheduled_date, raw: { line } }))
+  const scheduled_date = data.dateText ? toISO(data.dateText) : null
+  return data.items
+    .filter((it) => it.line && /\bLot\b/i.test(it.line)) // drop "No Orders Today"
+    .map((it) => {
+      const parsed = parseSupplyProOrder(it.line)
+      const oid = it.href?.match(/order(?:_|%5f)id=(\d+)/i)   // the order_id param (NOT OrderDetail / job_id)
+      if (oid) parsed.external_id = `order:${oid[1]}`
+      return { ...parsed, scheduled_date, raw: { line: it.line, href: it.href } }
+    })
 }

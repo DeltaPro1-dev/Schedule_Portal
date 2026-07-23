@@ -118,38 +118,31 @@ async function extractToDo(page) {
   })
 }
 
-// Extract the circled fields from an OrderDetail page (best-effort label→value).
+// Extract the circled OrderDetail fields. Fields render as `<b>Label:</b><br>value`
+// (detail column) or `<b>Label:</b></td><td>value` (Order Information table); the
+// builder title is a centered `<td class="large"><b>…</b></td>`.
 async function extractDetail(page) {
-  return page.evaluate(() => {
-    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
-    const cells = [...document.querySelectorAll('td,th')].map((c) => norm(c.innerText))
-    const body = document.body.innerText
-    const byLabel = (labels) => {
-      for (let i = 0; i < cells.length; i++) {
-        for (const lab of labels) {
-          if (cells[i].toLowerCase().startsWith(lab.toLowerCase())) {
-            const inline = norm(cells[i].slice(lab.length).replace(/^:/, ''))
-            if (inline) return inline
-            if (norm(cells[i + 1] || '')) return norm(cells[i + 1])
-          }
-        }
-      }
-      for (const lab of labels) {
-        const m = body.match(new RegExp(lab.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&') + '\\s*:?\\s*(.+)', 'i'))
-        if (m && norm(m[1])) return norm(m[1])
-      }
-      return null
+  const html = await page.evaluate(() => document.body.innerHTML)
+  const dec = (s) => s.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim()
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')
+  const grab = (labels) => {
+    for (const lab of labels) {
+      const re = new RegExp('<b>\\s*' + esc(lab) + '\\s*:?\\s*</b>(?:\\s|</td>|<td[^>]*>|<br\\s*/?>|<b>|</b>)*([^<]+)', 'i')
+      const m = html.match(re)
+      if (m && dec(m[1])) return dec(m[1])
     }
-    return {
-      task: byLabel(['Task']),
-      planEtc: byLabel(['Plan / Elevation / Swing', 'Plan/Elevation/Swing']),
-      subPhase: byLabel(['Subdivision / Phase', 'Subdivision/Phase']),
-      lotBlock: byLabel(['Lot / Block', 'Lot/Block']),
-      jobStart: byLabel(['Job Start Date']),
-      orderNo: byLabel(["Builder's Order Number", 'Builder Order Number']),
-      builder: (body.match(/^(.*?Division\s*-\s*\d+)\s*$/m) || [])[1] || (body.match(/^(.+?,\s*Inc[^\n]*)$/m) || [])[1] || null,
-    }
-  })
+    return null
+  }
+  const b = html.match(/class="large"[^>]*>\s*<b>([^<]+)<\/b>/i)
+  return {
+    task: grab(['Task']),
+    planEtc: grab(['Plan / Elevation / Swing', 'Plan/Elevation/Swing']),
+    subPhase: grab(['Subdivision / Phase', 'Subdivision/Phase']),
+    lotBlock: grab(['Lot / Block', 'Lot/Block']),
+    jobStart: grab(['Job Start Date']),
+    orderNo: grab(["Builder's Order Number", 'Builder Order Number']),
+    builder: b ? dec(b[1]) : null,
+  }
 }
 
 const splitSlash = (s, n) => (s ? s.split('/').map((x) => x.trim()) : []).concat(Array(n).fill(null)).slice(0, n)

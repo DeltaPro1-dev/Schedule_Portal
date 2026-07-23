@@ -134,6 +134,16 @@ async function extractDetail(page) {
     return null
   }
   const b = html.match(/class="large"[^>]*>\s*<b>([^<]+)<\/b>/i)
+
+  // Superintendent = the LAST "Contact Information" block (Shipping column;
+  // Billing is the first). Lines are <br>-separated: name / phone / email.
+  const ci = [...html.matchAll(/<b>\s*Contact Information\s*:?\s*<\/b>([\s\S]*?)<\/td>/gi)]
+  const block = ci.length ? ci[ci.length - 1][1] : ''
+  const superEmail = (block.match(/mailto:([^?"&]+)/i) || [])[1] || null
+  const superLines = block.split(/<br\s*\/?>/i).map((l) => dec(l.replace(/<[^>]+>/g, ''))).filter(Boolean)
+  const superPhone = superLines.find((l) => /\d{3}[)\s.\-]*\d{3}[\s.\-]*\d{4}/.test(l)) || null
+  const superName = superLines.find((l) => !/@/.test(l) && l !== superPhone && !/^\+?\(?\d/.test(l)) || null
+
   return {
     task: grab(['Task']),
     planEtc: grab(['Plan / Elevation / Swing', 'Plan/Elevation/Swing']),
@@ -142,6 +152,7 @@ async function extractDetail(page) {
     jobStart: grab(['Job Start Date']),
     orderNo: grab(["Builder's Order Number", 'Builder Order Number']),
     builder: b ? dec(b[1]) : null,
+    superName, superPhone, superEmail,
   }
 }
 
@@ -214,6 +225,9 @@ export async function scrape(page, { dump, env = {} }) {
         block: blockD || parsed.block || null,
         job_start_date: detail.jobStart ? toISO(detail.jobStart) : null,
         builder_order_no: detail.orderNo || null,
+        super_name: detail.superName || null,
+        super_phone: detail.superPhone || null,
+        super_email: detail.superEmail || null,
         scheduled_date,
         raw: { line: it.line, href: it.href, date: scheduled_date, detail },
       })

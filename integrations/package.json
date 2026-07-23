@@ -1,0 +1,15 @@
+{
+  "name": "schedule-portal-integrations",
+  "private": true,
+  "type": "module",
+  "description": "Portal scrapers/importers that feed schedule_portal.imported_schedules",
+  "scripts": {
+    "scrape": "node run.js",
+    "scrape:supplypro": "node run.js supplypro"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
+    "dotenv": "^16.4.5",
+    "playwright": "^1.48.0"
+  }
+}

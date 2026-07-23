@@ -21,18 +21,50 @@ const PORTAL_LOGIN = 'https://supplysystem.supplypro.com/'
 async function tryFillCreds(page, env) {
   const u = await fillFirst(
     page,
-    [env.SUPPLYPRO_SEL_USER, '#UserName', '#username', 'input[name="UserName"]', 'input[name="username"]', 'input[type="email"]', 'input[type="text"]'].filter(Boolean),
+    [env.SUPPLYPRO_SEL_USER, '#user_name', 'input[name="user_name"]', '#UserName', 'input[name="UserName"]', 'input[type="email"]', 'input[type="text"]'].filter(Boolean),
     env.SUPPLYPRO_USER,
   )
   const p = await fillFirst(
     page,
-    [env.SUPPLYPRO_SEL_PASS, '#Password', '#password', 'input[name="Password"]', 'input[type="password"]'].filter(Boolean),
+    [env.SUPPLYPRO_SEL_PASS, '#password', 'input[name="password"]', '#Password', 'input[type="password"]'].filter(Boolean),
     env.SUPPLYPRO_PASS,
   )
   return !!(u && p)
 }
 
-export async function login(page, env) {
+async function submitLogin(page, env) {
+  const submit =
+    (env.SUPPLYPRO_SEL_SUBMIT && (await page.$(env.SUPPLYPRO_SEL_SUBMIT))) ||
+    (await page.$('input[name="cmdSubmit"]')) ||
+    (await page.$('input[type="submit"]')) ||
+    (await page.$('button[type="submit"]'))
+  if (submit) await submit.click().catch(() => {})
+  else await page.keyboard.press('Enter')
+  await page.waitForLoadState('networkidle').catch(() => {})
+}
+
+// SupplyPro shows a "Force Login" prompt when the account is already logged in
+// elsewhere — tick the box and confirm to take over the session.
+async function handleForceLogin(page, dump) {
+  const text = await page.evaluate(() => document.body?.innerText || '').catch(() => '')
+  if (!/force ?login|already (logged|signed)|active session|another (session|location)|currently logged/i.test(text)) return
+  if (dump) await dump('force-login')
+  const cb =
+    (await page.$('input[type="checkbox"][name*="force" i]')) ||
+    (await page.$('input[type="checkbox"][id*="force" i]')) ||
+    (await page.$('input[type="checkbox"]'))
+  if (cb) await cb.check().catch(() => {})
+  const btn =
+    (await page.$('input[value*="force" i]')) ||
+    (await page.$('button:has-text("Force")')) ||
+    (await page.$('a:has-text("Force")')) ||
+    (await page.$('input[name="cmdSubmit"]')) ||
+    (await page.$('input[type="submit"]')) ||
+    (await page.$('button[type="submit"]'))
+  if (btn) { await btn.click().catch(() => {}); await page.waitForLoadState('networkidle').catch(() => {}) }
+}
+
+export async function login(page, env, { dump } = {}) {
   await page.goto(env.SUPPLYPRO_URL || PORTAL_LOGIN, { waitUntil: 'domcontentloaded' })
   let filled = await tryFillCreds(page, env)
   if (!filled) {
@@ -48,14 +80,8 @@ export async function login(page, env) {
   }
   if (!filled) throw new Error('SupplyPro login fields not found — check debug/ HTML and set SUPPLYPRO_SEL_USER/PASS in .env')
 
-  const submit =
-    (env.SUPPLYPRO_SEL_SUBMIT && (await page.$(env.SUPPLYPRO_SEL_SUBMIT))) ||
-    (await page.$('button[type="submit"]')) ||
-    (await page.$('input[type="submit"]'))
-  if (submit) await submit.click()
-  else await page.keyboard.press('Enter')
-
-  await page.waitForLoadState('networkidle').catch(() => {})
+  await submitLogin(page, env)
+  await handleForceLogin(page, dump) // take over an existing session if prompted
 }
 
 // True if we appear to be logged in (Order Management visible).
@@ -138,8 +164,8 @@ export async function scrape(page, { dump, env = {} }) {
     return !!l
   }
   // Ensure we're logged in and on the calendar (heals an expired --persist session).
-  if (await onLogin()) await login(page, env)
-  if (!(await openCalendar()) || (await onLogin())) { await login(page, env); await openCalendar() }
+  if (await onLogin()) await login(page, env, { dump })
+  if (!(await openCalendar()) || (await onLogin())) { await login(page, env, { dump }); await openCalendar() }
   let calBase = page.url().split('?')[0] // .../CalendarDay.asp
   let sessid = (page.url().match(/sessid=([^&]+)/i) || [])[1] || ''
 
@@ -155,7 +181,7 @@ export async function scrape(page, { dump, env = {} }) {
     await page.goto(dayUrl(sessid), { waitUntil: 'networkidle' }).catch(() => {})
     if (await onLogin()) {
       // session expired mid-run → re-login, refresh sessid, retry this date
-      await login(page, env)
+      await login(page, env, { dump })
       await openCalendar()
       calBase = page.url().split('?')[0]
       sessid = (page.url().match(/sessid=([^&]+)/i) || [])[1] || sessid

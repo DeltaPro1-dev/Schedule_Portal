@@ -50,7 +50,7 @@ try {
   const loggedIn = mod.isLoggedIn ? await mod.isLoggedIn(page) : false
   if (!loggedIn) {
     console.log('Logging in…')
-    await mod.login(page, env)
+    await mod.login(page, env, { dump })
   }
   if (persist) await context.storageState({ path: authFile })
 

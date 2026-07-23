@@ -131,13 +131,17 @@ const splitSlash = (s, n) => (s ? s.split('/').map((x) => x.trim()) : []).concat
 export async function scrape(page, { dump, env = {} }) {
   // The SCHEDULE lives in the "To Do Calendar" (CalendarDay.asp). "To Do Orders"
   // is billing data for a later module — not the schedule.
-  const link = await page.$('a:has-text("To Do Calendar")')
-  if (link) {
-    await link.click().catch(() => {})
-    await page.waitForLoadState('networkidle').catch(() => {})
+  const onLogin = async () => /login/i.test((await page.title()) || '') || !!(await page.$('input[type="password"]'))
+  const openCalendar = async () => {
+    const l = await page.$('a:has-text("To Do Calendar")')
+    if (l) { await l.click().catch(() => {}); await page.waitForLoadState('networkidle').catch(() => {}) }
+    return !!l
   }
-  const calBase = page.url().split('?')[0] // .../CalendarDay.asp
-  const sessid = (page.url().match(/sessid=([^&]+)/i) || [])[1] || ''
+  // Ensure we're logged in and on the calendar (heals an expired --persist session).
+  if (await onLogin()) await login(page, env)
+  if (!(await openCalendar()) || (await onLogin())) { await login(page, env); await openCalendar() }
+  let calBase = page.url().split('?')[0] // .../CalendarDay.asp
+  let sessid = (page.url().match(/sessid=([^&]+)/i) || [])[1] || ''
 
   // Rule: next day; on Friday, Sat/Sun/Mon. (Override "today" with SCRAPE_BASE_DATE.)
   const dates = targetDates(baseDate(env))
@@ -147,8 +151,16 @@ export async function scrape(page, { dump, env = {} }) {
   let detailDumped = false
   for (const dt of dates) {
     const p = parts(dt)
-    const url = `${calBase}?d=${p.d}&m=${p.m}&y=${p.y}${sessid ? `&sessid=${sessid}` : ''}`
-    await page.goto(url, { waitUntil: 'networkidle' }).catch(() => {})
+    const dayUrl = (sid) => `${calBase}?d=${p.d}&m=${p.m}&y=${p.y}${sid ? `&sessid=${sid}` : ''}`
+    await page.goto(dayUrl(sessid), { waitUntil: 'networkidle' }).catch(() => {})
+    if (await onLogin()) {
+      // session expired mid-run → re-login, refresh sessid, retry this date
+      await login(page, env)
+      await openCalendar()
+      calBase = page.url().split('?')[0]
+      sessid = (page.url().match(/sessid=([^&]+)/i) || [])[1] || sessid
+      await page.goto(dayUrl(sessid), { waitUntil: 'networkidle' }).catch(() => {})
+    }
     if (!calDumped) { await dump(`calendar-${iso(dt)}`); calDumped = true }
     const scheduled_date = iso(dt)
     // capture the list first (visiting a detail navigates away from the calendar)

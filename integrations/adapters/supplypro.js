@@ -92,6 +92,42 @@ async function extractToDo(page) {
   })
 }
 
+// Extract the circled fields from an OrderDetail page (best-effort label→value).
+async function extractDetail(page) {
+  return page.evaluate(() => {
+    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
+    const cells = [...document.querySelectorAll('td,th')].map((c) => norm(c.innerText))
+    const body = document.body.innerText
+    const byLabel = (labels) => {
+      for (let i = 0; i < cells.length; i++) {
+        for (const lab of labels) {
+          if (cells[i].toLowerCase().startsWith(lab.toLowerCase())) {
+            const inline = norm(cells[i].slice(lab.length).replace(/^:/, ''))
+            if (inline) return inline
+            if (norm(cells[i + 1] || '')) return norm(cells[i + 1])
+          }
+        }
+      }
+      for (const lab of labels) {
+        const m = body.match(new RegExp(lab.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&') + '\\s*:?\\s*(.+)', 'i'))
+        if (m && norm(m[1])) return norm(m[1])
+      }
+      return null
+    }
+    return {
+      task: byLabel(['Task']),
+      planEtc: byLabel(['Plan / Elevation / Swing', 'Plan/Elevation/Swing']),
+      subPhase: byLabel(['Subdivision / Phase', 'Subdivision/Phase']),
+      lotBlock: byLabel(['Lot / Block', 'Lot/Block']),
+      jobStart: byLabel(['Job Start Date']),
+      orderNo: byLabel(["Builder's Order Number", 'Builder Order Number']),
+      builder: (body.match(/^(.*?Division\s*-\s*\d+)\s*$/m) || [])[1] || (body.match(/^(.+?,\s*Inc[^\n]*)$/m) || [])[1] || null,
+    }
+  })
+}
+
+const splitSlash = (s, n) => (s ? s.split('/').map((x) => x.trim()) : []).concat(Array(n).fill(null)).slice(0, n)
+
 export async function scrape(page, { dump, env = {} }) {
   // The SCHEDULE lives in the "To Do Calendar" (CalendarDay.asp). "To Do Orders"
   // is billing data for a later module — not the schedule.
@@ -107,19 +143,49 @@ export async function scrape(page, { dump, env = {} }) {
   const dates = targetDates(baseDate(env))
 
   const rows = []
-  let first = true
+  let calDumped = false
+  let detailDumped = false
   for (const dt of dates) {
     const p = parts(dt)
     const url = `${calBase}?d=${p.d}&m=${p.m}&y=${p.y}${sessid ? `&sessid=${sessid}` : ''}`
     await page.goto(url, { waitUntil: 'networkidle' }).catch(() => {})
-    if (first) { await dump(`calendar-${iso(dt)}`); first = false } // one dump for calibration
+    if (!calDumped) { await dump(`calendar-${iso(dt)}`); calDumped = true }
     const scheduled_date = iso(dt)
-    for (const it of await extractToDo(page)) {
-      if (!it.line || !/\bLot\b/i.test(it.line)) continue // skip "No Orders Today"
+    // capture the list first (visiting a detail navigates away from the calendar)
+    const items = (await extractToDo(page)).filter((it) => it.line && /\bLot\b/i.test(it.line))
+    for (const it of items) {
       const parsed = parseSupplyProOrder(it.line)
       const oid = it.href?.match(/order(?:_|%5f)id=(\d+)/i) // order_id param (NOT OrderDetail/job_id)
       if (oid) parsed.external_id = `order:${oid[1]}`
-      rows.push({ ...parsed, scheduled_date, raw: { line: it.line, href: it.href, date: scheduled_date } })
+
+      let detail = {}
+      if (it.href) {
+        try {
+          await page.goto(it.href, { waitUntil: 'networkidle' })
+          if (!detailDumped) { await dump('order-detail'); detailDumped = true } // calibrate once
+          detail = await extractDetail(page)
+        } catch { /* keep the base row if the detail page fails */ }
+      }
+      const [plan, elevation, swing] = splitSlash(detail.planEtc, 3)
+      const [subdivision, phase] = splitSlash(detail.subPhase, 2)
+      const [lotD, blockD] = splitSlash(detail.lotBlock, 2)
+
+      rows.push({
+        ...parsed,
+        builder: detail.builder || parsed.builder || null,
+        community: subdivision || parsed.community || null,
+        subdivision: subdivision || null,
+        phase: phase || null,
+        plan: plan || null,
+        elevation: elevation || null,
+        swing: swing || null,
+        lot: lotD || parsed.lot || null,
+        block: blockD || parsed.block || null,
+        job_start_date: detail.jobStart ? toISO(detail.jobStart) : null,
+        builder_order_no: detail.orderNo || null,
+        scheduled_date,
+        raw: { line: it.line, href: it.href, date: scheduled_date, detail },
+      })
     }
   }
   return rows

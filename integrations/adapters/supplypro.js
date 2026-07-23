@@ -78,14 +78,13 @@ function toISO(mdy) {
 async function extractToDo(page) {
   return page.evaluate(() => {
     const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
+    // The section header is <b>To Do</b> immediately followed by its <ul>.
+    // (The left-nav also has a <b>&nbsp;To Do</b> — it has no adjacent <ul>, so skip it.)
     let ul = null
     for (const b of document.querySelectorAll('b')) {
-      if (norm(b.textContent).toLowerCase() === 'to do') {
-        let el = b.nextElementSibling
-        while (el && el.tagName !== 'UL') el = el.nextElementSibling
-        ul = el
-        break
-      }
+      if (norm(b.textContent).toLowerCase() !== 'to do') continue
+      const sib = b.nextElementSibling
+      if (sib && sib.tagName === 'UL') { ul = sib; break }
     }
     return ul
       ? [...ul.querySelectorAll('li')].map((li) => ({ line: norm(li.innerText), href: li.querySelector('a')?.href || null }))

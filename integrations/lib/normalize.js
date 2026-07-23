@@ -65,6 +65,9 @@ export function toRow({ source, organization_id, parsed, scheduled_date, status,
     block: parsed.block || null,
     job_start_date: parsed.job_start_date || null,
     builder_order_no: parsed.builder_order_no || null,
+    super_name: parsed.super_name || null,
+    super_phone: parsed.super_phone || null,
+    super_email: parsed.super_email || null,
     raw: raw ?? parsed,
   }
 }

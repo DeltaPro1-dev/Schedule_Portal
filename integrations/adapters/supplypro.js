@@ -3,6 +3,7 @@
 // selectors/parsing can be tightened against the real page. Covers multiple
 // builders under one SupplyPro login.
 import { parseSupplyProOrder } from '../lib/normalize.js'
+import { targetDates, parts, iso, baseDate } from '../lib/dates.js'
 
 export const meta = { source: 'supplypro', label: 'SupplyPro (Hyphen)' }
 
@@ -71,23 +72,12 @@ function toISO(mdy) {
   return `${yy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
 }
 
-export async function scrape(page, { dump }) {
-  // The SCHEDULE lives in the "To Do Calendar" (CalendarDay.asp). The "To Do Orders"
-  // list is billing data for a later portal module — not the schedule.
-  const link = await page.$('a:has-text("To Do Calendar")')
-  if (link) {
-    await link.click().catch(() => {})
-    await page.waitForLoadState('networkidle').catch(() => {})
-  }
-  await dump('todo-calendar') // screenshot + HTML for calibration
-
-  // The calendar day view lists orders as <li> under the "To Do" heading:
-  //   <li><a href="...OrderDetail.asp?...order_id=NNN...">Activity [codes][flags]</a>
-  //        - <span>Block X, Lot Y, address</span></li>
-  const data = await page.evaluate(() => {
+// Extract the "To Do" order <li> items on the current CalendarDay page.
+//   <li><a href="...OrderDetail.asp?...order_id=NNN...">Activity [codes][flags]</a>
+//        - <span>Block X, Lot Y, address</span></li>
+async function extractToDo(page) {
+  return page.evaluate(() => {
     const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
-    const dm = document.body.innerText.match(/Orders For\s+(\d{1,2}\/\d{1,2}\/\d{2,4})/i)
-    // find the <ul> that follows the "To Do" heading
     let ul = null
     for (const b of document.querySelectorAll('b')) {
       if (norm(b.textContent).toLowerCase() === 'to do') {
@@ -97,19 +87,41 @@ export async function scrape(page, { dump }) {
         break
       }
     }
-    const items = ul
+    return ul
       ? [...ul.querySelectorAll('li')].map((li) => ({ line: norm(li.innerText), href: li.querySelector('a')?.href || null }))
       : []
-    return { dateText: dm ? dm[1] : null, items }
   })
+}
 
-  const scheduled_date = data.dateText ? toISO(data.dateText) : null
-  return data.items
-    .filter((it) => it.line && /\bLot\b/i.test(it.line)) // drop "No Orders Today"
-    .map((it) => {
+export async function scrape(page, { dump, env = {} }) {
+  // The SCHEDULE lives in the "To Do Calendar" (CalendarDay.asp). "To Do Orders"
+  // is billing data for a later module — not the schedule.
+  const link = await page.$('a:has-text("To Do Calendar")')
+  if (link) {
+    await link.click().catch(() => {})
+    await page.waitForLoadState('networkidle').catch(() => {})
+  }
+  const calBase = page.url().split('?')[0] // .../CalendarDay.asp
+  const sessid = (page.url().match(/sessid=([^&]+)/i) || [])[1] || ''
+
+  // Rule: next day; on Friday, Sat/Sun/Mon. (Override "today" with SCRAPE_BASE_DATE.)
+  const dates = targetDates(baseDate(env))
+
+  const rows = []
+  let first = true
+  for (const dt of dates) {
+    const p = parts(dt)
+    const url = `${calBase}?d=${p.d}&m=${p.m}&y=${p.y}${sessid ? `&sessid=${sessid}` : ''}`
+    await page.goto(url, { waitUntil: 'networkidle' }).catch(() => {})
+    if (first) { await dump(`calendar-${iso(dt)}`); first = false } // one dump for calibration
+    const scheduled_date = iso(dt)
+    for (const it of await extractToDo(page)) {
+      if (!it.line || !/\bLot\b/i.test(it.line)) continue // skip "No Orders Today"
       const parsed = parseSupplyProOrder(it.line)
-      const oid = it.href?.match(/order(?:_|%5f)id=(\d+)/i)   // the order_id param (NOT OrderDetail / job_id)
+      const oid = it.href?.match(/order(?:_|%5f)id=(\d+)/i) // order_id param (NOT OrderDetail/job_id)
       if (oid) parsed.external_id = `order:${oid[1]}`
-      return { ...parsed, scheduled_date, raw: { line: it.line, href: it.href } }
-    })
+      rows.push({ ...parsed, scheduled_date, raw: { line: it.line, href: it.href, date: scheduled_date } })
+    }
+  }
+  return rows
 }

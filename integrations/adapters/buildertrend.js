@@ -12,15 +12,16 @@ export const homeUrl = (env) => env.BUILDERTREND_URL || SUMMARY_URL
 
 async function fillFirst(page, selectors, value) {
   for (const sel of selectors) {
-    const el = await page.$(sel)
+    const el = await page.$(sel).catch(() => null) // SPA may destroy the context mid-query
     if (el) { await el.fill(value).catch(() => {}); return sel }
   }
   return null
 }
 
+// Logged in = we're in the app (no password field, not on the Auth0 login page).
 export async function isLoggedIn(page) {
-  const t = await page.evaluate(() => document.body?.innerText || '').catch(() => '')
-  return /Summary|Sign Out|Log Out|Dashboard/i.test(t) && !/password/i.test(t)
+  const hasPassword = await page.$('input[type="password"]').catch(() => null)
+  return !hasPassword && !/auth0|\/login/i.test(page.url())
 }
 
 export async function login(page, env, { dump } = {}) {
@@ -75,6 +76,7 @@ export async function scrape(page, { dump }) {
   await page.goto(SUMMARY_URL, { waitUntil: 'domcontentloaded' }).catch(() => {})
   // The "Work Schedule snapshot" rows come from the rptrUpcomingSchedule repeater.
   await page.waitForSelector('tr[id*="rptrUpcomingSchedule"]', { timeout: 30000 }).catch(() => {})
+  await page.waitForTimeout(1500) // let the SPA settle so content()/screenshot don't race a re-render
   await dump('summary')
 
   // Parse from the HTML string (not page.evaluate) — the SPA re-renders and would

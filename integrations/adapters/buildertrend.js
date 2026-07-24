@@ -47,9 +47,16 @@ export async function login(page, env, { dump } = {}) {
   if (submit) await submit.click().catch(() => {})
   else await page.keyboard.press('Enter')
   await page.waitForLoadState('networkidle').catch(() => {})
-  // Auth0 MFA — solve in the --headful window; --persist reuses the session next run.
-  if (dump && /verification code|two-?factor|authenticator|one-?time|enter the code/i.test(await page.evaluate(() => document.body?.innerText || '').catch(() => ''))) {
-    await dump('2fa')
+  // Auth0 can require a captcha/2FA that we don't automate. Wait for auth to
+  // finish (solve any challenge in the --headful window); --persist then saves the
+  // session so scheduled headless runs reuse it until it expires.
+  const authed = await page
+    .waitForFunction(() => !document.querySelector('input[type="password"]') && !/log ?in/i.test(document.title), { timeout: 180000, polling: 1000 })
+    .then(() => true)
+    .catch(() => false)
+  if (!authed) {
+    if (dump) await dump('login-stuck')
+    throw new Error('Buildertrend auth did not complete (captcha/2FA?). Run once with `--headful --persist` and finish the login by hand — the saved session is then reused.')
   }
 }
 

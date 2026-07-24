@@ -6,6 +6,7 @@ import { toRow } from './lib/normalize.js'
 
 const ADAPTERS = {
   supplypro: () => import('./adapters/supplypro.js'),
+  buildertrend: () => import('./adapters/buildertrend.js'),
 }
 
 const args = process.argv.slice(2)
@@ -44,8 +45,8 @@ async function dump(tag) {
 }
 
 try {
-  if (reuse && env.SUPPLYPRO_URL) {
-    await page.goto(env.SUPPLYPRO_URL, { waitUntil: 'domcontentloaded' }).catch(() => {})
+  if (reuse && mod.homeUrl) {
+    await page.goto(mod.homeUrl(env), { waitUntil: 'domcontentloaded' }).catch(() => {})
   }
   const loggedIn = mod.isLoggedIn ? await mod.isLoggedIn(page) : false
   if (!loggedIn) {

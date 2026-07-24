@@ -69,44 +69,40 @@ function parseJob(job) {
   return out
 }
 
+const strip = (s) => s.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim()
+
 export async function scrape(page, { dump }) {
-  await page.goto(SUMMARY_URL, { waitUntil: 'networkidle' }).catch(() => {})
+  await page.goto(SUMMARY_URL, { waitUntil: 'domcontentloaded' }).catch(() => {})
   // The "Work Schedule snapshot" rows come from the rptrUpcomingSchedule repeater.
-  await page.waitForSelector('tr[id*="rptrUpcomingSchedule"]', { timeout: 20000 }).catch(() => {})
+  await page.waitForSelector('tr[id*="rptrUpcomingSchedule"]', { timeout: 30000 }).catch(() => {})
   await dump('summary')
 
-  const rows = await page.evaluate(() => {
-    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
-    const out = []
-    for (const tr of document.querySelectorAll('tr[id*="rptrUpcomingSchedule"]')) {
-      const tds = [...tr.querySelectorAll('td')]
-      if (tds.length < 2) continue
-      const a = tr.querySelector('a[onclick*="OpenDetails"]') || tr.querySelector('a')
-      const id = (a?.getAttribute('onclick')?.match(/OpenDetails\((\d+)/) || [])[1] || null
-      out.push({
-        status: norm(tds[0]?.innerText),                     // "Begins on M-D-YYYY" or blank
-        title: norm(a?.innerText || tds[tds.length - 2]?.innerText),
-        job: norm(tds[tds.length - 1]?.innerText),
-        id,
-      })
-    }
-    return out
-  })
+  // Parse from the HTML string (not page.evaluate) — the SPA re-renders and would
+  // otherwise destroy the execution context mid-extraction.
+  const html = await page.content().catch(() => '')
+  const trs = html.match(/<tr id="[^"]*rptrUpcomingSchedule[^"]*"[\s\S]*?<\/tr>/gi) || []
 
-  return rows
-    .filter((r) => r.title && r.job)
-    .map((r) => {
-      const begin = (r.status.match(/Begins on\s+([\d/-]+)/i) || [])[1] || null
-      const j = parseJob(r.job)
+  return trs
+    .map((tr) => {
+      const id = (tr.match(/OpenDetails\((\d+)/) || [])[1] || null
+      const a = (tr.match(/<a[^>]*OpenDetails[\s\S]*?<\/a>/i) || [])[0] || ''
+      const title = strip(a)
+      const tds = tr.match(/<td[\s\S]*?<\/td>/gi) || []
+      const job = strip(tds[tds.length - 1] || '')
+      const status = strip(tds[0] || '')
+      if (!title || !job) return null
+      const begin = (status.match(/Begins on\s+([\d/-]+)/i) || [])[1] || null
+      const j = parseJob(job)
       return {
-        activity: r.title,
-        service_type: serviceType(r.title),
+        activity: title,
+        service_type: serviceType(title),
         community: j.community,
         lot: j.lot,
         plan: j.plan,
         scheduled_date: begin ? toISO(begin) : null,
-        external_id: r.id ? `bt:${r.id}` : `bt:${r.title}|${r.job}`.slice(0, 200),
-        raw: { title: r.title, job: r.job, status: r.status, id: r.id },
+        external_id: id ? `bt:${id}` : `bt:${title}|${job}`.slice(0, 200),
+        raw: { title, job, status, id },
       }
     })
+    .filter(Boolean)
 }

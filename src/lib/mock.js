@@ -77,7 +77,6 @@ const MEMBERS = [
 ]
 
 // ── boards: July (current) + archived months ────────────────────────────────
-const WD_SHORT = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const WD_FULL = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
 const MON3 = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
@@ -501,7 +500,7 @@ export const mockApi = {
       if (c) {
         const pos = boardCache[id].cards.filter((x) => x.list_id === c.list_id).length
         const copy = {
-          ...clone(c), id: nid('card'), position: pos, done: false, version: 1,
+          ...clone(c), id: nid('card'), position: pos, done: false, version: 1, status: 'unscheduled',
           labelKeys: [...(c.labelKeys || [])],
           checklist: (c.checklist || []).map((it) => ({ id: nid('ck'), text: it.text, done: false, position: it.position })),
           comments: [], attachments: [],

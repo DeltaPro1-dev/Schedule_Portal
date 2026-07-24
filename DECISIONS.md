@@ -5,6 +5,30 @@ domain model is recorded here with a version bump (Regra de Ouro, see README.md)
 
 ---
 
+## G5.6 — Error-fix pass (2026-07-24)
+**Approved by:** Eder (owner), "corrigir todos os erros antes de montar a tela dicionário".
+Swept every screen for runtime errors and reviewed the production (realApi) paths.
+
+- **getMembers resilient** — it embedded `worker:workers(name)` (D6, migration 0010);
+  if 0010 isn't applied on the project the relationship doesn't exist and the whole
+  Members screen threw. Now it falls back to the base columns on error. (The Teams
+  screen and NotificationBell already tolerated their newer tables.)
+- **favicon 404** — index.html had no icon link and the PWA manifest had no icons, so
+  every load hit `/favicon.ico` → 404. Added `<link rel=icon>` + apple-touch-icon
+  (delta-mark.png) and manifest `icons`.
+- **duplicateCard consistency** — the copy kept the source `status` while resetting
+  `done`, so a duplicate of a completed card showed "Completed" with the box
+  unchecked. The copy now starts `status='unscheduled'` (fresh card to reassign),
+  keeping the briefing/labels/checklist.
+- **lint** — removed unused `WD_SHORT` in mock.js; `oxlint src/` is clean.
+
+Verified: build + lint green; headless (Playwright) — 0 console/page errors across all
+10 sections + board + card + table; Members loads; duplicate raises the day's job
+count (24→25). The ERR_CONNECTION_RESET seen earlier was Google Fonts blocked in the
+sandbox, not a production error.
+
+---
+
 ## G5.5 — Mobile fixes: login overlap + clipped data tables (2026-07-20)
 **Approved by:** Eder (owner), reported the login screen broken on his phone (screenshot).
 

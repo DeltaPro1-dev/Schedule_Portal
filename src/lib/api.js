@@ -34,6 +34,14 @@ function mapCard(row) {
 
 export const ATTACH_BUCKET = 'schedule-attachments'
 
+// Keep only known dictionary columns; empty strings → null.
+const DICT_COLS = ['match_field', 'match_value', 'client_text', 'address', 'subdivision', 'plan', 'lot', 'service_type', 'fin_contact', 'ps_note', 'notes']
+function cleanEntry(e) {
+  const out = {}
+  for (const k of DICT_COLS) if (k in e) out[k] = e[k] === '' ? null : e[k]
+  return out
+}
+
 let _orgId
 async function myOrg() {
   if (_orgId) return _orgId
@@ -164,6 +172,31 @@ const realApi = {
   },
   async removeClient(id) {
     const { error } = await supabase.from('clients').update({ deleted_at: new Date().toISOString() }).eq('id', id)
+    if (error) throw error
+  },
+
+  // ── Dictionary (migration 0013; callers tolerate a missing table) ──────────
+  async getDictionary() {
+    const { data, error } = await supabase
+      .from('dictionary').select('*').is('deleted_at', null).order('match_value')
+    if (error) throw error
+    return data || []
+  },
+  async addDictionaryEntry(entry) {
+    const { data, error } = await supabase
+      .from('dictionary')
+      .insert({ organization_id: await myOrg(), ...cleanEntry(entry) })
+      .select().single()
+    if (error) throw error
+    return data
+  },
+  async updateDictionaryEntry(id, patch) {
+    const { error } = await supabase
+      .from('dictionary').update({ ...cleanEntry(patch), updated_at: new Date().toISOString() }).eq('id', id)
+    if (error) throw error
+  },
+  async removeDictionaryEntry(id) {
+    const { error } = await supabase.from('dictionary').update({ deleted_at: new Date().toISOString() }).eq('id', id)
     if (error) throw error
   },
 

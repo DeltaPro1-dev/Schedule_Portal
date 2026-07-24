@@ -7,6 +7,7 @@ const NAV = [
   { key: 'roster', label: 'Employees' },
   { key: 'teams', label: 'Teams' },
   { key: 'customers', label: 'Customers' },
+  { key: 'dictionary', label: 'Dictionary' },
   { key: 'members', label: 'Members' },
   { key: 'exports', label: 'Exports' },
   { key: 'audit', label: 'Audit' },

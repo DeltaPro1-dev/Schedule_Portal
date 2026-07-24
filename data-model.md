@@ -49,6 +49,15 @@ Organization 1─* AuditEvent | Export | IntegrationEvent
  raw_title?, done (bool), version, created_at, updated_at, deleted_at?`
 - Index: (board_id, list_id, position), (organization_id, status).
 
+### dictionary  (data completion, migration 0013)
+`id, organization_id, match_field (building|subdivision|client|address), match_value,
+ client_text?, address?, subdivision?, plan?, lot?, service_type?, fin_contact?, ps_note?, notes?, created_at, updated_at, deleted_at?`
+- Maps a place identifier → canonical field values. Incomplete imported cards from
+  the same place are auto-completed (fills only empty fields; most specific match wins).
+- `cards` gains a nullable `subdivision` column (a chosen match key) in the same migration.
+- RLS: standard org-scoped (select=member, write=editor, delete=admin). Unique per
+  (org, match_field, lower(match_value)).
+
 ### teams / team_members  (G5, migration 0011)
 `teams: id, organization_id, name, region?, notes?, created_at, deleted_at?`
 `team_members: id, organization_id, team_id, worker_id, created_at` — unique (team_id, worker_id)

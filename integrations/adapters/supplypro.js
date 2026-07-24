@@ -6,6 +6,7 @@ import { parseSupplyProOrder } from '../lib/normalize.js'
 import { targetDates, parts, iso, baseDate } from '../lib/dates.js'
 
 export const meta = { source: 'supplypro', label: 'SupplyPro (Hyphen)' }
+export const homeUrl = (env) => env.SUPPLYPRO_URL || 'https://supplysystem.supplypro.com/'
 
 async function fillFirst(page, selectors, value) {
   for (const sel of selectors) {

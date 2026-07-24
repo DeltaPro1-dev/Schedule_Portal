@@ -273,7 +273,7 @@ export const mockApi = {
     return {
       board: { ...clone(d.board), jobs, completed },
       lists: d.lists.map(clone),
-      cards: d.cards.map(resolveCard),
+      cards: d.cards.map((c) => ({ ...resolveCard(c), board_date: d.board.date })),
       // recompute from the live roster companies (mirrors real mode) so a newly
       // added vendor shows immediately, instead of the frozen genBoard list
       vendors: getRosterList().filter((w) => w.kind === 'company' && w.active !== false && !w.deleted_at).map((w) => w.name).slice(0, 20),

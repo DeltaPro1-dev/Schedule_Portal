@@ -80,7 +80,7 @@ const realApi = {
         supabase.from('workers').select('name').eq('kind', 'company').is('deleted_at', null).limit(20),
       ])
     if (be || le || ce) throw be || le || ce
-    return { board, lists, cards: cards.map(mapCard), vendors: (cos || []).map((c) => c.name) }
+    return { board, lists, cards: cards.map((c) => ({ ...mapCard(c), board_date: board.date })), vendors: (cos || []).map((c) => c.name) }
   },
 
   async addBoard({ title, date, month, cover_hue }) {

@@ -54,3 +54,13 @@ adapter (login → scrape) → normalize → imported_schedules (upsert, idempot
 ```
 Adding a builder on the same platform = reuse the adapter. A new platform = a new file
 in `adapters/` exporting `{ meta, login, scrape }` and a line in `run.js`.
+
+## Run (Ivory Homes)
+```bash
+npm run scrape:ivory -- --headful   # first/manual calibration
+npm run scrape:ivory                # unattended after the profile is trusted
+```
+Uses `IVORY_BASE_URL`, `IVORY_USER`, and `IVORY_PASS` from `integrations/.env`.
+The adapter reads the dated tables on the Vendor Dashboard and imports Task, Job,
+Lot, scheduled date, and purchase-order reference. The persistent profile lives at
+`auth/ivory-profile`; credentials and session data remain git-ignored.

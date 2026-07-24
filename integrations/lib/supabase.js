@@ -35,3 +35,46 @@ export async function upsertSchedules(rows) {
   if (error) throw error
   return { count: count ?? rows.length }
 }
+
+// Fill only missing presentation fields on already-mapped cards. This preserves
+// dispatch/manual edits while allowing a calibrated adapter to enrich older imports.
+export async function syncMappedCardDetails(source) {
+  const { data: imports, error: ie } = await supabase
+    .from('imported_schedules')
+    .select('mapped_card_id,builder,community,plan,lot,address,super_name,super_phone,po_number')
+    .eq('source', source)
+    .not('mapped_card_id', 'is', null)
+  if (ie) throw ie
+  if (!imports?.length) return 0
+
+  const ids = imports.map((row) => row.mapped_card_id)
+  const { data: cards, error: ce } = await supabase
+    .from('cards')
+    .select('id,client_text,building,plan,lot,address,ps_note')
+    .in('id', ids)
+  if (ce) throw ce
+  const byId = new Map((cards || []).map((card) => [card.id, card]))
+  let updated = 0
+
+  for (const row of imports) {
+    const card = byId.get(row.mapped_card_id)
+    if (!card) continue
+    const patch = {}
+    if (!card.client_text && row.builder) patch.client_text = row.builder
+    if (!card.building && row.community) patch.building = row.community
+    if (!card.plan && row.plan) patch.plan = row.plan
+    if (!card.lot && row.lot) patch.lot = row.lot
+    if (!card.address && row.address) patch.address = row.address
+    const ps = [
+      row.super_name ? `SUPER: ${row.super_name}${row.super_phone ? ` ${row.super_phone}` : ''}` : null,
+      row.po_number ? `PO: ${row.po_number}` : null,
+      `SRC: ${source}`,
+    ].filter(Boolean).join(' · ')
+    if ((!card.ps_note || card.ps_note === `SRC: ${source}`) && ps !== card.ps_note) patch.ps_note = ps
+    if (!Object.keys(patch).length) continue
+    const { error } = await supabase.from('cards').update(patch).eq('id', card.id)
+    if (error) throw error
+    updated += 1
+  }
+  return updated
+}

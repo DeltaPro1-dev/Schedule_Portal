@@ -6,7 +6,8 @@
   "scripts": {
     "scrape": "node run.js",
     "scrape:supplypro": "node run.js supplypro",
-    "scrape:buildertrend": "node run.js buildertrend"
+    "scrape:buildertrend": "node run.js buildertrend",
+    "map": "node map.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",

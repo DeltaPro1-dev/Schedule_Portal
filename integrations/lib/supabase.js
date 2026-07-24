@@ -19,6 +19,13 @@ export async function getOrgId(slug = 'delta-pro-clean') {
   return _orgId
 }
 
+// Map staged rows → boards/cards (idempotent, in the DB). Returns cards created.
+export async function mapImported(source = null) {
+  const { data, error } = await supabase.rpc('map_imported_schedules', { p_source: source })
+  if (error) throw error
+  return data ?? 0
+}
+
 // Idempotent upsert on (source, external_id).
 export async function upsertSchedules(rows) {
   if (!rows.length) return { count: 0 }

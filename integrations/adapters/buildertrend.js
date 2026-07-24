@@ -27,36 +27,21 @@ export async function login(page, env, { dump } = {}) {
   await page.goto(env.BUILDERTREND_URL || LOGIN_URL, { waitUntil: 'domcontentloaded' })
   // Buildertrend uses Auth0 universal login — the form renders after a redirect.
   await page.waitForSelector('#username, input[name="username"], input[type="password"]', { timeout: 25000 }).catch(() => {})
-  const u = await fillFirst(
-    page,
-    [env.BUILDERTREND_SEL_USER, '#username', 'input[name="username"]', 'input[inputmode="email"]', 'input[type="email"]', 'input[type="text"]'].filter(Boolean),
-    env.BUILDERTREND_USER,
-  )
-  const p = await fillFirst(
-    page,
-    [env.BUILDERTREND_SEL_PASS, '#password', 'input[name="password"]', 'input[type="password"]'].filter(Boolean),
-    env.BUILDERTREND_PASS,
-  )
-  if (!u || !p) { if (dump) await dump('login'); throw new Error('Buildertrend login fields not found — check debug/ HTML and set BUILDERTREND_SEL_USER/PASS') }
-  const submit =
-    (env.BUILDERTREND_SEL_SUBMIT && (await page.$(env.BUILDERTREND_SEL_SUBMIT))) ||
-    (await page.$('button[type="submit"][name="action"]')) ||
-    (await page.$('button[type="submit"]')) ||
-    (await page.$('button:has-text("Login")')) ||
-    (await page.$('button:has-text("Sign In")'))
-  if (submit) await submit.click().catch(() => {})
-  else await page.keyboard.press('Enter')
-  await page.waitForLoadState('networkidle').catch(() => {})
-  // Auth0 can require a captcha/2FA that we don't automate. Wait for auth to
-  // finish (solve any challenge in the --headful window); --persist then saves the
-  // session so scheduled headless runs reuse it until it expires.
+  // Auth0 protects login with reCAPTCHA and clears the password field on re-render,
+  // so we DON'T auto-submit. Pre-fill the email as a convenience; the user types the
+  // password, solves the captcha (+2FA) and clicks Login in the --headful window.
+  // --persist then saves the session so scheduled headless runs reuse it.
+  if (env.BUILDERTREND_USER) {
+    await fillFirst(page, ['#username', 'input[name="username"]', 'input[inputmode="email"]', 'input[type="text"]'], env.BUILDERTREND_USER)
+  }
+  console.log('  → Buildertrend: finish the login in the browser window (password + "I\'m not a robot"), then it continues automatically…')
   const authed = await page
-    .waitForFunction(() => !document.querySelector('input[type="password"]') && !/log ?in/i.test(document.title), { timeout: 180000, polling: 1000 })
+    .waitForFunction(() => !document.querySelector('input[type="password"]') && !/log ?in/i.test(document.title), { timeout: 240000, polling: 1000 })
     .then(() => true)
     .catch(() => false)
   if (!authed) {
     if (dump) await dump('login-stuck')
-    throw new Error('Buildertrend auth did not complete (captcha/2FA?). Run once with `--headful --persist` and finish the login by hand — the saved session is then reused.')
+    throw new Error('Buildertrend login not completed. Run `--headful --persist` and finish the login by hand (password + captcha). The saved session is reused for scheduled runs until it expires.')
   }
 }
 

@@ -25,7 +25,7 @@ export async function isLoggedIn(page) {
 }
 
 export async function login(page, env, { dump } = {}) {
-  await page.goto(env.BUILDERTREND_URL || LOGIN_URL, { waitUntil: 'domcontentloaded' })
+  await page.goto(env.BUILDERTREND_URL || LOGIN_URL, { waitUntil: 'domcontentloaded' }).catch(() => {})
   // Buildertrend uses Auth0 universal login — the form renders after a redirect.
   await page.waitForSelector('#username, input[name="username"], input[type="password"]', { timeout: 25000 }).catch(() => {})
   // Auto-fill + submit. The trusted (persistent, real-Chrome) profile means reCAPTCHA

@@ -1,12 +1,13 @@
 import 'dotenv/config'
 import { chromium } from 'playwright'
 import { mkdir, writeFile } from 'node:fs/promises'
-import { getOrgId, upsertSchedules, mapImported } from './lib/supabase.js'
+import { getOrgId, upsertSchedules, mapImported, syncMappedCardDetails } from './lib/supabase.js'
 import { toRow } from './lib/normalize.js'
 
 const ADAPTERS = {
   supplypro: () => import('./adapters/supplypro.js'),
   buildertrend: () => import('./adapters/buildertrend.js'),
+  ivory: () => import('./adapters/ivory.js'),
 }
 
 const args = process.argv.slice(2)
@@ -70,6 +71,8 @@ try {
   try {
     const mapped = await mapImported(mod.meta.source)
     console.log(`Mapped ${mapped} new card(s) into boards`)
+    const synced = await syncMappedCardDetails(mod.meta.source)
+    console.log(`Synced details on ${synced} existing card(s)`)
   } catch (e) {
     console.warn(`Mapping skipped: ${e.message}`)
   }

@@ -234,7 +234,7 @@ const realApi = {
     const { data: src, error: e1 } = await supabase.from('cards').select('*').eq('id', cardId).single()
     if (e1) throw e1
     const { count } = await supabase.from('cards').select('id', { count: 'exact', head: true }).eq('list_id', src.list_id)
-    const copy = { ...src, position: count ?? 0, done: false, version: 1 }
+    const copy = { ...src, position: count ?? 0, done: false, version: 1, status: 'unscheduled' }
     delete copy.id; delete copy.created_at; delete copy.updated_at; delete copy.deleted_at
     const { data: card, error } = await supabase.from('cards').insert(copy).select('*, client:clients(*)').single()
     if (error) throw error
@@ -323,11 +323,20 @@ const realApi = {
   // Members: read the org's memberships. RLS returns all rows for admins and only
   // the caller's own row otherwise (Members & RBAC is an admin/coordinator module).
   async getMembers() {
-    const { data, error } = await supabase
+    // Try with the linked worker (D6, migration 0010). If that migration isn't
+    // applied yet the relationship doesn't exist, so fall back to the base columns
+    // instead of breaking the whole screen.
+    let { data, error } = await supabase
       .from('memberships')
       .select('id, invited_email, role, region, status, worker:workers(name)')
       .order('status')
-    if (error) throw error
+    if (error) {
+      ;({ data, error } = await supabase
+        .from('memberships')
+        .select('id, invited_email, role, region, status')
+        .order('status'))
+      if (error) throw error
+    }
     return (data || []).map((m) => ({
       id: m.id,
       name: titleFromEmail(m.invited_email),

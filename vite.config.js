@@ -18,6 +18,10 @@ export default defineConfig({
         background_color: '#eff4fb',
         display: 'standalone',
         start_url: '/',
+        icons: [
+          { src: '/delta-mark.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/delta-mark.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
       },
       workbox: {
         navigateFallbackDenylist: [/^\/auth\//],

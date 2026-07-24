@@ -25,9 +25,11 @@ export async function isLoggedIn(page) {
 
 export async function login(page, env, { dump } = {}) {
   await page.goto(env.BUILDERTREND_URL || LOGIN_URL, { waitUntil: 'domcontentloaded' })
+  // Buildertrend uses Auth0 universal login — the form renders after a redirect.
+  await page.waitForSelector('#username, input[name="username"], input[type="password"]', { timeout: 25000 }).catch(() => {})
   const u = await fillFirst(
     page,
-    [env.BUILDERTREND_SEL_USER, '#userName', 'input[name="userName"]', 'input[type="email"]', 'input[name*="user" i]', 'input[name*="email" i]', 'input[type="text"]'].filter(Boolean),
+    [env.BUILDERTREND_SEL_USER, '#username', 'input[name="username"]', 'input[inputmode="email"]', 'input[type="email"]', 'input[type="text"]'].filter(Boolean),
     env.BUILDERTREND_USER,
   )
   const p = await fillFirst(
@@ -38,15 +40,16 @@ export async function login(page, env, { dump } = {}) {
   if (!u || !p) { if (dump) await dump('login'); throw new Error('Buildertrend login fields not found — check debug/ HTML and set BUILDERTREND_SEL_USER/PASS') }
   const submit =
     (env.BUILDERTREND_SEL_SUBMIT && (await page.$(env.BUILDERTREND_SEL_SUBMIT))) ||
+    (await page.$('button[type="submit"][name="action"]')) ||
     (await page.$('button[type="submit"]')) ||
-    (await page.$('input[type="submit"]')) ||
-    (await page.$('button:has-text("Sign In")')) ||
-    (await page.$('button:has-text("Log In")'))
+    (await page.$('button:has-text("Login")')) ||
+    (await page.$('button:has-text("Sign In")'))
   if (submit) await submit.click().catch(() => {})
   else await page.keyboard.press('Enter')
   await page.waitForLoadState('networkidle').catch(() => {})
-  if (dump && /2fa|verification|verify|code/i.test(await page.evaluate(() => document.body?.innerText || '').catch(() => ''))) {
-    await dump('2fa') // complete in the --headful window; --persist reuses the session next run
+  // Auth0 MFA — solve in the --headful window; --persist reuses the session next run.
+  if (dump && /verification code|two-?factor|authenticator|one-?time|enter the code/i.test(await page.evaluate(() => document.body?.innerText || '').catch(() => ''))) {
+    await dump('2fa')
   }
 }
 

@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { chromium } from 'playwright'
 import { mkdir, writeFile } from 'node:fs/promises'
-import { getOrgId, upsertSchedules } from './lib/supabase.js'
+import { getOrgId, upsertSchedules, mapImported } from './lib/supabase.js'
 import { toRow } from './lib/normalize.js'
 
 const ADAPTERS = {
@@ -67,6 +67,12 @@ try {
 
   const { count } = await upsertSchedules(rows)
   console.log(`Upserted ${count} rows into schedule_portal.imported_schedules (source=${mod.meta.source})`)
+  try {
+    const mapped = await mapImported(mod.meta.source)
+    console.log(`Mapped ${mapped} new card(s) into boards`)
+  } catch (e) {
+    console.warn(`Mapping skipped: ${e.message}`)
+  }
   console.log(`Debug artifacts: integrations/${debugDir}`)
 } catch (e) {
   console.error('Run failed:', e.message)

@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import { chromium } from 'playwright'
-import { mkdir, writeFile, access } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { getOrgId, upsertSchedules } from './lib/supabase.js'
 import { toRow } from './lib/normalize.js'
 
@@ -12,28 +12,31 @@ const ADAPTERS = {
 const args = process.argv.slice(2)
 const name = args.find((a) => !a.startsWith('--'))
 const headful = args.includes('--headful')
-const persist = args.includes('--persist') // save/reuse the login session (helps with MFA)
 
 if (!name || !ADAPTERS[name]) {
-  console.error(`usage: node run.js <adapter> [--headful] [--persist]\n  adapters: ${Object.keys(ADAPTERS).join(', ')}`)
+  console.error(`usage: node run.js <adapter> [--headful]\n  adapters: ${Object.keys(ADAPTERS).join(', ')}`)
   process.exit(1)
 }
 
 const stamp = new Date().toISOString().replace(/[:.]/g, '-')
 const debugDir = `debug/${name}-${stamp}`
-const authFile = `auth/${name}.json`
-const exists = async (p) => access(p).then(() => true).catch(() => false)
+const profileDir = `auth/${name}-profile` // persistent Chrome profile: session + captcha trust
 
 const mod = await ADAPTERS[name]()
 const env = process.env
-
 await mkdir(debugDir, { recursive: true })
 await mkdir('auth', { recursive: true })
 
-const browser = await chromium.launch({ headless: !headful })
-const reuse = persist && (await exists(authFile))
-const context = await browser.newContext(reuse ? { storageState: authFile } : {})
-const page = await context.newPage()
+// Real Chrome + a persistent per-adapter profile, with the automation flag off, so
+// reCAPTCHA behaves (passes with one click) and the trusted session persists across
+// runs. Falls back to bundled Chromium if Chrome isn't installed.
+async function launch() {
+  const opts = { headless: !headful, viewport: null, args: ['--disable-blink-features=AutomationControlled'] }
+  try { return await chromium.launchPersistentContext(profileDir, { ...opts, channel: 'chrome' }) }
+  catch { return await chromium.launchPersistentContext(profileDir, opts) }
+}
+const context = await launch()
+const page = context.pages()[0] || (await context.newPage())
 
 async function dump(tag) {
   try {
@@ -45,15 +48,12 @@ async function dump(tag) {
 }
 
 try {
-  if (reuse && mod.homeUrl) {
-    await page.goto(mod.homeUrl(env), { waitUntil: 'domcontentloaded' }).catch(() => {})
-  }
+  if (mod.homeUrl) await page.goto(mod.homeUrl(env), { waitUntil: 'domcontentloaded' }).catch(() => {})
   const loggedIn = mod.isLoggedIn ? await mod.isLoggedIn(page) : false
   if (!loggedIn) {
     console.log('Logging in…')
     await mod.login(page, env, { dump })
   }
-  if (persist) await context.storageState({ path: authFile })
 
   console.log('Scraping…')
   const parsed = await mod.scrape(page, { dump, env })
@@ -73,5 +73,5 @@ try {
   await dump('error')
   process.exitCode = 1
 } finally {
-  await browser.close()
+  await context.close()
 }

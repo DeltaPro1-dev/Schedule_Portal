@@ -66,46 +66,42 @@ function parseJob(job) {
 
 export async function scrape(page, { dump }) {
   await page.goto(SUMMARY_URL, { waitUntil: 'networkidle' }).catch(() => {})
+  // The "Work Schedule snapshot" rows come from the rptrUpcomingSchedule repeater.
+  await page.waitForSelector('tr[id*="rptrUpcomingSchedule"]', { timeout: 20000 }).catch(() => {})
   await dump('summary')
 
-  // Rows: Status(begin date) | Title(activity) | Job. Read the grid; each data row
-  // has a Title cell and a Job cell, with an optional "Begins on <date>" in Status.
   const rows = await page.evaluate(() => {
     const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
     const out = []
-    for (const tr of document.querySelectorAll('tr')) {
-      const cells = [...tr.querySelectorAll('td')].map((c) => norm(c.innerText))
-      if (cells.length < 2) continue
-      const rowText = norm(tr.innerText)
-      if (/^status\b/i.test(rowText) || !rowText) continue
-      const begin = (rowText.match(/Begins on\s+([\d/-]+)/i) || [])[1] || null
-      // Title/Job are the last two non-empty cells (Status may be empty or the begin note)
-      const nonEmpty = cells.filter(Boolean)
-      const link = tr.querySelector('a[href]')?.href || null
-      out.push({ cells, begin, link, rowText })
+    for (const tr of document.querySelectorAll('tr[id*="rptrUpcomingSchedule"]')) {
+      const tds = [...tr.querySelectorAll('td')]
+      if (tds.length < 2) continue
+      const a = tr.querySelector('a[onclick*="OpenDetails"]') || tr.querySelector('a')
+      const id = (a?.getAttribute('onclick')?.match(/OpenDetails\((\d+)/) || [])[1] || null
+      out.push({
+        status: norm(tds[0]?.innerText),                     // "Begins on M-D-YYYY" or blank
+        title: norm(a?.innerText || tds[tds.length - 2]?.innerText),
+        job: norm(tds[tds.length - 1]?.innerText),
+        id,
+      })
     }
     return out
   })
 
   return rows
+    .filter((r) => r.title && r.job)
     .map((r) => {
-      // Title = clean type, Job = community/lot/plan. Heuristic: the last two cells.
-      const vals = r.cells.filter((c) => c && !/^Begins on/i.test(c))
-      const job = vals[vals.length - 1] || ''
-      const title = vals[vals.length - 2] || ''
-      if (!job || !title) return null
-      const j = parseJob(job)
-      const idM = r.link?.match(/(?:jobsiteId|scheduleItemId|id)=(\d+)/i)
+      const begin = (r.status.match(/Begins on\s+([\d/-]+)/i) || [])[1] || null
+      const j = parseJob(r.job)
       return {
-        activity: title,
-        service_type: serviceType(title),
+        activity: r.title,
+        service_type: serviceType(r.title),
         community: j.community,
         lot: j.lot,
         plan: j.plan,
-        scheduled_date: r.begin ? toISO(r.begin) : null,
-        external_id: idM ? `bt:${idM[1]}` : `bt:${title}|${job}`.slice(0, 200),
-        raw: { title, job, begin: r.begin, link: r.link },
+        scheduled_date: begin ? toISO(begin) : null,
+        external_id: r.id ? `bt:${r.id}` : `bt:${r.title}|${r.job}`.slice(0, 200),
+        raw: { title: r.title, job: r.job, status: r.status, id: r.id },
       }
     })
-    .filter(Boolean)
 }

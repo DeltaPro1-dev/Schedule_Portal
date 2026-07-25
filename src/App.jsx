@@ -12,13 +12,14 @@ import Calendar from './components/Calendar.jsx'
 import Roster from './components/Roster.jsx'
 import Teams from './components/Teams.jsx'
 import Customers from './components/Customers.jsx'
+import Dictionary from './components/Dictionary.jsx'
 import Members from './components/Members.jsx'
 import Exports from './components/Exports.jsx'
 import Integration from './components/Integration.jsx'
 import Audit from './components/Audit.jsx'
 import Settings from './components/Settings.jsx'
 
-const SECTIONS = { dashboard: Dashboard, calendar: Calendar, roster: Roster, teams: Teams, customers: Customers, members: Members, exports: Exports, integration: Integration, audit: Audit, settings: Settings }
+const SECTIONS = { dashboard: Dashboard, calendar: Calendar, roster: Roster, teams: Teams, customers: Customers, dictionary: Dictionary, members: Members, exports: Exports, integration: Integration, audit: Audit, settings: Settings }
 
 export default function App() {
   const [entered, setEntered] = useState(false)

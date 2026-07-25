@@ -5,6 +5,39 @@ domain model is recorded here with a version bump (Regra de Ouro, see README.md)
 
 ---
 
+## G6 — Dictionary of place references (data completion) (2026-07-24)
+**Approved by:** Eder (owner) — imported cards arrive incomplete (missing builder,
+floor plan, etc.); a "dictionary" holds the canonical values per place and completes
+them, and future jobs from the same place are auto-completed.
+
+**Model (migration `0013_dictionary.sql`, ready to deploy — NOT yet applied):**
+- `cards` gains a nullable `subdivision` column (chosen match key; the card lacked it).
+- `dictionary` table: `match_field` (building|subdivision|client|address) + `match_value`
+  → canonical fills (client_text, address, subdivision, plan, lot, service_type,
+  fin_contact, ps_note). Standard org-scoped RLS; unique per (org, field, lower(value)).
+
+**Logic (`src/lib/dictionary.js`, pure):** REQUIRED_FIELDS defines export-readiness
+(client, address, service_type, plan, lot); `missingFields`/`isIncomplete`;
+`matchingEntries` (card's non-empty identifier == entry value, specific wins);
+`computeFills` (fills only EMPTY card fields); `referenceFromCard` (build a draft).
+
+**Screen (`Dictionary.jsx`, in TopNav + App):** incomplete-cards list (what's missing
++ "Complete from reference" when one matches, or "Create reference…" prefilled from the
+card) with a batch "Apply references to all"; references CRUD. `api` gains dictionary
+CRUD (mock + real; tolerant of the table not existing yet, like Teams). Read-only when
+`canEdit` is false.
+
+**Scope note:** Eder wants auto-completion on Field Control import; that sync isn't live
+(D8), so today completion is via the screen (per-card + batch). The auto-apply hook
+plugs into the sync flow when it's built — `computeFills` is the single place to call.
+Demo seeds 2 references and ~22% of mock cards arrive incomplete so the flow is visible.
+
+Verified: build + lint green; headless (Playwright, demo) — 54 incomplete detected, 2
+seed references, "Apply to all" completed 10 cards (54→44), create-reference 2→3, zero
+page errors.
+
+---
+
 ## G5.6 — Error-fix pass (2026-07-24)
 **Approved by:** Eder (owner), "corrigir todos os erros antes de montar a tela dicionário".
 Swept every screen for runtime errors and reviewed the production (realApi) paths.

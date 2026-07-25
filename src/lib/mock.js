@@ -154,14 +154,19 @@ function genBoard(board) {
       const region = w.region
       const done = r() < 0.28
       const statuses = ['unscheduled', 'scheduled', 'assigned', 'in_progress', 'completed']
+      const bld = pick(r, BUILDINGS)
+      // simulate incomplete imports: some cards arrive missing client/address so the
+      // dictionary references can complete them (demo of the completion flow)
+      const gap = r() < 0.22
       cards.push({
         id: nid('card'), board_id: board.id, list_id: listId, position: c,
         status: done ? 'completed' : pick(r, statuses),
         scheduled_time: pick(r, TIMES),
-        client_id: null, client: { name: client, address: pick(r, ADDRESSES) },
-        building: pick(r, BUILDINGS), plan: 'No Plan', lot: 'No Lot',
-        service_type: pick(r, SERVICES), address: pick(r, ADDRESSES),
-        fin_contact: pick(r, FINS), ps_note: pick(r, PS_NOTES), raw_title: null,
+        client_id: null, client: gap ? null : { name: client, address: pick(r, ADDRESSES) },
+        building: bld, plan: 'No Plan', lot: 'No Lot',
+        service_type: gap ? '' : pick(r, SERVICES), address: gap ? '' : pick(r, ADDRESSES),
+        subdivision: null,
+        fin_contact: gap ? '' : pick(r, FINS), ps_note: pick(r, PS_NOTES), raw_title: null,
         done, version: 1,
         labelKeys: [regionLabelKey(region), 'commercial', r() < 0.4 ? 'scheduled_time' : 'floor_care'].filter(Boolean),
         checklist: [], comments: c === 0 ? [{ id: nid('cm'), author: 'Coordinator', body: 'Confirmed with client.', created_at: '2026-07-16T18:00:00Z' }] : [], attachments: [],
@@ -232,6 +237,17 @@ function getIntegrationRows() {
     { id: 'ie6', entity: 'Work order · OS-4815', key: 'idmp-4815-b2', attempts: 'attempt 2', when: '08:55:19', direction: 'Delta → Field Control', status: 'dlq', err: 'Version conflict (409) — reconciliation pending' },
   ]
   return integrationRows
+}
+
+// dictionary — mutable store, seeded with a couple of place references so the
+// demo shows auto-completion working
+let dictStore = null
+function getDictStore() {
+  if (!dictStore) dictStore = [
+    { id: 'd1', match_field: 'building', match_value: 'St. George Hospital Bldg 1', client_text: 'Okland Construction', address: '1380 E Medical Center Dr, St. George, UT 84790', plan: 'No Plan', lot: 'No Lot', service_type: 'Single Clean CML (T&M)', fin_contact: 'ROBERT', ps_note: null, subdivision: null, notes: null },
+    { id: 'd2', match_field: 'client', match_value: 'Gray Star Construction', address: null, subdivision: 'Grass Creek', service_type: 'Deep Clean CML', fin_contact: 'DAVID', plan: null, lot: null, client_text: null, ps_note: null, notes: null },
+  ]
+  return dictStore
 }
 
 // notifications — mutable so mark-as-read sticks within a demo session
@@ -310,6 +326,23 @@ export const mockApi = {
     return { id: 'org-demo', name: 'Delta Pro Clean', slug: 'delta-pro-clean', created_at: '2026-07-17T00:00:00Z' }
   },
   async getLabels() { await wait(30); return LABELS.map(clone) },
+
+  // ── dictionary (place references) ───────────────────────────────────────────
+  async getDictionary() { await wait(); return getDictStore().map(clone) },
+  async addDictionaryEntry(entry) {
+    await wait()
+    const e = { id: nid('dict'), ...entry }
+    getDictStore().unshift(e)
+    return clone(e)
+  },
+  async updateDictionaryEntry(id, patch) {
+    await wait()
+    const e = getDictStore().find((x) => x.id === id); if (e) Object.assign(e, patch)
+  },
+  async removeDictionaryEntry(id) {
+    await wait()
+    dictStore = getDictStore().filter((x) => x.id !== id)
+  },
 
   // ── customers (clients) ────────────────────────────────────────────────────
   async getClients() { await wait(); return getClientsStore().map(clone) },

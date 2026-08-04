@@ -5,6 +5,32 @@ domain model is recorded here with a version bump (Regra de Ouro, see README.md)
 
 ---
 
+## G6.1 — Dictionary auto-apply on card create/edit (2026-07-24)
+**Approved by:** Eder (owner), "auto-aplicar o Dicionário". Extends G6 so references
+are applied automatically, not only via the screen's buttons.
+
+- **`api.addCard`** merges `computeFills` into the insert payload, so a card created
+  with an identifier (building/subdivision/client/address) arrives already complete.
+- **`api.updateCard`** re-runs the fill after the write: an edit that supplies an
+  identifier (e.g. typing the building in the Table) completes the still-empty fields
+  in one follow-up update, and returns the filled card. Only fires when there's
+  something to fill.
+- **Cached entries** (`_dictCache`, invalidated by the dictionary mutations) so card
+  writes don't refetch the dictionary every time. A missing table (0013 not applied)
+  caches an empty list → auto-apply is a silent no-op, never an error.
+- Mock mirrors both paths using the in-memory store, so demo behaves identically.
+- Dictionary screen's footer note updated to describe the automatic behaviour.
+
+**Semantics preserved from G6:** fills only EMPTY fields (never overwrites data that
+arrived correct); most specific match wins.
+
+Verified (Playwright, demo): typing only the building on an incomplete card filled
+client + service from the reference (`— | Showroom | —` → `Okland Construction |
+St. George Hospital Bldg 1 | Single Clean CML (T&M)`), incomplete count 54→53; a card
+that already had a client kept it (no overwrite); zero page errors; build + lint green.
+
+---
+
 ## G6 — Dictionary of place references (data completion) (2026-07-24)
 **Approved by:** Eder (owner) — imported cards arrive incomplete (missing builder,
 floor plan, etc.); a "dictionary" holds the canonical values per place and completes

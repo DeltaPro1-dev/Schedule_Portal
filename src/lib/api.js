@@ -5,6 +5,7 @@
 import { supabase } from './supabase.js'
 import { mockApi } from './mock.js'
 import { initials, REGION_LABEL } from './present.js'
+import { computeFills } from './dictionary.js'
 
 export const configured =
   !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -40,6 +41,27 @@ function cleanEntry(e) {
   const out = {}
   for (const k of DICT_COLS) if (k in e) out[k] = e[k] === '' ? null : e[k]
   return out
+}
+
+// ── Dictionary auto-apply ────────────────────────────────────────────────────
+// Cached entries so card create/edit doesn't refetch every time. Invalidated by
+// the dictionary mutations below. A missing table (migration 0013 not applied)
+// caches an empty list, so auto-apply is simply a no-op — never a failure.
+let _dictCache = null
+async function dictEntries() {
+  if (_dictCache) return _dictCache
+  const { data, error } = await supabase.from('dictionary').select('*').is('deleted_at', null)
+  _dictCache = error ? [] : (data || [])
+  return _dictCache
+}
+const invalidateDict = () => { _dictCache = null }
+
+// Patch of empty card fields that place references can fill (best-effort).
+async function autoFill(cardLike) {
+  try {
+    const entries = await dictEntries()
+    return entries.length ? computeFills(cardLike, entries) : {}
+  } catch { return {} }
 }
 
 let _orgId
@@ -188,16 +210,19 @@ const realApi = {
       .insert({ organization_id: await myOrg(), ...cleanEntry(entry) })
       .select().single()
     if (error) throw error
+    invalidateDict()
     return data
   },
   async updateDictionaryEntry(id, patch) {
     const { error } = await supabase
       .from('dictionary').update({ ...cleanEntry(patch), updated_at: new Date().toISOString() }).eq('id', id)
     if (error) throw error
+    invalidateDict()
   },
   async removeDictionaryEntry(id) {
     const { error } = await supabase.from('dictionary').update({ deleted_at: new Date().toISOString() }).eq('id', id)
     if (error) throw error
+    invalidateDict()
   },
 
   // ── Teams (migration 0011; callers tolerate a missing table → empty state) ──
@@ -251,9 +276,11 @@ const realApi = {
   async addCard({ board_id, list_id, raw_title, ...fields }) {
     const org = await myOrg()
     const { count } = await supabase.from('cards').select('id', { count: 'exact', head: true }).eq('list_id', list_id)
+    // complete missing fields from the dictionary before inserting
+    const fills = await autoFill({ raw_title, ...fields })
     const { data, error } = await supabase
       .from('cards')
-      .insert({ organization_id: org, board_id, list_id, position: count ?? 0, raw_title: raw_title || null, ...fields })
+      .insert({ organization_id: org, board_id, list_id, position: count ?? 0, raw_title: raw_title || null, ...fields, ...fills })
       .select('*, client:clients(*), card_labels(label:labels(*))')
       .single()
     if (error) throw error
@@ -283,13 +310,22 @@ const realApi = {
   // Patch free-text card fields (inline editing). RLS/region guards decide if the
   // caller may edit; status changes still go through card_transition (the FSM).
   async updateCard(cardId, patch) {
+    const SEL = '*, client:clients(*), card_labels(label:labels(*)), checklist_items(*), comments(*), attachments(*)'
     const { data, error } = await supabase
       .from('cards')
       .update({ ...patch, updated_at: new Date().toISOString() })
       .eq('id', cardId)
-      .select('*, client:clients(*), card_labels(label:labels(*)), checklist_items(*), comments(*), attachments(*)')
+      .select(SEL)
       .single()
     if (error) throw error
+    // The edit may have supplied an identifier (e.g. building) that now matches a
+    // place reference — complete the still-empty fields in one follow-up write.
+    const fills = await autoFill(mapCard(data))
+    if (Object.keys(fills).length) {
+      const { data: filled, error: fe } = await supabase
+        .from('cards').update(fills).eq('id', cardId).select(SEL).single()
+      if (!fe && filled) return mapCard(filled)
+    }
     return mapCard(data)
   },
 

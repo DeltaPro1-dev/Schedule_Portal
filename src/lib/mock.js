@@ -3,6 +3,7 @@
 
 import { allowedTransitions } from './stateMachine.js'
 import { initials } from './present.js'
+import { computeFills } from './dictionary.js'
 
 // ── seeded RNG (mulberry32) so the demo is stable across reloads ─────────────
 function rng(seed) {
@@ -515,6 +516,7 @@ export const mockApi = {
     const d = detail(board_id)
     const pos = d.cards.filter((c) => c.list_id === list_id).length
     const card = { id: nid('card'), board_id, list_id, position: pos, status: 'unscheduled', raw_title: raw_title || null, done: false, version: 1, labelKeys: ['scheduled_time'], checklist: [], comments: [], attachments: [], client: null, ...fields }
+    Object.assign(card, computeFills(card, getDictStore()))   // dictionary auto-apply
     d.cards.push(card)
     return resolveCard(card)
   },
@@ -522,7 +524,12 @@ export const mockApi = {
     await wait()
     for (const id in boardCache) {
       const c = boardCache[id].cards.find((x) => x.id === cardId)
-      if (c) { Object.assign(c, patch); c.version++; return resolveCard(c) }
+      if (c) {
+        Object.assign(c, patch)
+        Object.assign(c, computeFills(c, getDictStore()))     // dictionary auto-apply
+        c.version++
+        return resolveCard(c)
+      }
     }
     throw new Error('not_found')
   },

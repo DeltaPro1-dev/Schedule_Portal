@@ -5,6 +5,39 @@ domain model is recorded here with a version bump (Regra de Ouro, see README.md)
 
 ---
 
+## G6.2 — Place dictionary applied during import (2026-08-04)
+**Approved by:** Eder (owner) — after I flagged that migrations 0014/0015 (from a
+parallel session) might overlap with the G6 dictionary.
+
+**Review finding — no table conflict, but a real gap.** There are two complementary
+dictionaries: `service_dictionary` (0015) normalizes the raw activity text into a
+canonical service name + label, in SQL at import time; `dictionary` (0013) holds PLACE
+references (building/subdivision/client/address → builder, address, plan, lot, service
+type, finance, PS note) and until now ran only in the app (JS addCard/updateCard).
+Because `map_imported_schedules()` inserts cards directly in SQL, **imported cards were
+never completed by the place dictionary** — precisely the case the feature exists for.
+
+**Migration `0016_place_dictionary_on_import.sql` (ready to deploy — NOT applied):**
+- `apply_place_dictionary(card_id)` — ports the JS semantics to SQL: fills ONLY empty
+  fields, most specific match wins (building > address > subdivision > client), and
+  resolves the card's client as `client_text` or the linked `clients.name`.
+- `apply_place_dictionary_all(board?)` — batch; returns how many cards were completed.
+- `map_imported_schedules()` re-created from 0015 **unchanged except one added step**:
+  `perform apply_place_dictionary(v_card)` after the card + labels exist. So imports now
+  standardize the service AND complete the place data.
+
+**Verified against a real PostgreSQL 16** (local instance, minimal harness): all three
+functions create cleanly; functional matrix — incomplete card filled; a card that already
+had client/address kept them while empty fields were filled; a card with no identifier
+untouched; generic (client) reference applied; with both building and client matching,
+**building won**; second batch run returned 0 (idempotent).
+
+**Housekeeping noted:** duplicated migration numbers (0006, 0007, 0013) from parallel
+work streams. They touch different objects, so all must be applied; documented the apply
+order in SETUP.md rather than renumbering files that are already applied in production.
+
+---
+
 ## G6.1 — Dictionary auto-apply on card create/edit (2026-07-24)
 **Approved by:** Eder (owner), "auto-aplicar o Dicionário". Extends G6 so references
 are applied automatically, not only via the screen's buttons.

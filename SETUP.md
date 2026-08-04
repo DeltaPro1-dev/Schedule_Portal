@@ -31,6 +31,13 @@ supabase/migrations/0010_worker_link.sql   D6: memberships.worker_id (operator s
 supabase/migrations/0011_teams.sql         G5: teams + team_members (Teams screen)
 supabase/migrations/0012_reprocess.sql      reprocess_integration() RPC (Integration Monitor button)
 supabase/migrations/0013_dictionary.sql     Dictionary (place references) + cards.subdivision
+supabase/migrations/0016_place_dictionary_on_import.sql  apply place dictionary during import
+
+Note — some numbers are duplicated because migrations came from parallel work
+streams (0006 realtime / integration-staging, 0007 rbac / imported-detail-fields,
+0013 dictionary / imported-superintendent). They touch different objects, so apply
+them all; within a duplicated number the order doesn't matter. 0016 must come after
+both 0013_dictionary.sql and 0015_dictionary_and_board_columns.sql.
 supabase/seed_workers.sql                  starter roster (employees + companies) — run once
 ```
 

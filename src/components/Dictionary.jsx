@@ -159,7 +159,10 @@ export default function Dictionary({ onBack, canEdit }) {
             </div>
             <p style={{ fontSize: 11.5, color: 'var(--faint)', marginTop: 16, lineHeight: 1.5 }}>
               A reference completes only the <strong>empty</strong> fields of a matching card (the most specific
-              match wins). Once the Field Control sync is live, incoming cards will be auto-completed on import.
+              match wins) — it never overwrites data that already came in. References are applied
+              <strong> automatically</strong> whenever a card is created or edited (e.g. type the building on a
+              card and the rest fills in), and the buttons above let you complete existing cards
+              on demand. Once the Field Control sync is live, imported cards go through the same step.
             </p>
           </div>
         )}

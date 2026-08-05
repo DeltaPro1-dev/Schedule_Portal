@@ -8,6 +8,10 @@ const ADAPTERS = {
   supplypro: () => import('./adapters/supplypro.js'),
   buildertrend: () => import('./adapters/buildertrend.js'),
   ivory: () => import('./adapters/ivory.js'),
+  oakwood: () => import('./adapters/oakwood.js'),
+  arive: () => import('./adapters/arive.js'),
+  element: () => import('./adapters/element.js'),
+  visionary: () => import('./adapters/visionary.js'),
 }
 
 const args = process.argv.slice(2)

@@ -8,6 +8,10 @@
     "scrape:supplypro": "node run.js supplypro",
     "scrape:buildertrend": "node run.js buildertrend",
     "scrape:ivory": "node run.js ivory",
+    "scrape:oakwood": "node run.js oakwood",
+    "scrape:arive": "node run.js arive",
+    "scrape:element": "node run.js element",
+    "scrape:visionary": "node run.js visionary",
     "map": "node map.js"
   },
   "dependencies": {

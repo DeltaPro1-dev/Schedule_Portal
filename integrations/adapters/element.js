@@ -14,7 +14,7 @@ const BASE = 'https://www.tradetopiaportal.com'
 const baseOf = (env) => (env.ELEMENT_BASE_URL || BASE).replace(/\/$/, '')
 const loginUrl = (env) => `${baseOf(env)}/tradepartner/login.jsp`
 // Best-guess schedule path; override with ELEMENT_SCHEDULE_URL once known.
-const scheduleUrl = (env) => env.ELEMENT_SCHEDULE_URL || `${baseOf(env)}/tradepartner/schedule.jsp`
+const scheduleUrl = (env) => env.ELEMENT_SCHEDULE_URL || `${baseOf(env)}/tradepartner/schedules/updates`
 export const homeUrl = loginUrl
 
 export async function isLoggedIn(page) {

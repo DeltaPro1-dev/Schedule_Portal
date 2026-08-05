@@ -12,6 +12,16 @@
     "scrape:arive": "node run.js arive",
     "scrape:element": "node run.js element",
     "scrape:visionary": "node run.js visionary",
+    "scrape:paskr": "node run.js paskr",
+    "scrape:richmond": "node run.js richmond",
+    "scrape:buildright": "node run.js buildright",
+    "scrape:pulte": "node run.js pulte",
+    "scrape:davidweekley": "node run.js davidweekley",
+    "scrape:candlelight": "node run.js candlelight",
+    "scrape:dai": "node run.js dai",
+    "scrape:fieldstone": "node run.js fieldstone",
+    "scrape:concord": "node run.js concord",
+    "explore": "node explore.js",
     "map": "node map.js"
   },
   "dependencies": {

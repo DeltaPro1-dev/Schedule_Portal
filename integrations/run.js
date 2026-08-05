@@ -8,6 +8,19 @@ const ADAPTERS = {
   supplypro: () => import('./adapters/supplypro.js'),
   buildertrend: () => import('./adapters/buildertrend.js'),
   ivory: () => import('./adapters/ivory.js'),
+  oakwood: () => import('./adapters/oakwood.js'),
+  arive: () => import('./adapters/arive.js'),
+  element: () => import('./adapters/element.js'),
+  visionary: () => import('./adapters/visionary.js'),
+  paskr: () => import('./adapters/paskr.js'),
+  richmond: () => import('./adapters/richmond.js'),
+  buildright: () => import('./adapters/buildright.js'),
+  pulte: () => import('./adapters/pulte.js'),
+  davidweekley: () => import('./adapters/davidweekley.js'),
+  candlelight: () => import('./adapters/candlelight.js'),
+  dai: () => import('./adapters/dai.js'),
+  fieldstone: () => import('./adapters/fieldstone.js'),
+  concord: () => import('./adapters/concord.js'),
 }
 
 const args = process.argv.slice(2)

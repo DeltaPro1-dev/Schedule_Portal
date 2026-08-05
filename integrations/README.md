@@ -5,6 +5,33 @@ and land them in `schedule_portal.imported_schedules`. One adapter per **platfor
 (SupplyPro/Hyphen covers several builders). Playwright drives a real browser with
 **Delta's own credentials**.
 
+## Portal registry (16)
+`npm run scrape:<name>` for any of these; credentials live in the git-ignored `.env`.
+
+| Status | Portals |
+|---|---|
+| ✅ **Live** (extracting) | `supplypro` (Hyphen/Lennar+), `buildertrend` (Precision+), `ivory` |
+| 🟡 **Login works, parser to finalize** | `oakwood` (KOVA), `arive` (IHMS/ECI), `element` (TradeTopia) |
+| 🔵 **Scaffold, needs calibration** | `paskr` (Paskr/RedTeam), `buildright` (CoConstruct), `pulte` (Builder Web Portal), `davidweekley`, `fieldstone` (BuilderPortal.net), `candlelight` · `dai` · `concord` (BuilderLynx) |
+| 🟣 **Special** | `visionary` (Dynamics 365 + MFA — assisted only), `richmond` (ShareFile — schedules are files, needs download+parse) |
+
+BuilderLynx (`candlelight`/`dai`/`concord`) share `adapters` built on `lib/scaffold.js`;
+calibrating one usually finalizes all three. `dai` now routes through a "Premier" link
+emailed by the builder — set `DAI_URL` to that link.
+
+## Assisted calibration with `explore.js`
+Scaffold parsers return `[]` until pointed at the real schedule DOM. To calibrate a portal
+**with someone who knows it**, capture that DOM:
+```bash
+npm run explore <portal>          # opens Chrome, auto-logs-in, snapshots every 6s
+npm run explore <portal> -- --minutes=6 --click="Full Schedule"
+```
+It logs in (solve any MFA/CAPTCHA by hand), then snapshots the page every 6s into
+`debug/explore-<portal>/` while the operator navigates to the schedule they use daily.
+Leave the target page on screen ~20s, then close the window. Those `tNN.html` snapshots
+are what the real parser is written against — replacing the generic table scan in the
+adapter (or in `lib/scaffold.js` for a shared platform).
+
 ## Setup
 ```
 cd integrations

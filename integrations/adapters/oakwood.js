@@ -7,12 +7,12 @@
 // First-pass login selectors — calibrate once with `--headful` (the run dumps the
 // page on login-stuck). Grid pagination (pages 1..N) is followed best-effort.
 import { serviceType } from '../lib/normalize.js'
-import { baseDate, iso } from '../lib/dates.js'
+import { baseDate, iso, targetDates } from '../lib/dates.js'
 
 export const meta = { source: 'oakwood', label: 'Oakwood Homes' }
 
 const BASE = 'https://kova.oakwoodhomesco.com'
-const LIST_PATH = '/KovaProduction/Production/Scheduling2/JobSchActList.aspx?root=true&status=Released'
+const LIST_PATH = '/KovaProduction/Production/Scheduling2/JobSchActList.aspx?root=true&Status=New|Released|Starting%20Today|In%20Progress|Completing%20Today|On%20Hold'
 const baseOf = (env) => (env.OAKWOOD_BASE_URL || BASE).replace(/\/$/, '')
 const listUrl = (env) => baseOf(env) + LIST_PATH
 export const homeUrl = listUrl
@@ -61,7 +61,7 @@ function toISO(s) {
 }
 
 // Read the KOVA grid by header name. Returns one object per activity row.
-async function extractGrid(page) {
+export async function extractGrid(page) {
   return page.evaluate(() => {
     const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
     // The grid is the table that has a "Community" AND "Activity" header.
@@ -107,7 +107,30 @@ export async function scrape(page, { dump, env = {} }) {
   await page.waitForTimeout(1000)
   if (dump) await dump('activity-list')
 
-  // Collect rows across pager pages (best-effort: click numbered pager links).
+  // The grid holds the full history (100/page, oldest first). Delta only needs the
+  // NEXT day (Fri → Sat+Sun+Mon). Sort by Start descending so upcoming jobs come
+  // first, then page only until we've passed the target date(s).
+  const targets = targetDates(baseDate(env)).map(iso)
+  const targetSet = new Set(targets)
+  const earliest = targets.slice().sort()[0]
+
+  const pageDates = async () => (await extractGrid(page)).map((r) => toISO(r.start)).filter(Boolean)
+  async function isDescending() {
+    const d = await pageDates()
+    return d.length > 1 && d[0] >= d[d.length - 1]
+  }
+  // Click the Start (date) column header until the grid is sorted descending.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (await isDescending()) break
+    const header = await page.$('th a:text-is("Start")').catch(() => null)
+    if (!header) break
+    await header.click().catch(() => {})
+    await page.waitForLoadState('networkidle').catch(() => {})
+    await page.waitForTimeout(700)
+  }
+  const descending = await isDescending()
+  console.log(`[oakwood] target dates: ${targets.join(', ')} · sorted descending=${descending}`)
+
   const seen = new Set()
   const all = []
   const collect = async () => {
@@ -118,19 +141,43 @@ export async function scrape(page, { dump, env = {} }) {
       all.push(r)
     }
   }
-  await collect()
-  for (let p = 2; p <= 15; p++) {
-    const link = await page.$(`a:has-text("${p}")`).catch(() => null)
-    if (!link) break
+  // The RadGrid pager is numbered page links (<a><span>N</span></a> via __doPostBack),
+  // no Next button. Click the link for currentPage+1 with a native Playwright click
+  // (fires the postback), then confirm the current page actually advanced.
+  const curPage = () => page.$eval('.rgNumPart a.rgCurrentPage span', (el) => parseInt(el.textContent, 10)).catch(() => null)
+  async function nextPage() {
+    const cur = await curPage()
+    if (!cur) return false
+    let link = page.locator(`.rgNumPart a:not(.rgCurrentPage):has(span:text-is("${cur + 1}"))`).first()
+    if (!(await link.count())) link = page.locator('.rgNumPart a[title*="Next" i], .rgPageNext').first()
+    if (!(await link.count())) return false
     await link.click().catch(() => {})
     await page.waitForLoadState('networkidle').catch(() => {})
-    await page.waitForTimeout(600)
-    const before = all.length
-    await collect()
-    if (all.length === before) break // no new rows → stop
+    await page.waitForTimeout(900)
+    const now = await curPage()
+    if (now !== cur + 1) return false
+    console.log(`[oakwood] page ${now}`)
+    return true
   }
 
-  const today = iso(baseDate(env))
+  await collect()
+  for (let p = 0; p < 40; p++) {
+    // With a descending sort we can stop once this page's oldest date is before the
+    // earliest target. Without it (sort failed) we page the cap and filter at the end.
+    if (descending) {
+      const d = await pageDates()
+      const minDate = d.length ? d.reduce((a, b) => (a < b ? a : b)) : null
+      if (minDate && minDate < earliest) break
+    }
+    const before = all.length
+    if (!(await nextPage())) break
+    await collect()
+    if (all.length === before) break
+  }
+
+  const allDates = all.map((r) => toISO(r.start)).filter(Boolean).sort()
+  console.log(`[oakwood] collected ${all.length} rows · date range ${allDates[0]} .. ${allDates[allDates.length - 1]}`)
+
   return all
     .map((r) => {
       const scheduled_date = toISO(r.start)
@@ -160,6 +207,6 @@ export async function scrape(page, { dump, env = {} }) {
         raw: r,
       }
     })
-    // keep only rows with a valid, non-past date (forward schedule)
-    .filter((r) => r.scheduled_date && r.scheduled_date >= today)
+    // keep only the target day(s): next day, or Fri → Sat+Sun+Mon
+    .filter((r) => r.scheduled_date && targetSet.has(r.scheduled_date))
 }

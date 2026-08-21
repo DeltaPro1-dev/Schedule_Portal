@@ -94,6 +94,37 @@ async function extractCardsWithDay(page) {
   })
 }
 
+// Enrich a job from its marwjobs detail page: subdivision + city (from the
+// "Job Start -- <Subdivision>- <City> (CODE)" header), plan (Model/Elevation),
+// superintendent (name/phone/email). Fields come from a jQuery Mobile reflow table
+// where each cell is "<label><value>".
+async function extractDetail(page) {
+  return page.evaluate(() => {
+    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
+    const f = {}
+    for (const td of document.querySelectorAll('td, div.formcell, li')) {
+      const lab = td.querySelector('.ui-table-cell-label, .formcellheading, b, label')
+      if (!lab) continue
+      const label = norm(lab.innerText)
+      if (!label || label.length > 32) continue
+      const full = norm(td.innerText)
+      const value = full.startsWith(label) ? norm(full.slice(label.length)) : norm(full.replace(label, ''))
+      if (value && !f[label]) f[label] = value
+    }
+    let subdivision = null, city = null
+    const m = norm(document.body.innerText).match(/--\s*(.+?)\s*\(([A-Z]{1,4})\)/)
+    if (m) { const parts = m[1].split(/-\s+/); if (parts.length > 1) city = parts.pop().trim(); subdivision = parts.join('- ').trim() }
+    return {
+      subdivision, city,
+      plan: f['Model/Elevation'] || null,
+      super_name: f['Superintendent'] || null,
+      super_phone: f['Phone'] || null,
+      super_email: f['Email'] || null,
+      address: f['Address'] || null,
+    }
+  })
+}
+
 export async function scrape(page, { dump, env = {} }) {
   await page.goto(pickerUrl(env), { waitUntil: 'domcontentloaded' }).catch(() => {})
   if (!(await isLoggedIn(page))) {
@@ -148,6 +179,28 @@ export async function scrape(page, { dump, env = {} }) {
     scanned += 1
   }
   console.log(`[arive] scanned ${scanned} developments · ${rows.length} job(s) on target day(s)`)
+
+  // Enrich each target-day job from its detail page (subdivision/city/plan/super).
+  for (const r of rows) {
+    const href = r.raw?.href
+    if (!href) continue
+    try {
+      await page.goto(new URL(href, baseOf(env)).href, { waitUntil: 'domcontentloaded' })
+      await page.waitForTimeout(400)
+      const d = await extractDetail(page)
+      if (d.subdivision) { r.community = d.subdivision; r.subdivision = d.subdivision }
+      if (d.plan) r.plan = d.plan
+      if (d.address) r.address = d.address
+      if (d.city && r.address && !r.address.includes(d.city)) r.address = `${r.address}, ${d.city}`
+      r.super_name = d.super_name
+      r.super_phone = d.super_phone
+      r.super_email = d.super_email
+      r.raw.detail = d
+    } catch (e) {
+      console.warn(`[arive] detail enrich skipped (${href}): ${e.message}`)
+    }
+  }
+
   if (dump) await dump('last-dev-calendar')
   return rows
 }

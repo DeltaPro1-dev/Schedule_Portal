@@ -21,6 +21,7 @@ const ADAPTERS = {
   dai: () => import('./adapters/dai.js'),
   fieldstone: () => import('./adapters/fieldstone.js'),
   concord: () => import('./adapters/concord.js'),
+  procore: () => import('./adapters/procore.js'),
 }
 
 const args = process.argv.slice(2)

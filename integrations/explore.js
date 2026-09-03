@@ -29,6 +29,7 @@ const ADAPTERS = {
   dai: () => import('./adapters/dai.js'),
   fieldstone: () => import('./adapters/fieldstone.js'),
   concord: () => import('./adapters/concord.js'),
+  procore: () => import('./adapters/procore.js'),
 }
 
 const args = process.argv.slice(2)
@@ -57,14 +58,40 @@ async function launch() {
 const context = await launch()
 const page = context.pages()[0] || (await context.newPage())
 
+// Portals often open a tool/schedule in a NEW TAB — always snapshot the newest tab,
+// not the one we started on.
+function activePage() {
+  const pages = context.pages().filter((p) => !p.isClosed())
+  return pages[pages.length - 1] || page
+}
+
 async function snap(tag) {
   const stamp = tag
+  const p = activePage()
   try {
-    await writeFile(`${debugDir}/${stamp}.url.txt`, page.url())
-    await writeFile(`${debugDir}/${stamp}.html`, await page.content())
-    await page.screenshot({ path: `${debugDir}/${stamp}.png`, fullPage: true })
+    await writeFile(`${debugDir}/${stamp}.url.txt`, p.url())
+    await writeFile(`${debugDir}/${stamp}.html`, await p.content())
+    await p.screenshot({ path: `${debugDir}/${stamp}.png`, fullPage: true })
   } catch { /* page mid-navigation — skip this tick */ }
 }
+
+// Log the JSON endpoints the portal's UI calls — often the cleanest scrape target
+// (see davidweekley: /TaskApi/get/tasks beat DOM scraping entirely).
+const apiHits = []
+context.on('response', async (res) => {
+  try {
+    const url = res.url()
+    const ct = res.headers()['content-type'] || ''
+    if (!/json/i.test(ct)) return
+    if (/newrelic|nr-data|google-analytics|googletagmanager|guide-content|pendo|sentry|datadog/i.test(url)) return
+    let body = ''
+    try { body = await res.text() } catch { /* body already consumed */ }
+    apiHits.push({ url, status: res.status(), len: body.length })
+    if (body.length > 60 && apiHits.length <= 60) {
+      await writeFile(`${debugDir}/api-${String(apiHits.length).padStart(2, '0')}.json`, body).catch(() => {})
+    }
+  } catch { /* ignore */ }
+})
 
 try {
   const start = urlArg || (mod.homeUrl ? mod.homeUrl(env) : 'about:blank')
@@ -88,13 +115,23 @@ try {
   console.log(`  I'll snapshot the screen every 6s for ~${minutes} min → integrations/${debugDir}/`)
   console.log(`  Leave the target page on screen; you can close the window early when done.\n`)
   for (let i = 1; i <= ticks; i++) {
-    await page.waitForTimeout(6000)
-    if (context.pages().length === 0) { console.log('Window closed — stopping.'); break }
+    await page.waitForTimeout(6000).catch(() => {})
+    if (context.pages().filter((p) => !p.isClosed()).length === 0) { console.log('Window closed — stopping.'); break }
     const idx = String(i).padStart(2, '0')
     await snap(`t${idx}`)
-    process.stdout.write(`  · snapshot ${idx} (${page.url().slice(0, 70)})\n`)
+    process.stdout.write(`  · snapshot ${idx} (${activePage().url().slice(0, 80)})\n`)
   }
   console.log(`\n✔ Done. Snapshots in integrations/${debugDir}/ — tell Claude which page had the schedule.`)
+  if (apiHits.length) {
+    console.log(`\n─ JSON endpoints the UI called (bodies saved as api-NN.json) ─`)
+    const seen = new Set()
+    for (const h of apiHits) {
+      const short = h.url.replace(/https?:\/\/[^/]+/, '').split('?')[0]
+      if (seen.has(short)) continue
+      seen.add(short)
+      console.log(`  [${h.status}] len=${h.len} ${short}`)
+    }
+  }
 } catch (e) {
   console.error('Explore failed:', e.message)
 } finally {

@@ -22,22 +22,14 @@ export async function isLoggedIn(page) {
   return !hasPw && /dynamics\.com/i.test(u)
 }
 
+// Assisted flow: don't auto-login (Azure AD + MFA + "stay signed in" prompts are
+// brittle to script). Just open the app and optionally pre-fill the email; the human
+// completes sign-in/MFA and opens the workspace. scrape() then waits for the grid.
 export async function login(page, env, { dump } = {}) {
   await page.goto(workspaceUrl(env), { waitUntil: 'domcontentloaded' }).catch(() => {})
   const email = await page.$('input[type="email"], input[name="loginfmt"]').catch(() => null)
-  if (email && env.VISIONARY_USER) {
-    await email.fill(env.VISIONARY_USER).catch(() => {})
-    await (await page.$('#idSIButton9, input[type="submit"]'))?.click().catch(() => {})
-  }
-  if (env.VISIONARY_PASS) {
-    const pass = await page.waitForSelector('input[type="password"]', { timeout: 12000 }).catch(() => null)
-    if (pass) { await pass.fill(env.VISIONARY_PASS).catch(() => {}); await (await page.$('#idSIButton9, input[type="submit"]'))?.click().catch(() => {}) }
-  }
-  console.log('Visionary: complete the MFA code + prompts in the browser (up to 4 min)…')
-  const authed = await page
-    .waitForFunction(() => /dynamics\.com/i.test(location.href) && !/login\.microsoftonline|\/oauth2\//i.test(location.href), { timeout: 240000, polling: 1500 })
-    .then(() => true).catch(() => false)
-  if (!authed) { if (dump) await dump('login-stuck'); throw new Error('Visionary login not completed (MFA). Run --headful and enter the code — the profile keeps the session.') }
+  if (email && env.VISIONARY_USER) await email.fill(env.VISIONARY_USER).catch(() => {})
+  // no throw, no blocking wait — the operator drives sign-in; scrape() polls for the grid.
 }
 
 function toISODate(s) {
@@ -95,11 +87,19 @@ async function scrollGrid(page) {
 export async function scrape(page, { dump, env = {} }) {
   await page.goto(workspaceUrl(env), { waitUntil: 'domcontentloaded' }).catch(() => {})
   if (!(await isLoggedIn(page))) await login(page, env, { dump })
-  // After Azure AD login D365 lands on the default Dashboard — re-open the workspace
-  // by its menu item so the activities grid renders.
-  await page.goto(workspaceUrl(env), { waitUntil: 'domcontentloaded' }).catch(() => {})
-  await page.waitForSelector('[id*="WBSActiv"]', { timeout: 45000 }).catch(() => {})
-  await page.waitForTimeout(2500)
+  // ASSISTED FLOW: D365 needs MFA and its workspace only opens via in-app navigation,
+  // so we let the human do it. Wait (up to ~5 min) for the operator to open the
+  // Vendor Portal workspace / schedule; we start extracting once the grid appears.
+  console.log('\n▶ Visionary: in the browser, open the Vendor Portal workspace (the schedule grid).')
+  console.log('  Waiting for the activities grid to appear (up to 5 min)…\n')
+  const ready = await page
+    .waitForFunction(() => !!document.querySelector('[id*="WBSActiv"][value], [id*="WBSActiv"]'), { timeout: 360000, polling: 2000 })
+    .then(() => true).catch(() => false)
+  if (!ready) {
+    if (dump) await dump('no-grid')
+    throw new Error('Visionary: the activities grid never appeared. Open the Vendor Portal workspace/schedule in the window, then re-run.')
+  }
+  await page.waitForTimeout(2000)
 
   const targets = targetDates(baseDate(env))
   const targetSet = new Set(targets.map(iso))

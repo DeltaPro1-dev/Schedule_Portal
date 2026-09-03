@@ -6,3 +6,5 @@ node_modules
 auth/
 debug/
 *.log
+# dropped exports (Excel/CSV from portals) — client data, keep local
+inbox/

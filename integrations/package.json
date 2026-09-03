@@ -23,6 +23,9 @@
     "scrape:concord": "node run.js concord",
     "scrape:procore": "node run.js procore",
     "explore": "node explore.js",
+    "import": "node import-file.js",
+    "import:visionary": "node import-file.js visionary",
+    "import:drhorton": "node import-file.js drhorton",
     "map": "node map.js"
   },
   "dependencies": {

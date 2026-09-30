@@ -10,8 +10,7 @@ and land them in `schedule_portal.imported_schedules`. One adapter per **platfor
 
 | Status | Portals |
 |---|---|
-| ✅ **Live and scheduled** (Task Scheduler, daily) | `supplypro` 06:00 (Hyphen/Lennar+), `buildertrend` 06:10 (new Schedule calendar), `ivory` 06:20, `oakwood` 06:30 (KOVA), `arive` 06:40 (IHMS/ECI), `davidweekley` 06:50 |
-| 🟡 **Parser done, login failing** | `element` (TradeTopia): portal says "Incorrect email and/or password" (2026-09-29) — update `ELEMENT_PASS` |
+| ✅ **Live and scheduled** (Task Scheduler, daily) | `supplypro` 06:00 (Hyphen/Lennar+), `buildertrend` 06:10 (new Schedule calendar), `ivory` 06:20, `oakwood` 06:30 (KOVA), `arive` 06:40 (IHMS/ECI), `davidweekley` 06:50, `element` 07:00 (TradeTopia) |
 | 🔵 **Scaffold, needs calibration** | `paskr` (Paskr/RedTeam), `buildright` (CoConstruct), `pulte` (Builder Web Portal), `procore`, `fieldstone` (BuilderPortal.net), `candlelight` · `dai` · `concord` (BuilderLynx) |
 | 🟣 **Special** | `visionary` (Dynamics 365 + MFA — assisted only), `richmond` (ShareFile — schedules are files, needs download+parse) |
 

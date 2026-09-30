@@ -10,9 +10,9 @@ and land them in `schedule_portal.imported_schedules`. One adapter per **platfor
 
 | Status | Portals |
 |---|---|
-| ✅ **Live** (extracting) | `supplypro` (Hyphen/Lennar+), `buildertrend` (Precision+), `ivory` |
-| 🟡 **Login works, parser to finalize** | `oakwood` (KOVA), `arive` (IHMS/ECI), `element` (TradeTopia) |
-| 🔵 **Scaffold, needs calibration** | `paskr` (Paskr/RedTeam), `buildright` (CoConstruct), `pulte` (Builder Web Portal), `davidweekley`, `fieldstone` (BuilderPortal.net), `candlelight` · `dai` · `concord` (BuilderLynx) |
+| ✅ **Live and scheduled** (Task Scheduler, daily) | `supplypro` 06:00 (Hyphen/Lennar+), `buildertrend` 06:10 (new Schedule calendar), `ivory` 06:20, `oakwood` 06:30 (KOVA), `arive` 06:40 (IHMS/ECI), `davidweekley` 06:50 |
+| 🟡 **Parser done, login failing** | `element` (TradeTopia): portal says "Incorrect email and/or password" (2026-09-29) — update `ELEMENT_PASS` |
+| 🔵 **Scaffold, needs calibration** | `paskr` (Paskr/RedTeam), `buildright` (CoConstruct), `pulte` (Builder Web Portal), `procore`, `fieldstone` (BuilderPortal.net), `candlelight` · `dai` · `concord` (BuilderLynx) |
 | 🟣 **Special** | `visionary` (Dynamics 365 + MFA — assisted only), `richmond` (ShareFile — schedules are files, needs download+parse) |
 
 BuilderLynx (`candlelight`/`dai`/`concord`) share `adapters` built on `lib/scaffold.js`;
@@ -65,7 +65,7 @@ Selectors/parsing are a first pass built from exported PDFs, not the live DOM. F
 
 ## Scheduling (daily)
 Once calibrated, schedule the unattended command:
-- **Windows Task Scheduler** (simplest on your machine): daily action `npm run scrape:supplypro` in this folder.
+- **Windows Task Scheduler** (simplest on your machine): one task per portal, `DeltaSchedulePortal-<Portal>`, running `run-<portal>.cmd` (logs in `logs/<portal>.log`). Settings that matter on a laptop: run on battery, "run as soon as possible after a missed start", "wake the computer" (and allow wake timers in the power plan).
 - or a small VPS / GitHub Actions cron.
 
 ## Security

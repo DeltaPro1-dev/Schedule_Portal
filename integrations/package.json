@@ -26,10 +26,12 @@
     "import": "node import-file.js",
     "import:visionary": "node import-file.js visionary",
     "import:drhorton": "node import-file.js drhorton",
-    "map": "node map.js"
+    "map": "node map.js",
+    "suggest": "node suggest.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
+    "@typesafe-ai/sdk": "^0.6.0",
     "dotenv": "^16.4.5",
     "playwright": "^1.48.0",
     "xlsx": "^0.18.5"

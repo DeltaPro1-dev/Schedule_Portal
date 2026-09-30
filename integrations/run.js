@@ -3,6 +3,7 @@ import { chromium } from 'playwright'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { getOrgId, upsertSchedules, mapImported, syncMappedCardDetails } from './lib/supabase.js'
 import { toRow } from './lib/normalize.js'
+import { suggestServices } from './lib/suggest.js'
 
 const ADAPTERS = {
   supplypro: () => import('./adapters/supplypro.js'),
@@ -90,6 +91,8 @@ try {
   } catch (e) {
     console.warn(`Mapping skipped: ${e.message}`)
   }
+  // Jev suggestions for new client tasks without a rule (suggestion only; never blocks the run).
+  try { await suggestServices({ max: 60 }) } catch (e) { console.warn(`Jev suggestions skipped: ${e.message}`) }
   console.log(`Debug artifacts: integrations/${debugDir}`)
 } catch (e) {
   console.error('Run failed:', e.message)

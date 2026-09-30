@@ -10,13 +10,13 @@ and land them in `schedule_portal.imported_schedules`. One adapter per **platfor
 
 | Status | Portals |
 |---|---|
-| ✅ **Live and scheduled** (Task Scheduler, daily) | `supplypro` 06:00 (Hyphen/Lennar+), `buildertrend` 06:10 (new Schedule calendar), `ivory` 06:20, `oakwood` 06:30 (KOVA), `arive` 06:40 (IHMS/ECI), `davidweekley` 06:50, `element` 07:00 (TradeTopia) |
-| 🔵 **Scaffold, needs calibration** | `paskr` (Paskr/RedTeam), `buildright` (CoConstruct), `pulte` (Builder Web Portal), `procore`, `fieldstone` (BuilderPortal.net), `candlelight` · `dai` · `concord` (BuilderLynx) |
+| ✅ **Live and scheduled** (Task Scheduler, daily) | `supplypro` 06:00 (Hyphen/Lennar+), `buildertrend` 06:10 (new Schedule calendar), `ivory` 06:20, `oakwood` 06:30 (KOVA), `arive` 06:40 (IHMS/ECI), `davidweekley` 06:50, `element` 07:00 (TradeTopia), `candlelight` 07:10 · `dai` 07:20 · `concord` 07:30 (BuilderLynx Unit Tasks, today..+60 days, `lib/builderlynx.js`) |
+| 🔵 **Scaffold, needs calibration** | `paskr` (Paskr/RedTeam), `buildright` (CoConstruct), `pulte` (Builder Web Portal), `procore`, `fieldstone` (BuilderPortal.net) |
 | 🟣 **Special** | `visionary` (Dynamics 365 + MFA — assisted only), `richmond` (ShareFile — schedules are files, needs download+parse) |
 
-BuilderLynx (`candlelight`/`dai`/`concord`) share `adapters` built on `lib/scaffold.js`;
-calibrating one usually finalizes all three. `dai` now routes through a "Premier" link
-emailed by the builder — set `DAI_URL` to that link.
+BuilderLynx (`candlelight`/`dai`/`concord`) share `lib/builderlynx.js`: log in (the session is not
+kept on DAI/Concord), read Unit Tasks by status (New, In progress, Scheduled, Confirmed, Late…) and
+keep tasks starting today..+60 days (builders leave old tasks as "New").
 
 ## Assisted calibration with `explore.js`
 Scaffold parsers return `[]` until pointed at the real schedule DOM. To calibrate a portal

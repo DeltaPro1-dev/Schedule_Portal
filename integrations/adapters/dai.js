@@ -1,15 +1,13 @@
-// DAI adapter. BuilderLynx vendor portal (dai.builderlynx.com). NOTE: DAI now routes
-// through a "Premier" link they send by EMAIL — set DAI_URL to that link when it
-// arrives (the static login may no longer land on the schedule). First-pass scaffold:
-// login + schedule dump + generic parse — calibrate in the assisted session.
-import { makeScaffold } from '../lib/scaffold.js'
+// DAI adapter. BuilderLynx vendor portal (dai.builderlynx.com). The session is not kept between runs,
+// so every run logs in (lib/builderlynx.js checks the form first).
+// Unit Tasks read by lib/builderlynx.js (calibrated 2026-09-29 on the live portals).
+import { makeBuilderLynx } from '../lib/builderlynx.js'
 
-const A = makeScaffold({
+const A = makeBuilderLynx({
   source: 'dai',
   label: 'DAI',
-  hostRe: /builderlynx/i,
-  homeUrl: (env) => env.DAI_URL || 'https://dai.builderlynx.com',
-  scheduleUrl: (env) => env.DAI_SCHEDULE_URL || null,
+  host: 'https://dai.builderlynx.com',
+  urlKey: 'DAI_URL',
   userKey: 'DAI_USER',
   passKey: 'DAI_PASS',
 })

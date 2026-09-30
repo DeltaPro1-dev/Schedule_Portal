@@ -1,14 +1,12 @@
 // Concord Homes adapter. BuilderLynx vendor portal (concord.builderlynx.com).
-// First-pass scaffold: login + schedule dump + generic parse — calibrate the schedule
-// view in the assisted session.
-import { makeScaffold } from '../lib/scaffold.js'
+// Unit Tasks read by lib/builderlynx.js (calibrated 2026-09-29 on the live portals).
+import { makeBuilderLynx } from '../lib/builderlynx.js'
 
-const A = makeScaffold({
+const A = makeBuilderLynx({
   source: 'concord',
   label: 'Concord Homes',
-  hostRe: /builderlynx/i,
-  homeUrl: (env) => env.CONCORD_URL || 'https://concord.builderlynx.com/',
-  scheduleUrl: (env) => env.CONCORD_SCHEDULE_URL || null,
+  host: 'https://concord.builderlynx.com',
+  urlKey: 'CONCORD_URL',
   userKey: 'CONCORD_USER',
   passKey: 'CONCORD_PASS',
 })

@@ -145,7 +145,18 @@ async function extractDetail(page) {
   const superPhone = superLines.find((l) => /\d{3}[)\s.\-]*\d{3}[\s.\-]*\d{4}/.test(l)) || null
   const superName = superLines.find((l) => !/@/.test(l) && l !== superPhone && !/^\+?\(?\d/.test(l)) || null
 
+  // PO line items (Builder SKU / Description / Order … / UOM / Unit Price / Total) and the order
+  // Total — the amount the builder approved, used to check what is invoiced per house.
+  const money = (s) => { const n = Number(String(s ?? '').replace(/[$,\s]/g, '')); return Number.isFinite(n) ? n : null }
+  const cells = (row) => [...row.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((c) => dec(c[1].replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '')))
+  const itemsTable = html.match(/<b>\s*Builder SKU\s*<\/b>[\s\S]*?<\/table>/i)?.[0] ?? ''
+  const poItems = [...itemsTable.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)].map((r) => cells(r[1]))
+    .filter((c) => c.length >= 9 && /\$/.test(c[c.length - 1]))
+    .map((c) => ({ sku: c[0] || null, description: c[1] || null, qty: money(c[2]), uom: c[c.length - 3] || null, unitPrice: money(c[c.length - 2]), total: money(c[c.length - 1]) }))
+  const poTotal = money(itemsTable.match(/<b>\s*Total:\s*<\/b>[\s\S]*?<b>\s*([$\d.,-]+)\s*<\/b>/i)?.[1])
+
   return {
+    poItems, poTotal,
     task: grab(['Task']),
     planEtc: grab(['Plan / Elevation / Swing', 'Plan/Elevation/Swing']),
     subPhase: grab(['Subdivision / Phase', 'Subdivision/Phase']),

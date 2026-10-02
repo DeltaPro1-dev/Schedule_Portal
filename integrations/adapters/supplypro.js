@@ -122,7 +122,7 @@ async function extractToDo(page) {
 // Extract the circled OrderDetail fields. Fields render as `<b>Label:</b><br>value`
 // (detail column) or `<b>Label:</b></td><td>value` (Order Information table); the
 // builder title is a centered `<td class="large"><b>…</b></td>`.
-async function extractDetail(page) {
+export async function extractDetail(page) {
   const html = await page.evaluate(() => document.body.innerHTML)
   const dec = (s) => s.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim()
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')

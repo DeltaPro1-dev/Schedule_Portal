@@ -27,7 +27,8 @@
     "import:visionary": "node import-file.js visionary",
     "import:drhorton": "node import-file.js drhorton",
     "map": "node map.js",
-    "suggest": "node suggest.js"
+    "suggest": "node suggest.js",
+    "payments:oakwood": "node payments.js oakwood"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",

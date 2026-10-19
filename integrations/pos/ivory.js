@@ -27,20 +27,31 @@ export async function scrapePOs(page, { log = console.log } = {}) {
   for (let i = 0; i < 20 && !template; i++) await page.waitForTimeout(500)
   if (!template) throw new Error('Ivory: the PO list request was not seen')
   const rows = new Map()
+  const list = (status, start, length) => page.evaluate(async ({ body, csrf, status, start, length }) => {
+    const params = new URLSearchParams(body)
+    params.set('job_status', status); params.set('from_date', ''); params.set('to_date', ''); params.set('start', String(start)); params.set('length', String(length))
+    const response = await fetch('/vendorApp/purchaselist', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'x-csrf-token': csrf, 'x-requested-with': 'XMLHttpRequest' }, body: params.toString() })
+    if (!response.ok) return { error: response.status }
+    const json = await response.json()
+    return { total: json.recordsFiltered, data: json.data ?? [] }
+  }, { ...template, status, start, length })
   for (const status of ['active', 'archive']) {
-    for (let start = 0; ; start += 500) {
-      const result = await page.evaluate(async ({ body, csrf, status, start }) => {
-        const params = new URLSearchParams(body)
-        params.set('job_status', status); params.set('from_date', ''); params.set('to_date', ''); params.set('start', String(start)); params.set('length', '500')
-        const response = await fetch('/vendorApp/purchaselist', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'x-csrf-token': csrf, 'x-requested-with': 'XMLHttpRequest' }, body: params.toString() })
-        if (!response.ok) return { error: response.status }
-        const json = await response.json()
-        return { total: json.recordsFiltered, data: json.data ?? [] }
-      }, { ...template, status, start })
+    // The list has no fixed order, so pages of 500 skipped some POs and repeated others on every run (2026-10-19:
+    // 324 missing on one run, 200 on another). Ask the whole list in one request; page only if the portal refuses.
+    const first = await list(status, 0, 500)
+    if (first.error) throw new Error(`Ivory list ${status} returned ${first.error}`)
+    log(`  ${status}: ${first.total} POs`)
+    const whole = first.total > 500 ? await list(status, 0, first.total) : first
+    if (!whole.error && whole.data.length >= first.total) {
+      for (const d of whole.data) if (d.ponumber) rows.set(String(d.ponumber), poRow(d))
+      continue
+    }
+    for (const d of first.data) if (d.ponumber) rows.set(String(d.ponumber), poRow(d))
+    for (let start = 500; start < first.total; start += 500) {
+      const result = await list(status, start, 500)
       if (result.error) throw new Error(`Ivory list ${status} returned ${result.error}`)
       for (const d of result.data) if (d.ponumber) rows.set(String(d.ponumber), poRow(d))
-      if (start === 0) log(`  ${status}: ${result.total} POs`)
-      if (!result.data.length || start + 500 >= result.total) break
+      if (!result.data.length) break
     }
   }
   return [...rows.values()].filter((row) => row.po_date)

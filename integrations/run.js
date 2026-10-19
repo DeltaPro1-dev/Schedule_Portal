@@ -45,9 +45,10 @@ await mkdir('auth', { recursive: true })
 
 // Real Chrome + a persistent per-adapter profile, with the automation flag off, so
 // reCAPTCHA behaves (passes with one click) and the trusted session persists across
-// runs. Falls back to bundled Chromium if Chrome isn't installed.
+// runs. Falls back to bundled Chromium if Chrome isn't installed. A desktop-size window (2026-10-19, cloud server):
+// a small one collapses side panels such as Buildertrend's job list.
 async function launch() {
-  const opts = { headless: !headful, viewport: null, args: ['--disable-blink-features=AutomationControlled'] }
+  const opts = { headless: !headful, viewport: null, args: ['--disable-blink-features=AutomationControlled', '--window-size=1600,1000'] }
   try { return await chromium.launchPersistentContext(profileDir, { ...opts, channel: 'chrome' }) }
   catch { return await chromium.launchPersistentContext(profileDir, opts) }
 }

@@ -153,8 +153,14 @@ export async function scrape(page, { dump, env = {} }) {
     if (!(await link.count())) return false
     await link.click().catch(() => {})
     await page.waitForLoadState('networkidle').catch(() => {})
-    await page.waitForTimeout(900)
-    const now = await curPage()
+    // The postback can take a few seconds on a slower machine (cloud server, 2026-10-19: it stopped on page 3
+    // and missed the next day's jobs): wait up to ~10 s for the pager to move instead of checking once.
+    let now = null
+    for (let wait = 0; wait < 20; wait++) {
+      await page.waitForTimeout(500)
+      now = await curPage()
+      if (now === cur + 1) break
+    }
     if (now !== cur + 1) return false
     console.log(`[oakwood] page ${now}`)
     return true

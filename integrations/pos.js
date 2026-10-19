@@ -16,7 +16,7 @@ const robot = await POS[name]()
 const adapter = await import(`./adapters/${name}.js`) // same login and browser profile as the schedule robot
 const debugDir = `debug/pos-${name}`
 await mkdir(debugDir, { recursive: true })
-const opts = { headless: true, viewport: null, args: ['--disable-blink-features=AutomationControlled'] }
+const opts = { headless: true, viewport: null, args: ['--disable-blink-features=AutomationControlled', '--window-size=1600,1000'] }
 let context
 try { context = await chromium.launchPersistentContext(`auth/${name}-profile`, { ...opts, channel: 'chrome' }) }
 catch { context = await chromium.launchPersistentContext(`auth/${name}-profile`, opts) }

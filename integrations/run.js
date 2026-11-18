@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { chromium } from 'playwright'
 import { mkdir, writeFile } from 'node:fs/promises'
-import { getOrgId, upsertSchedules, mapImported, syncMappedCardDetails, reconcileImported } from './lib/supabase.js'
+import { getOrgId, upsertSchedules, mapImported, syncMappedCardDetails, reconcileImported, logRobotRun } from './lib/supabase.js'
 import { toRow } from './lib/normalize.js'
 import { suggestServices } from './lib/suggest.js'
 
@@ -34,7 +34,8 @@ if (!name || !ADAPTERS[name]) {
   process.exit(1)
 }
 
-const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+const startedAt = new Date()
+const stamp = startedAt.toISOString().replace(/[:.]/g, '-')
 const debugDir = `debug/${name}-${stamp}`
 const profileDir = `auth/${name}-profile` // persistent Chrome profile: session + captcha trust
 
@@ -102,10 +103,12 @@ try {
   // Jev suggestions for new client tasks without a rule (suggestion only; never blocks the run).
   try { await suggestServices({ max: 60 }) } catch (e) { console.warn(`Jev suggestions skipped: ${e.message}`) }
   console.log(`Debug artifacts: integrations/${debugDir}`)
+  await logRobotRun(mod.meta.source, startedAt, true, rows.length, null)
 } catch (e) {
   console.error('Run failed:', e.message)
   await dump('error')
   process.exitCode = 1
+  await logRobotRun(mod.meta.source, startedAt, false, null, e.message)
 } finally {
   await context.close()
 }

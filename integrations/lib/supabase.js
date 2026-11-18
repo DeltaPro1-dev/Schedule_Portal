@@ -39,6 +39,15 @@ export async function upsertSchedules(rows) {
 // Jobs the builder moved or removed (owner, 2026-11-17; Delta-Platform migration 20270155090000): after each run, the
 // database moves a still-unassigned card to the job's new day, notes the ones already dispatched, and marks the jobs
 // that left the builder portal (comment on the card; nothing deleted). A run that saw nothing changes nothing.
+// Every run is logged (owner, 2026-11-17; Delta-Platform migration 20270156090000): a robot failing twice in a row
+// shows a warning in the Schedule and e-mails the office. Never throws: before the migration it only warns.
+export async function logRobotRun(source, startedAt, ok, rows, error) {
+  try {
+    const { error: e } = await supabase.rpc('robot_run_log', { p_source: source, p_started_at: startedAt.toISOString(), p_ok: ok, p_rows: rows, p_error: error ? String(error).slice(0, 1000) : null })
+    if (e) console.warn(`Run log skipped: ${e.message}`)
+  } catch (e) { console.warn(`Run log skipped: ${e.message}`) }
+}
+
 export async function reconcileImported(source, externalIds) {
   if (!externalIds.length) return { skipped: 'nothing seen' }
   const { data, error } = await supabase.rpc('reconcile_imported', { p_source: source, p_seen: externalIds })

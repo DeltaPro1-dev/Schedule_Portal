@@ -36,6 +36,16 @@ export async function upsertSchedules(rows) {
   return { count: count ?? rows.length }
 }
 
+// Jobs the builder moved or removed (owner, 2026-11-17; Delta-Platform migration 20270155090000): after each run, the
+// database moves a still-unassigned card to the job's new day, notes the ones already dispatched, and marks the jobs
+// that left the builder portal (comment on the card; nothing deleted). A run that saw nothing changes nothing.
+export async function reconcileImported(source, externalIds) {
+  if (!externalIds.length) return { skipped: 'nothing seen' }
+  const { data, error } = await supabase.rpc('reconcile_imported', { p_source: source, p_seen: externalIds })
+  if (error) throw error
+  return data
+}
+
 // Fill only missing presentation fields on already-mapped cards. This preserves
 // dispatch/manual edits while allowing a calibrated adapter to enrich older imports.
 export async function syncMappedCardDetails(source) {

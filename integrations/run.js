@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { chromium } from 'playwright'
 import { mkdir, writeFile } from 'node:fs/promises'
-import { getOrgId, upsertSchedules, mapImported, syncMappedCardDetails } from './lib/supabase.js'
+import { getOrgId, upsertSchedules, mapImported, syncMappedCardDetails, reconcileImported } from './lib/supabase.js'
 import { toRow } from './lib/normalize.js'
 import { suggestServices } from './lib/suggest.js'
 
@@ -91,6 +91,13 @@ try {
     console.log(`Synced details on ${synced} existing card(s)`)
   } catch (e) {
     console.warn(`Mapping skipped: ${e.message}`)
+  }
+  // Moved / removed jobs (2026-11-17). Never blocks the run; before the migration the function does not exist.
+  try {
+    const rec = await reconcileImported(mod.meta.source, rows.map((r) => r.external_id))
+    console.log(`Reconcile: ${JSON.stringify(rec)}`)
+  } catch (e) {
+    console.warn(`Reconcile skipped: ${e.message}`)
   }
   // Jev suggestions for new client tasks without a rule (suggestion only; never blocks the run).
   try { await suggestServices({ max: 60 }) } catch (e) { console.warn(`Jev suggestions skipped: ${e.message}`) }
